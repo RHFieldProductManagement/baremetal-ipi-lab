@@ -8,7 +8,7 @@ Firstly, welcome to Red Hat Tech Exchange 2020! The past few years have been an 
 
 One of the big steps forward for us was to introduce tighter integration with the underlying infrastructure, allowing OpenShift to have more control over system deployment, maintenance, and configuration. With OpenShift 4.0 we came out with tight integration for Amazon Web Services, i.e. from a single bootstrap/provisioning node it could bring up a new OpenShift cluster that had control over AWS directly so it could automatically scale, build new nodes when required, upgrade cluster versions, and so on. As OpenShift 4.x continues to evolve we're adding further integrations such as OpenStack, VMware, and now, as per the purpose of this lab, bare metal.
 
-This lab is primarily targeted to get you, the attendees, a little bit more familiar with how Kubernetes-native Infrastructure (KNI) is built, what components it comprises of, and what it currently looks like in its early-development stage. The rest of the materials will aim to do the following-
+This lab is primarily targeted to get you, the attendees, a little bit more familiar with how OpenShift Baremetal environment is built, what components it comprises of, and what it currently looks like in its early-development stage. The rest of the materials will aim to do the following-
 
 * Introduce the concepts of OpenShift Baremetal IPI Install, OpenShift virtualization and OpenShift Container Storage.
 
