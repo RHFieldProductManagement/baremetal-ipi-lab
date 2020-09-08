@@ -87,7 +87,7 @@ As the openshift-installer is still building its support for baremetal configura
 9. The openshift-installer seeds the list of baremetal servers that make up the underlying infrastructure to the baremetal-operator so they can immediately be managed as cluster resources (Note: this step is still under development).<br /><br />
 10. The deployment succeeds and authentication information is written to a local configuration file.
 
-## OpenShift Container Storage (OCS/Rook)
+## OpenShift Container Storage (Ceph/Rook)
 
 OpenShift 4.x, going forward, is standardising on Ceph as the consistent backend storage platform, replacing some of the earlier generations of storage platforms based on Gluster. We're introducing OpenShift Container Storage based on the [Rook](https://rook.io) operator - Rook turns distributed storage systems into self-managing, self-scaling, self-healing storage services. It automates the tasks of a storage administrator: deployment, bootstrapping, configuration, provisioning, scaling, upgrading, migration, disaster recovery, monitoring, and resource management. Rook uses the power of the Kubernetes platform to deliver its services: cloud-native container management, scheduling, and orchestration.
 
