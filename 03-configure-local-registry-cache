@@ -1,1 +1,7 @@
  
+Show how the local registry is already configured 
+Run through steps on how to pull down registry images to remote registry
+Add bits to the install-config.yaml to reference local registry
+Precache RHCOS images locally
+Add bits to the install-config.yaml to reference local RHCOS image location
+Add bits to the install-config.yaml to enable trust bundle for local registry
