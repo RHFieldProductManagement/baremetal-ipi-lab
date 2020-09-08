@@ -56,14 +56,6 @@ The repo for the dev-scripts lives in the **"openshift-metal3"** repo and can be
 
 > **NOTE**: The dev-scripts repository is actually *contracting* over time as more and more of the glue code that exists in the dev-scripts repository that helps get KNI gets up actually gets merged into OpenShift itself. The OpenShift community have really embraced baremetal as a target platform and are helping us land code that will reduce all of the current workarounds that exist in the dev-scripts.
 
-## openshift-kni
-
-The 'openshift-kni' project is a repo where Red Hat is currently housing the 'downstream' bits for OpenShift with KNI capabilities, i.e. our first productisation effort of KNI known as RHHI.next. This repo contains the current installation scripts for the very-specific and very-prescribed architecture that we're looking at testing with some of our high-touch beta customers later this year. These installation scripts (and associated documentation) are based around the 'dev-scripts' code as above but without support for VM based testing, instead the focus is to enable field testing on real baremetal environments.
-
-As we're not using the specific hardware stack that this setup will utilise we're not using this code at this stage, but it's exactly what we'll use with customers during the high touch beta. We expect high touch beta customers to utilise 4x Dell PowerEdge R640 nodes (each with 2x Mellanox NICs), and 2x Mellanox ethernet switches, all in a 12U rack. 1 node is used as a "provisioning host", while the other 3 nodes are OpenShift control plane (+worker) machines.
-
-The current repo, along with more information, can be found [here](https://github.com/openshift-kni/install-scripts).
-
 ## OpenShift Installer
 
 In Red Hat OpenShift Container Platform 4.x we introduced a brand new type of installer to the OpenShift world, based on the CoreOS acquisition. This new installer leverages Terraform to both deploy CoreOS (or now Red Hat Enterprise Linux CoreOS) and the Kubernetes (or Red Hat OpenShift Container Platform) on-top. The new installer is built with Golang and supports deployment on a number of platforms, but today the most comprehensive support is with Amazon Web Services.
