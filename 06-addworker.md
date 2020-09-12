@@ -1,6 +1,6 @@
-#**Adding/Building a Worker**
+#**Add Additional Worker**
 
-In this section we're going to demonstrate how to expand a KNI environment with an additional **worker** node, i.e. a node that will just run workloads, not cluster services. The eagle eyed amongst you may notice that we listed _"NUM\_WORKERS=0"_ in our initial configuration file, but we've actually got a spare unused "baremetal" host in the environment you're working in. We simply need to tell the baremetal operator about it, and get it to deploy CoreOS+OpenShift onto it.
+In this section we're going to demonstrate how to expand a Baremetal IPI environment with an additional 3rd **worker** node, i.e. a node that will just run workloads, not cluster services. The eagle eyed amongst you may notice that we listed _"NUM\_WORKERS=2"_ in our initial configuration file, but we've actually got a spare unused "baremetal" host in the environment you're working in. We simply need to tell the baremetal operator about it, and get it to deploy RHCOS and OpenShift onto it.
 
 We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully there's a handy script in the metal3-io repo that we can use to help us, and the repo is already cloned for us by the dev-scripts. Let's first navigate to the location of this script:
 
