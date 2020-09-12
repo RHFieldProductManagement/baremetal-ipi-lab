@@ -30,7 +30,7 @@ Each dedicated environment has a '**jumphost**' or '**workstation**' that acts a
 
 Each environment has a pre-built "**provisioner**" host that will be used to bootstrap all of the OpenShift cluster on-top of the underlying "baremetal" infrastructure that will be automated through OpenStack Ironic and IPMI. This provisioner host has been partially configured for speed and convenience, but not in any way that will detract from the labs purpose, or cause confusion, this machine will be used extensively throughout the lab as our main point of execution.
 
-There are many other dedicated machines (VM's in Ravello) that will make up the rest of the lab, some of the internals can be seen below, and will be accessible to you in your lab; and can be useful for viewing the console output of some of your systems, just be very careful with it when you're using it (a link will be displayed for you when you follow the instructions in the next section). For information purposes, here's mine:
+There are many other dedicated machines (VM's in RHPDS) that will make up the rest of the lab, some of the internals can be seen below, and will be accessible to you in your lab; and can be useful for viewing the console output of some of your systems, just be very careful with it when you're using it (a link will be displayed for you when you follow the instructions in the next section). For information purposes, here's mine:
 
 <img src="img/hosts.png" style="width: 1000px;"/>
 
@@ -38,13 +38,14 @@ See below for a description of each of the hosts you can see:
 
 | Node Name | Description |
 |---|---|
-| **0Workstation** | This is the **jumphost** that we'll connect directly into in the next lab section, each attendee has a dedicated jumphost for their specific/dedicated environment. |
-| **1provisioner** | The partially build-up provisioner host, a RHEL7 machine pre-configured with package access that will bootstrap the rest of the cluster as per the instructions in later lab sections. |
-| **2master01** | An empty, i.e. no operating system installed or configured, sytem that will become one of our OpenShift master systems. Note that this system has been configured on the Ravello side to be connected to the correct networks and has multiple disks so we can utilise it for storage too (more later).|
-| **2master02** | As above, an additional master. |
-| **2master03** | As above, an additional master. |
-| **3worker01** | A further empty system (without additional storage disks) that we'll use to expand the OpenShift cluster during a later step.|
-| **ipmi-host** | This host provides vBMC (i.e. virtual IPMI) capabilities and wraps IPMI commands back to the Ravello API with an authentication token. This setup is automated and you don't have to worry about configuring it in this lab; assume that IPMI is automagically available in your lab already.<br /><br /> This machine also hosts DHCP and DNS for our environment, as will be required for all KNI deployments in the field, and also acts as a package repo server. |
+| **1provisioner** | The partially build-up provisioner host, a RHEL8 machine pre-configured with package access that will bootstrap the rest of the cluster as per the instructions in later lab sections.  This host is also our **jumphost** that we will connect directly to. |
+| **master-0** | An empty, i.e. no operating system installed or configured, sytem that will become one of our OpenShift master systems. Note that this system has been configured on the RHPDS side to be connected to the correct networks.|
+| **master-1** | As above, an additional master. |
+| **master-2** | As above, an additional master. |
+| **worker-0** | A further empty system that we'll use during the deployment of OpenShift cluster.  Further we will add additional storage for OCS during lab.|
+| **worker-1** | As above, an additional worker. |
+| **worker-2** | As above, an additiona worker that will be added after OpenShift cluster deployment |
+| **bmc** | This host provides vBMC (i.e. virtual IPMI) capabilities and wraps IPMI commands back to the Ravello API with an authentication token. This setup is automated and you don't have to worry about configuring it in this lab; assume that IPMI is automagically available in your lab already.<br /><br /> This machine also hosts DHCP and DNS for our environment, as will be required for all KNI deployments in the field, and also acts as a package repo server. |
 
 # Connecting
 
