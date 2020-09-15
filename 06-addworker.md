@@ -202,7 +202,7 @@ After a few minutes when the machine is ready you should also be able to take a 
 
 <img src="img/worker-console.png"/>
 
-If you click on the **"worker-0"** element on the left hand side you should be able to dive into the `Node` in a bit more detail and get some more statistics about it:
+If you click on the **"worker-2"** element on the left hand side you should be able to dive into the `Node` in a bit more detail and get some more statistics about it:
 
 <img src="img/worker-overview.png"/>
 
