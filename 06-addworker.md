@@ -2,10 +2,17 @@
 
 In this section we're going to demonstrate how to expand a Baremetal IPI environment with an additional 3rd **worker** node, i.e. a node that will just run workloads, not cluster services. The eagle eyed amongst you may notice that we listed _"NUM\_WORKERS=2"_ in our initial configuration file, but we've actually got a spare unused "baremetal" host in the environment you're working in. We simply need to tell the baremetal operator about it, and get it to deploy RHCOS and OpenShift onto it.
 
-We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully there's a handy script in the metal3-io repo that we can use to help us, and the repo is already cloned for us by the dev-scripts. Let's first navigate to the location of this script:
+We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully in this lab there is a handy way to achieve this.  First we need to obtain the ipmi port of the **worker-2** node by using the following one liner against the install-config.yaml we used to deploy the initial cluster:
 
 ~~~bash
-cat << EOF > ~/bmh.yml
+[cloud-user@provision scripts]$ for PORT in 6200 6201 6202 6203 6204 6205; do grep -q $PORT ~/scripts/install-config.yaml; if [ $? -eq 1 ]; then echo $PORT; fi; done
+6203
+~~~
+
+One we have the port number lets create the following baremetal node definition file.  Make sure to update the port number to in the ipmi address line to the value you obtained above:
+
+~~~bash
+[cloud-user@provision scripts]$ cat << EOF > ~/bmh.yml
 ---
 apiVersion: v1
 kind: Secret
@@ -25,7 +32,7 @@ spec:
   bootMACAddress: de:ad:be:ef:00:52
   hardwareProfile: openstack
   bmc:
-    address: ipmi://10.20.0.3:6200
+    address: ipmi://10.20.0.3:6203
     credentialsName: worker-2-bmc-secret
 EOF
 ~~~
