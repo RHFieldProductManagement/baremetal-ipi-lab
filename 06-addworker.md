@@ -5,7 +5,29 @@ In this section we're going to demonstrate how to expand a Baremetal IPI environ
 We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully there's a handy script in the metal3-io repo that we can use to help us, and the repo is already cloned for us by the dev-scripts. Let's first navigate to the location of this script:
 
 ~~~bash
-kni@provisioner$ cd ~/go/src/github.com/metal3-io/baremetal-operator/
+cat << EOF > ~/bmh.yml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: worker-2-bmc-secret
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: cmVkaGF0
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: worker-2
+spec:
+  online: true
+  bootMACAddress: de:ad:be:ef:00:52
+  hardwareProfile: openstack
+  bmc:
+    address: ipmi://10.20.0.3:6200
+    credentialsName: worker-2-bmc-secret
+EOF
 ~~~
 
 As with most baremetal configurations, it's likely that the administrator will know the critical details about baremetal systems within the environment, or at least the ones that are important for us, such as how to power it on, and some unique identifier such as the MAC address. In our sandbox environment we've got an additional "baremetal" machine with the following configuration:
