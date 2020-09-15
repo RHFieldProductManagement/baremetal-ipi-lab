@@ -9,10 +9,10 @@ We need to supply a baremetal node defintion to the baremetal operator to do thi
 6203
 ~~~
 
-One we have the port number lets create the following baremetal node definition file.  Make sure to update the port number to in the ipmi address line to the value you obtained above:
+One we have the port number lets create the following baremetal node definition file.  Make sure to update the port number to in the ipmi address line to the value you obtained above.  All other values, including the MAC address can remain the same since this lab is running in a virtualized environment.
 
 ~~~bash
-[cloud-user@provision scripts]$ cat << EOF > ~/bmh.yml
+[cloud-user@provision scripts]$ cat << EOF > ~/bmh.yaml
 ---
 apiVersion: v1
 kind: Secret
@@ -37,51 +37,31 @@ spec:
 EOF
 ~~~
 
-As with most baremetal configurations, it's likely that the administrator will know the critical details about baremetal systems within the environment, or at least the ones that are important for us, such as how to power it on, and some unique identifier such as the MAC address. In our sandbox environment we've got an additional "baremetal" machine with the following configuration:
-
-| Parameter | Value |
-|-----------|-------|
-| **IPMI URI** | ipmi://192.0.2.224 |
-| **IPMI Username** | admin |
-| **IPMI Password** | redhat |
-| **MAC Address** | 2c:c2:60:01:02:05
-
-> **NOTE**: These are fixed entries, defined within the environment that you're running within, please do not modify these or this section of the lab is unlikely to work.
-
-Now we can run the script that will generate a baremetal node definition for us:
-
-~~~bash
-kni@provisioner$ go run cmd/make-bm-worker/main.go \
-	-boot-mac "2c:c2:60:01:02:05" -address "ipmi://192.0.2.224" \
-	-password "redhat" -user "admin" openshift-worker-0 > ~/openshift-worker-0.yaml
-(no output)
-~~~
-
 Let's look at the file that it created:
 
 ~~~bash
-$ cat ~/openshift-worker-0.yaml
+$ cat ~/bmh.yaml
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: openshift-worker-0-bmc-secret
+  name: worker-2-bmc-secret
 type: Opaque
 data:
   username: YWRtaW4=
   password: cmVkaGF0
-
 ---
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: openshift-worker-0
+  name: worker-2
 spec:
   online: true
-  bootMACAddress: 2c:c2:60:01:02:05
+  bootMACAddress: de:ad:be:ef:00:52
+  hardwareProfile: openstack
   bmc:
-    address: ipmi://192.0.2.224
-    credentialsName: openshift-worker-0-bmc-secret
+    address: ipmi://10.20.0.3:6203
+    credentialsName: worker-2-bmc-secret
 ~~~
 
 You'll see that this is set to create two different resources, one is a `secret` that contains a base64 encoded username/password for IPMI access for the baremetal host, and then a `BareMetalHost` object (linked to the secret) that will define the node within the cluster itself, which is enough for the baremetal operator to kick off the deployment.
@@ -89,36 +69,39 @@ You'll see that this is set to create two different resources, one is a `secret`
 Let's now create these resources:
 
 ~~~bash
-kni@provisioner$ cd ~/dev-scripts/
-kni@provisioner$ oc create -f ~/openshift-worker-0.yaml -n openshift-machine-api
-secret/openshift-worker-0-bmc-secret created
-baremetalhost.metal3.io/openshift-worker-0 created
+
+[cloud-user@provision ~]$ oc create -f ~/bmh.yaml -n openshift-machine-api
+
 ~~~
 
 Immediately you should this being reflected in as a new `BareMetalHost`, note the new entry with a status of "**inspecting**":
 
 ~~~bash
-kni@provisioner$ oc get baremetalhosts -n openshift-machine-api
-NAME                 STATUS   PROVISIONING STATUS      CONSUMER       BMC                  HARDWARE PROFILE   ONLINE   ERROR
-openshift-master-0   OK       externally provisioned   kni-master-0   ipmi://192.0.2.221                      true
-openshift-master-1   OK       externally provisioned   kni-master-1   ipmi://192.0.2.222                      true
-openshift-master-2   OK       externally provisioned   kni-master-2   ipmi://192.0.2.223                      true
-openshift-worker-0   OK       inspecting                              ipmi://192.0.2.224                      true
+[cloud-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api
+NAME       STATUS   PROVISIONING STATUS      CONSUMER                     BMC                     HARDWARE PROFILE   ONLINE   ERROR
+master-0   OK       externally provisioned   schmaustech-master-0         ipmi://10.20.0.3:6202                      true     
+master-1   OK       externally provisioned   schmaustech-master-1         ipmi://10.20.0.3:6201                      true     
+master-2   OK       externally provisioned   schmaustech-master-2         ipmi://10.20.0.3:6205                      true     
+worker-0   OK       provisioned              schmaustech-worker-0-2czx7   ipmi://10.20.0.3:6204   openstack          true     
+worker-1   OK       provisioned              schmaustech-worker-0-qgmhk   ipmi://10.20.0.3:6200   openstack          true     
+worker-2   OK       inspecting                                            ipmi://10.20.0.3:6203                      true  
 ~~~
 
 You'll also notice this is listed (and managed) by Ironic that's running on the cluster as part of the baremetal operator (note the "inspect wait" status as per the above):
 
 ~~~bash
-kni@provisioner$ export OS_URL=http://172.22.0.3:6385; export OS_TOKEN=fake-token
-kni@provisioner$ openstack baremetal node list
-+--------------------------------------+--------------------+---------------+-------------+--------------------+-------------+
-| UUID                                 | Name               | Instance UUID | Power State | Provisioning State | Maintenance |
-+--------------------------------------+--------------------+---------------+-------------+--------------------+-------------+
-| c7e9b2f4-ea8a-411b-8479-e9998adcf3df | openshift-master-0 | None          | power on    | active       | False       |
-| 16fef43f-fd1b-4142-a3f0-d54195f24a42 | openshift-master-1 | None          | power on    | active       | False       |
-| 2012b910-6778-4337-8abd-003458c036ee | openshift-master-2 | None          | power on    | active       | False       |
-| 90b61ee8-9894-4b5e-b958-271873c6ff68 | openshift-worker-0 | None          | power on    | inspect wait       | False       |
-+--------------------------------------+--------------------+---------------+-------------+--------------------+-------------+
+[cloud-user@provision ~]$ export OS_URL=http://172.22.0.3:6385; export OS_TOKEN=fake-token
+[cloud-user@provision ~]$ openstack baremetal node list
++--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
+| UUID                                 | Name     | Instance UUID                        | Power State | Provisioning State | Maintenance |
++--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
+| 2d68e1cd-8d85-4dcc-a289-53c2770f3abb | master-1 | f2398c03-60f4-44be-84cb-d03d22509345 | power on    | active             | False       |
+| 41ce9485-ae8b-42cc-ad85-4771e41e0af1 | master-0 | a30ce010-4c29-4fe7-9eb1-2b4f70f9b618 | power on    | active             | False       |
+| ca9ca2b2-8de9-4521-8b94-514222400631 | master-2 | f16b8768-6f3f-44b1-8135-7b159984e44d | power on    | active             | False       |
+| cffbddd5-2a1c-430f-8ffe-a5409a0f3538 | worker-0 | 099f8902-117e-4d58-8e67-7b8e700582e6 | power on    | active             | False       |
+| 7eaa2bdb-0102-419c-9f5b-0f7e35693d6b | worker-1 | 656cb417-61b0-4a02-b4f5-393726536002 | power on    | active             | False       |
+| e8d73d35-9379-4c73-87f3-2454a1e2c575 | worker-2 | None                                 | power on    | inspect wait       | False       |
++--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 ~~~
 
 This additional worker node will now be inspected, data will be gathered about the system such as number of nic's, storage disks, CPU, memory, and so on. The system will then sit in a holding pattern - all we've done is add it as a baremetal host, NOT an OpenShift worker, nor has it actually had any components installed on it, it's merely just running from a basic ramdisk for now.
