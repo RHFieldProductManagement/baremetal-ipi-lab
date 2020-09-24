@@ -140,7 +140,7 @@ spec:
         - /dev/vdb
 ~~~
 
-You'll see that this is set to create local volume on every host from the block device vdb where the selector key matches cluster.ocs.openshift.io/openshift-storage.  If we had additional devices on the worker nodes for example: vdc and vdd, we would just list those below the devicePaths to also be incorporated into our configuration.
+You'll see that this is set to create a local volume on every host from the block device vdb where the selector key matches cluster.ocs.openshift.io/openshift-storage.  If we had additional devices on the worker nodes for example: vdc and vdd, we would just list those below the devicePaths to also be incorporated into our configuration.
 
 At this point we should label our nodes with the OCS storage label:
 
@@ -158,6 +158,8 @@ Now we can go ahead and create the assests for this local-storage configuration 
 localvolume.local.storage.openshift.io/local-block created
 ~~~
 
+If we jump over to the provisioning node and execute an oc get pods command on the namespace of local-storage we will see containers being created in relationship to the assets from our local-storage.yaml file:
+
 ~~~bash
 [cloud-user@provision ~]$ oc -n local-storage get pods
 NAME                                      READY   STATUS              RESTARTS   AGE
@@ -170,6 +172,8 @@ local-block-local-provisioner-xhf2x       0/1     ContainerCreating   0         
 local-storage-operator-57455d9cb4-4tj54   1/1     Running             0          76m
 ~~~
 
+The pods generated are a provisioner and diskmaker on every worker node where the node selector matched.
+
 ~~~bash
 [cloud-user@provision ~]$ oc -n local-storage get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
@@ -181,6 +185,11 @@ local-block-local-provisioner-lw9fm       1/1     Running   0          22s
 local-block-local-provisioner-xhf2x       1/1     Running   0          22s
 local-storage-operator-57455d9cb4-4tj54   1/1     Running   0          76m
 ~~~
+
+As you can see from the above we had labeled 3 worker nodes and we have 3 provisioners and 3 diskmaker pods.  To validate the nodes where the pods are running try adding a -o wide to the command above.  Does it confirm that each worker has a provisioner and diskmaker pod?
+
+Further we can now see that 3 pvs have been created which comprise our 100GB vdb disks we attached at the beginning of the lab:
+
 ~~~bash
 [cloud-user@provision ~]$ oc get pv
 NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
@@ -189,18 +198,30 @@ local-pv-8aea98b7   100Gi      RWO            Delete           Available        
 local-pv-e62c1b44   100Gi      RWO            Delete           Available           localblock              22s
 ~~~
 
+And finally a storageclass was created for the local-storage asset we created:
+
 ~~~bash
 [cloud-user@provision ~]$ oc get sc | grep localblock
 localblock   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  53s
 ~~~
 
+At this point in the lab we have now completed the prerequisits for OpenShift Container Storage.  We can now move onto actually installing the OCS operator.   To do that we will use Operator Hub inside of the OpenShift Console.  Navigate to Operators->OperatorHub and then search for OpenShift Container Storage: 
+
 <img src="img/ocs-operator.png"/>
+
+Click on the operator and then select install:
 
 <img src="img/install-ocs-operator.png"/>
 
+The operator installation will present you with options similiar to what we saw when we installed the local storage operator.  Again we have the ability here to select version, installation mode, namespace and approval strategy.  As with the previous operator we will use the defaults as they are presented and click install:
+
 <img src="img/options-install-ocs-operator.png"/>
 
+Once the operator has been installed the OpenShift Console will display the OCS operator and the status of successfully installed:
+
 <img src="img/success-install-ocs-operator.png"/>
+
+We can further confirm the operator is up and running by looking at it from the command line where we should see 3 running pods under the openshift-storage namespace:
 
 ~~~bash
 [cloud-user@provision ~]$ oc get pods -n openshift-storage
@@ -210,9 +231,15 @@ ocs-operator-6888cb5bdf-7w6ct         1/1     Running   0          10m
 rook-ceph-operator-7bdb4cd5d9-qmggh   1/1     Running   5          10m
 ~~~
 
+Now that we know the operator is functional we can go back to the OpenShift Console and click on the operator to bring us into an operator details page.  Here we will want to click on Storage Cluster:
+
 <img src="img/details-ocs-operator.png"/>
 
+This will bring up the options page for creating a storage cluster that can either be external or internal.  In our case we are going to use internal because we have the necessary resources in our cluster to create a cluster.  Further down the page you will notice 3 worker nodes are checked as these were the nodes we labeled earlier for OCS.   In the storageclass drop down we have only one option to chose and that is localblock which was the storage class we created with the local-storage operator and assets created above.   Once you select that as the storageclass the capacity and replicas are shown below the storageclass box.   Notice the capacity is 300GB.  Isn't that the sum of all our 100GB volumes?  Once everything is selected we can click on create:
+
 <img src="img/create-cluster-ocs-operator.png"/>
+
+If we quickly jump over to the command line and issue a oc get pods on the openshift-storage namespace we can see new containers are being created.   
 
 <img src="img/options-create-cluster-ocs-operator.png"/>
 
@@ -236,7 +263,11 @@ rook-ceph-mon-b-canary-6fd99d6865-fgcpx         0/1     ContainerCreating   0   
 rook-ceph-operator-7bdb4cd5d9-qmggh             1/1     Running             5          104m
 ~~~
 
+Finally we should see in the OpenShift Console that the cluster is marked as ready.  This tells us that all the pods required to form the cluster are running and active.
+
 <img src="img/success-cluster-create-ocs-operator.png"/>
+
+We can further confirm this from the command line by issuing the same oc get pods command against the openshift-storage namespace.   Can you see there is a mon and osd per each node?
 
 ~~~bash
 [cloud-user@provision ~]$ oc get pods -n openshift-storage
@@ -279,7 +310,11 @@ rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-549f6f742cgb   1/1     Runnin
 rook-ceph-rgw-ocs-storagecluster-cephobjectstore-b-9b695d7q8tml   1/1     Running     0          83s
 ~~~
 
+In the OpenShift Console if we go to Storage->Storageclasses we can also see additional storageclasses related to OCS have been created.
+
 <img src="img/storageclasses-ocs-operator.png"/>
+
+We can also confirm this from the command line by issuing an oc get storageclass.  We should see 4 new storageclasses: one for block (rbd), two for object (rgw/nooba) and one for file(cephfs).  
 
 ~~~bash
 [cloud-user@provision ~]$ oc get storageclass
@@ -290,3 +325,5 @@ ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete    
 ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete          Immediate              true                   5m36s
 openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete          Immediate              false                  65s
 ~~~
+
+At this point you have finished the lab and should have a fully functional OpenShift Container Storage cluster to be consumed by applications.
