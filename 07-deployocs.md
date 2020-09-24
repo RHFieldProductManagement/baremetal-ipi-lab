@@ -80,7 +80,16 @@ This will bring up a dialogue of options for configuring the operator before dep
 
 <img src="img/install-choices-local-storage-operator.png"/>
 
+Once the operator is installed we can navigate to Operators->Installed Operators and see the local storage operator is installing which will eventually turn to a suceeded when complete.
+
 <img src="img/installing-status-local-storage-operator.png"/>
+
+We can also validate from the command line that the operator is installed and running as well:
+
+~~~bash
+[cloud-user@provision ~]$ oc get pods -n local-storage
+local-storage-operator-57455d9cb4-4tj54   1/1     Running   0          10m
+~~~
 
 Now that we have the local storage operator installed lets make a storage definition file that will use the disk device in each node:
 
