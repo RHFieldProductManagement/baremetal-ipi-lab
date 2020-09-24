@@ -174,3 +174,17 @@ local-pv-e62c1b44   100Gi      RWO            Delete           Available        
 [cloud-user@provision ~]$ oc get sc | grep localblock
 localblock   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  53s
 ~~~
+
+<img src="img/ocs-operator.png"/>
+
+<img src="img/install-ocs-operator.png"/>
+
+<img src="img/options-install-ocs-operator.png"/>
+
+<img src="img/success-install-ocs-operator.png"/>
+
+<img src="img/details-ocs-operator.png"/>
+
+<img src="img/create-cluster-ocs-operator.png"/>
+
+<img src="img/options-create-cluster-ocs-operator.png"/>
