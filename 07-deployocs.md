@@ -123,10 +123,54 @@ spec:
 
 You'll see that this is set to create local volume on every host from the block device vdb where the selector key matches cluster.ocs.openshift.io/openshift-storage.  If we had additional devices on the worker nodes for example: vdc and vdd, we would just list those below the devicePaths to also be incorporated into our configuration.
 
-Lets go ahead and create the assests for this local-storage configuration.
+At this point we should label our nodes with the OCS storage label:
 
 ~~~bash
-
+[cloud-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}'
+worker-0
+worker-1
+worker-2
 ~~~
 
+Now we can go ahead and create the assests for this local-storage configuration using the local-storage.yaml we created above.
 
+~~~bash
+[cloud-user@provision ~]$ oc create -f ~/local-storage.yaml
+localvolume.local.storage.openshift.io/local-block created
+~~~
+
+~~~bash
+[cloud-user@provision ~]$ oc -n local-storage get pods
+NAME                                      READY   STATUS              RESTARTS   AGE
+local-block-local-diskmaker-626kf         0/1     ContainerCreating   0          8s
+local-block-local-diskmaker-w5l5h         0/1     ContainerCreating   0          9s
+local-block-local-diskmaker-xrxmh         0/1     ContainerCreating   0          9s
+local-block-local-provisioner-9mhdq       0/1     ContainerCreating   0          9s
+local-block-local-provisioner-lw9fm       0/1     ContainerCreating   0          9s
+local-block-local-provisioner-xhf2x       0/1     ContainerCreating   0          9s
+local-storage-operator-57455d9cb4-4tj54   1/1     Running             0          76m
+~~~
+
+~~~bash
+[cloud-user@provision ~]$ oc -n local-storage get pods
+NAME                                      READY   STATUS    RESTARTS   AGE
+local-block-local-diskmaker-626kf         1/1     Running   0          21s
+local-block-local-diskmaker-w5l5h         1/1     Running   0          22s
+local-block-local-diskmaker-xrxmh         1/1     Running   0          22s
+local-block-local-provisioner-9mhdq       1/1     Running   0          22s
+local-block-local-provisioner-lw9fm       1/1     Running   0          22s
+local-block-local-provisioner-xhf2x       1/1     Running   0          22s
+local-storage-operator-57455d9cb4-4tj54   1/1     Running   0          76m
+~~~
+~~~bash
+[cloud-user@provision ~]$ oc get pv
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+local-pv-40d06fba   100Gi      RWO            Delete           Available           localblock              22s
+local-pv-8aea98b7   100Gi      RWO            Delete           Available           localblock              22s
+local-pv-e62c1b44   100Gi      RWO            Delete           Available           localblock              22s
+~~~
+
+~~~bash
+[cloud-user@provision ~]$ oc get sc | grep localblock
+localblock   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  53s
+~~~
