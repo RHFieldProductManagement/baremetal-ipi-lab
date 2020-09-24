@@ -70,7 +70,7 @@ Now that we know the worker nodes have their disk we can proceed.  Before instal
 
 <img src="img/install-choices-local-storage-operator.png"/>
 
-<img src="img/status-local-storage-operator.png"/>
+<img src="img/installing-status-local-storage-operator.png"/>
 
 Now that we have the local storage operator installed lets make a storage definition file that will use the disk device in each node:
 
