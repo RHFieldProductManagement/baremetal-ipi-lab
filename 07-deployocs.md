@@ -121,4 +121,12 @@ spec:
         - /dev/vdb
 ~~~
 
-You'll see that this is set to create local volume on every host from the block device vdb where the selector key matches cluster.ocs.openshift.io/openshift-storage
+You'll see that this is set to create local volume on every host from the block device vdb where the selector key matches cluster.ocs.openshift.io/openshift-storage.  If we had additional devices on the worker nodes for example: vdc and vdd, we would just list those below the devicePaths to also be incorporated into our configuration.
+
+Lets go ahead and create the assests for this local-storage configuration.
+
+~~~bash
+
+~~~
+
+
