@@ -1,6 +1,6 @@
 #**Deploy OCS On Cluster**
 
-Now that we had added an additional worker node to our lab cluster environment we can deploy OpenShift Containerized Storage on top of the cluster.
+Now that we had added an additional worker node to our lab cluster environment we can deploy OpenShift Container Storage on top of the cluster.
 
 Currently the lab from a node perspective should look like the following from a master/worker node count:
 
@@ -16,6 +16,51 @@ worker-2   Ready    worker   17h   v1.18.3+6c42de8
 ~~~
 
 We need to attach a 100GB disk to each of our worker nodes in the lab environment.  Thankfully we have a little script to do this for us on the provisioning node.
+
+Before we run the script lets take a look at it:
+
+~~~bash
+[cloud-user@provision ~]$ cat ~/scripts/10_volume-attach.sh
+#!/bin/bash
+OSP_PROJECT="msp-f143-project"
+GUID="schmaustech"
+
+attach() {
+  for NODE in $( openstack --os-cloud=$OSP_PROJECT server list|grep worker|cut -d\| -f3|sed 's/ //g' )
+  do
+          openstack --os-cloud=$OSP_PROJECT server add volume $NODE $NODE-volume
+  done
+}
+
+detach() {
+  for NODE in $( openstack --os-cloud=$OSP_PROJECT server list|grep worker|cut -d\| -f3|sed 's/ //g' )
+  do
+          openstack --os-cloud=$OSP_PROJECT server remove volume $NODE $NODE-volume
+  done
+}
+
+poweroff() {
+  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6200 -Uadmin -Predhat chassis power off
+  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6201 -Uadmin -Predhat chassis power off
+  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6202 -Uadmin -Predhat chassis power off
+  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6203 -Uadmin -Predhat chassis power off
+  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6204 -Uadmin -Predhat chassis power off
+  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6205 -Uadmin -Predhat chassis power off
+}
+
+case $1 in
+  attach) attach ;;
+  detach) poweroff
+          sleep 10
+          detach ;;
+  power) poweroff ;;
+  *) attach ;;
+esac
+~~~
+
+We can see the script will attach and detach volumes from a list of worker nodes within a given lab environment.  As a bonus there appears to be a poweroff option for nodes in here too!
+
+Lets go ahead and run the script:
 
 ~~~bash
 [cloud-user@provision ~]$ ~/scripts/10_volume-attach.sh 
