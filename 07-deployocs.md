@@ -183,8 +183,91 @@ localblock   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer
 
 <img src="img/success-install-ocs-operator.png"/>
 
+~~~bash
+[cloud-user@provision ~]$ oc get pods -n openshift-storage
+NAME                                  READY   STATUS    RESTARTS   AGE
+noobaa-operator-5567695698-fc8t6      1/1     Running   0          10m
+ocs-operator-6888cb5bdf-7w6ct         1/1     Running   0          10m
+rook-ceph-operator-7bdb4cd5d9-qmggh   1/1     Running   5          10m
+~~~
+
 <img src="img/details-ocs-operator.png"/>
 
 <img src="img/create-cluster-ocs-operator.png"/>
 
 <img src="img/options-create-cluster-ocs-operator.png"/>
+
+~~~bash
+[cloud-user@provision ~]$ oc get pods -n openshift-storage
+NAME                                            READY   STATUS              RESTARTS   AGE
+csi-cephfsplugin-6mk78                          0/3     ContainerCreating   0          21s
+csi-cephfsplugin-9fglq                          0/3     ContainerCreating   0          21s
+csi-cephfsplugin-lsldk                          0/3     ContainerCreating   0          20s
+csi-cephfsplugin-provisioner-5f8b66cc96-2z755   0/5     ContainerCreating   0          20s
+csi-cephfsplugin-provisioner-5f8b66cc96-wsnsb   0/5     ContainerCreating   0          19s
+csi-rbdplugin-b4qh5                             0/3     ContainerCreating   0          22s
+csi-rbdplugin-k2fjg                             3/3     Running             0          23s
+csi-rbdplugin-lnpgn                             0/3     ContainerCreating   0          22s
+csi-rbdplugin-provisioner-66f66699c8-l9g9l      0/5     ContainerCreating   0          22s
+csi-rbdplugin-provisioner-66f66699c8-v7ghq      0/5     ContainerCreating   0          21s
+noobaa-operator-5567695698-fc8t6                1/1     Running             0          104m
+ocs-operator-6888cb5bdf-7w6ct                   0/1     Running             0          104m
+rook-ceph-mon-a-canary-587d74787d-wt247         0/1     ContainerCreating   0          8s
+rook-ceph-mon-b-canary-6fd99d6865-fgcpx         0/1     ContainerCreating   0          3s
+rook-ceph-operator-7bdb4cd5d9-qmggh             1/1     Running             5          104m
+~~~
+
+<img src="img/success-cluster-create-ocs-operator.png"/>
+
+~~~bash
+[cloud-user@provision ~]$ oc get pods -n openshift-storage
+NAME                                                              READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-6mk78                                            3/3     Running     0          5m1s
+csi-cephfsplugin-9fglq                                            3/3     Running     0          5m1s
+csi-cephfsplugin-lsldk                                            3/3     Running     0          5m
+csi-cephfsplugin-provisioner-5f8b66cc96-2z755                     5/5     Running     0          5m
+csi-cephfsplugin-provisioner-5f8b66cc96-wsnsb                     5/5     Running     0          4m59s
+csi-rbdplugin-b4qh5                                               3/3     Running     0          5m2s
+csi-rbdplugin-k2fjg                                               3/3     Running     0          5m3s
+csi-rbdplugin-lnpgn                                               3/3     Running     0          5m2s
+csi-rbdplugin-provisioner-66f66699c8-l9g9l                        5/5     Running     0          5m2s
+csi-rbdplugin-provisioner-66f66699c8-v7ghq                        5/5     Running     0          5m1s
+noobaa-core-0                                                     1/1     Running     0          2m38s
+noobaa-db-0                                                       1/1     Running     0          2m38s
+noobaa-endpoint-74b9ddcffc-pcg95                                  1/1     Running     0          41s
+noobaa-operator-5567695698-fc8t6                                  1/1     Running     0          109m
+ocs-operator-6888cb5bdf-7w6ct                                     1/1     Running     0          109m
+rook-ceph-crashcollector-worker-0-6f9d88bcb6-79bmf                1/1     Running     0          3m23s
+rook-ceph-crashcollector-worker-1-78b56fbfc5-lqsnl                1/1     Running     0          3m45s
+rook-ceph-crashcollector-worker-2-77687b587b-j4h2h                1/1     Running     0          3m53s
+rook-ceph-drain-canary-worker-0-5d9d5b4977-8tc62                  1/1     Running     0          2m43s
+rook-ceph-drain-canary-worker-1-54644f5c94-mhnzt                  1/1     Running     0          2m44s
+rook-ceph-drain-canary-worker-2-598f89d79f-gbcjc                  1/1     Running     0          2m41s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-dd756495qt9n4   1/1     Running     0          2m6s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-584dd7bc9hsr4   1/1     Running     0          2m5s
+rook-ceph-mgr-a-848f8c59fd-ln6nz                                  1/1     Running     0          3m3s
+rook-ceph-mon-a-5896d85b4f-tgc64                                  1/1     Running     0          3m54s
+rook-ceph-mon-b-7695696f7d-9l565                                  1/1     Running     0          3m45s
+rook-ceph-mon-c-5d95b547dc-gsjhj                                  1/1     Running     0          3m24s
+rook-ceph-operator-7bdb4cd5d9-qmggh                               1/1     Running     5          109m
+rook-ceph-osd-0-745d68b9df-qglsp                                  1/1     Running     0          2m45s
+rook-ceph-osd-1-7946dc4cbc-sxm5w                                  1/1     Running     0          2m43s
+rook-ceph-osd-2-85746d789-hhj5n                                   1/1     Running     0          2m42s
+rook-ceph-osd-prepare-ocs-deviceset-0-data-0-vw4rb-q9kqg          0/1     Completed   0          2m59s
+rook-ceph-osd-prepare-ocs-deviceset-1-data-0-znnlk-cghzf          0/1     Completed   0          2m58s
+rook-ceph-osd-prepare-ocs-deviceset-2-data-0-7wdbq-r26b8          0/1     Completed   0          2m58s
+rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-549f6f742cgb   1/1     Running     0          87s
+rook-ceph-rgw-ocs-storagecluster-cephobjectstore-b-9b695d7q8tml   1/1     Running     0          83s
+~~~
+
+<img src="img/storageclasses-ocs-operator.png"/>
+
+~~~bash
+[cloud-user@provision ~]$ oc get storageclass
+NAME                          PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+localblock                    kubernetes.io/no-provisioner            Delete          WaitForFirstConsumer   false                  115m
+ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete          Immediate              true                   5m36s
+ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete          Immediate              false                  5m36s
+ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete          Immediate              true                   5m36s
+openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete          Immediate              false                  65s
+~~~
