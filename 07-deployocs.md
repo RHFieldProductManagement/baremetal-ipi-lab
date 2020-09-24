@@ -60,8 +60,11 @@ We can see from the output above that on worker-0 the new 100GB volume was attac
 
 Now that we know the worker nodes have their disk we can proceed.  Before installing OCS we should first install the local-storage operator which we can configure the local disks on the worker nodes which in turn can be consumed by OCS as OSD devices.
 
+<img src="img/create-local-storage-namespace.png"/>
 
+<img src="img/show-local-storage-namespace.png"/>
 
+<img src="img/select-local-storage-namespace.png"/>
 
 Now that we have the local storage operator installed lets make a storage definition file that will use the disk device in each node:
 
