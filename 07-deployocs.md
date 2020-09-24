@@ -60,13 +60,23 @@ We can see from the output above that on worker-0 the new 100GB volume was attac
 
 Now that we know the worker nodes have their disk we can proceed.  Before installing OCS we should first install the local-storage operator which we can configure the local disks on the worker nodes which in turn can be consumed by OCS as OSD devices.
 
+The first step is to create a local storage namespace in the OpenShift console.  Navigate to Administration->Namespaces and click on the create namespace button.  Once the below dialogue appears enter in the namespace as local-storage.
+
 <img src="img/create-local-storage-namespace.png"/>
+
+After creating the namespace if we click on it we can get details about the namespace and also confirm that the namespace is active:
 
 <img src="img/show-local-storage-namespace.png"/>
 
+Now we can go to Operators->OperatorHub and search for the local storage operator in the catalog:
+
 <img src="img/select-local-storage-operator.png"/>
 
+Select the local storage operator and click install:
+
 <img src="img/install-local-storage-operator.png"/>
+
+This will bring up a dialogue of options for configuring the operator before deploying.  The defaults are usually accceptable but note that you can configure the version, installation mode, namespace where operator should run and the approval strategy.  Select the defaults and click install:
 
 <img src="img/install-choices-local-storage-operator.png"/>
 
