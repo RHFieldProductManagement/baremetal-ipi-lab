@@ -5,10 +5,10 @@ Now that our cluster is up and running, we can start playing around with it and 
 ~~~bash
 [cloud-user@provision ~]$ oc get pods -n openshift-machine-api
 NAME                                           READY   STATUS    RESTARTS   AGE
-cluster-autoscaler-operator-688d896864-ttn5m   2/2     Running   0          103m
-machine-api-controllers-55fc6f744-48zw2        4/4     Running   0          111m
-machine-api-operator-659cd8dc7b-qvqzp          2/2     Running   0          113m
-metal3-85898fbcd6-bjl69                        8/8     Running   0          108m
+cluster-autoscaler-operator-568855ff87-vwc4r   2/2     Running   1          42h
+machine-api-controllers-74bc4b5dd7-pnxll       4/4     Running   0          42h
+machine-api-operator-7744b46cbc-xchnc          2/2     Running   1          42h
+metal3-7c494cd968-xlgmk                        8/8     Running   20         42h
 ~~~
 
 Here, the metal3 pod is the pod we're interested in - it's where we house all of the relevant containers, including the baremetal-operator itself:
@@ -26,8 +26,9 @@ NAME       STATUS   PROVISIONING STATUS      CONSUMER                     BMC   
 master-0   OK       externally provisioned   schmaustech-master-0         ipmi://10.20.0.3:6202                      true     
 master-1   OK       externally provisioned   schmaustech-master-1         ipmi://10.20.0.3:6201                      true     
 master-2   OK       externally provisioned   schmaustech-master-2         ipmi://10.20.0.3:6205                      true     
-worker-0   OK       provisioned              schmaustech-worker-0-2czx7   ipmi://10.20.0.3:6204   openstack          true     
-worker-1   OK       provisioned              schmaustech-worker-0-qgmhk   ipmi://10.20.0.3:6200   openstack          true    
+worker-0   OK       provisioned              schmaustech-worker-0-vlvbf   ipmi://10.20.0.3:6204   openstack          true     
+worker-1   OK       provisioned              schmaustech-worker-0-rhsz4   ipmi://10.20.0.3:6203   openstack          true     
+worker-2   OK       provisioned              schmaustech-worker-0-5tqpl   ipmi://10.20.0.3:6200   openstack          true   
 ~~~
 
 You'll also see that in OpenStack Ironic the nodes are stuck in an '**active**' state, not allowing them to progress:
@@ -39,13 +40,13 @@ You'll also see that in OpenStack Ironic the nodes are stuck in an '**active**' 
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 | UUID                                 | Name     | Instance UUID                        | Power State | Provisioning State | Maintenance |
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
-| 2d68e1cd-8d85-4dcc-a289-53c2770f3abb | master-1 | f2398c03-60f4-44be-84cb-d03d22509345 | power on    | active             | False       |
-| 41ce9485-ae8b-42cc-ad85-4771e41e0af1 | master-0 | a30ce010-4c29-4fe7-9eb1-2b4f70f9b618 | power on    | active             | False       |
-| ca9ca2b2-8de9-4521-8b94-514222400631 | master-2 | f16b8768-6f3f-44b1-8135-7b159984e44d | power on    | active             | False       |
-| cffbddd5-2a1c-430f-8ffe-a5409a0f3538 | worker-0 | 099f8902-117e-4d58-8e67-7b8e700582e6 | power on    | active             | False       |
-| 7eaa2bdb-0102-419c-9f5b-0f7e35693d6b | worker-1 | 656cb417-61b0-4a02-b4f5-393726536002 | power on    | active             | False       |
+| 01971e83-2def-4b25-ac26-7b084eee284d | master-0 | 4dc76022-da6d-442d-9585-c19bab11dcc2 | power on    | active             | False       |
+| 57c61d9c-fe62-4616-8107-e0e366f296cf | worker-0 | 959c785b-355f-4d18-be8c-c0c26cd56c38 | power on    | active             | False       |
+| 25e1a6db-781d-430a-b388-8d4fe15ef00c | master-1 | bf0df03b-2d97-4e21-a916-a7455fcf9ce1 | power on    | active             | False       |
+| b66c42a5-b2ec-4adc-a088-d68bee37b45f | master-2 | 622fac99-c471-4405-ad9d-137ebc5afa09 | power on    | active             | False       |
+| 1e2f164c-57bb-4223-b5e3-b255755ac833 | worker-1 | 3103eefe-04ab-4b77-bf37-5f16c3380f8b | power on    | active             | False       |
+| 36c41c3a-d86d-41dd-9d3b-eb20ce55297c | worker-2 | 54710ced-1f58-4cf8-a9b8-4e1f0e0600d5 | power on    | active             | False       |
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
-
 ~~~
 
 > **NOTE**: You'll also notice that the IP address for Ironic has changed, it's now *172.22.0.3*, whereas when we were deploying it was *172.22.0.2*, only because it's now running on the cluster, no longer on the (long-since-deleted) bootstrap VM.
@@ -64,6 +65,7 @@ master-1   schmaustech-master-1
 master-2   schmaustech-master-2
 worker-0   schmaustech-worker-0-vlvbf
 worker-1   schmaustech-worker-0-rhsz4
+worker-2   schmaustech-worker-0-5tqpl
 ~~~ 
 
 However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our masters, are not currently linked to their corresponding `Machine`. You can verify this in the UI too - if you open up your OpenShift console again and scroll down to '**Compute**' on the left hand side and select '**Nodes**', you'll notice that each of the nodes doesn't have a corresponding `Machine` reference:
@@ -79,51 +81,108 @@ Furthermore, each `BareMetalHost` doesn't have a `Node` assigned, verified by se
 Now, if you ask OpenShift for the details of one of the `Machines` you can see how it's all connected together, noting the bits we've added for clarity:
 
 ~~~bash
-kni@provisioner$$ oc get machine/kni-master-0 -n openshift-machine-api -o yaml
+[cloud-user@provision ~]$ oc get machine/schmaustech-master-0 -n openshift-machine-api -o yaml
 apiVersion: machine.openshift.io/v1beta1
 kind: Machine
 metadata:
   annotations:
-    metal3.io/BareMetalHost: openshift-machine-api/openshift-master-0
-  creationTimestamp: "2019-08-21T18:23:44Z"          ^^ this is the **BareMetalHost**
+    metal3.io/BareMetalHost: openshift-machine-api/master-0   <== This is the **Baremetalhost**
+  creationTimestamp: "2020-09-23T19:50:57Z"
   finalizers:
   - machine.machine.openshift.io
   generation: 1
   labels:
-    machine.openshift.io/cluster-api-cluster: kni
+    machine.openshift.io/cluster-api-cluster: schmaustech
     machine.openshift.io/cluster-api-machine-role: master
     machine.openshift.io/cluster-api-machine-type: master
-  name: kni-master-0                                     <--- this is the **machine**
+  managedFields:
+  - apiVersion: machine.openshift.io/v1beta1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:labels:
+          .: {}
+          f:machine.openshift.io/cluster-api-cluster: {}
+          f:machine.openshift.io/cluster-api-machine-role: {}
+          f:machine.openshift.io/cluster-api-machine-type: {}
+      f:spec:
+        .: {}
+        f:metadata: {}
+        f:providerSpec:
+          .: {}
+          f:value:
+            .: {}
+            f:hostSelector: {}
+            f:image: {}
+            f:metadata: {}
+            f:userData: {}
+      f:status: {}
+    manager: cluster-bootstrap
+    operation: Update
+    time: "2020-09-23T19:50:57Z"
+  - apiVersion: machine.openshift.io/v1beta1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          .: {}
+          f:metal3.io/BareMetalHost: {}
+        f:finalizers:
+          .: {}
+          v:"machine.machine.openshift.io": {}
+      f:status:
+        f:addresses: {}
+        f:phase: {}
+    manager: machine-controller-manager
+    operation: Update
+    time: "2020-09-23T20:23:25Z"
+  - apiVersion: machine.openshift.io/v1beta1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:status:
+        f:lastUpdated: {}
+        f:nodeRef:
+          .: {}
+          f:kind: {}
+          f:name: {}
+          f:uid: {}
+    manager: nodelink-controller
+    operation: Update
+    time: "2020-09-23T20:23:25Z"
+  name: schmaustech-master-0                <== This is the **Machine**
   namespace: openshift-machine-api
-  resourceVersion: "35928"
-  selfLink: /apis/machine.openshift.io/v1beta1/namespaces/openshift-machine-api/machines/kni-master-0
-  uid: cf7ded7d-c440-11e9-8e1b-525400427ae5
+  resourceVersion: "19901"
+  selfLink: /apis/machine.openshift.io/v1beta1/namespaces/openshift-machine-api/machines/schmaustech-master-0
+  uid: 4d5550fe-38a2-42f9-bdb2-37795d3c408a
 spec:
-  metadata:
-    creationTimestamp: null
+  metadata: {}
   providerSpec:
     value:
       hostSelector: {}
       image:
-        checksum: http://172.22.0.3:6180/images/rhcos-42.80.20190725.1-openstack.qcow2/rhcos-42.80.20190725.1-compressed.qcow2.md5sum
-        url: http://172.22.0.3:6180/images/rhcos-42.80.20190725.1-openstack.qcow2/rhcos-42.80.20190725.1-compressed.qcow2
+        checksum: http://172.22.0.3:6180/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2/rhcos-45.82.202008010929-0-compressed.x86_64.qcow2.md5sum
+        url: http://172.22.0.3:6180/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2/rhcos-45.82.202008010929-0-compressed.x86_64.qcow2
       metadata:
         creationTimestamp: null
       userData:
         name: master-user-data
 status:
   addresses:
-  - address: 192.168.111.2
+  - address: 172.22.0.30
+    type: InternalIP
+  - address: 10.20.0.100
     type: InternalIP
   - address: master-0
     type: Hostname
   - address: master-0
     type: InternalDNS
-  lastUpdated: "2019-08-21T20:11:11Z"
+  lastUpdated: "2020-09-23T20:23:25Z"
   nodeRef:
-    kind: Node
-    name: master-0                                      <--- this is the **node**
-    uid: 92761430-c440-11e9-8e1b-525400427ae5
+    kind: Node                            <== This is **Node**
+    name: master-0
+    uid: 029f2a0d-ab31-41ec-8b63-bae477027662
+  phase: Running
+
 ~~~
 
 You can also see this represented in the OpenShift console if you want to take a look. Open up your web browser again and navigate to '**Compute**' --> '**Machines**' (see the '**Node**' references), you'll need to make sure that you either select '**all-projects**' or '**openshift-machine-api**' in the Project drop down:
