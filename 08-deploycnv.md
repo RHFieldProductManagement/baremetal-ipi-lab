@@ -33,7 +33,7 @@ Whilst this does its thing, you can move to the '**Workloads**' --> '**Pods**' m
 You can also return to the 'terminal' tab in your hosted lab guide and watch via the CLI:
 
 ~~~bash
-$ watch -n2 'oc get pods -n openshift-cnv'
+[cloud-user@provision ~]$ watch -n2 'oc get pods -n openshift-cnv'
 (...)
 ~~~
 
@@ -41,32 +41,84 @@ $ watch -n2 'oc get pods -n openshift-cnv'
 
 During this process you will see a lot of pods create and terminate, which will look something like the following depending on when you view it; it's always changing:
 
-<img src="img/deploy-cnv-watch.png"/>
+~~~bash
+Every 2.0s: oc get pods -n openshift-cnv                                                                                                                                       provision: Fri Sep 25 14:59:01 2020
+
+NAME                                                  READY   STATUS    RESTARTS   AGE
+bridge-marker-65kv5                                   1/1     Running   0          5m13s
+bridge-marker-9ckff                                   1/1     Running   0          5m10s
+bridge-marker-fk96v                                   1/1     Running   0          5m12s
+bridge-marker-kt4sw                                   1/1     Running   0          5m12s
+bridge-marker-m68cs                                   1/1     Running   0          5m9s
+bridge-marker-sklxs                                   1/1     Running   0          5m10s
+cdi-apiserver-7c4566c98c-4qkph                        1/1     Running   0          5m15s
+cdi-deployment-79fdcfdccb-prhfc                       1/1     Running   1          5m13s
+cdi-operator-75dc489559-mx49s                         1/1     Running   1          12m
+cdi-uploadproxy-5d4cc54b4c-ntj2x                      1/1     Running   0          5m12s
+cluster-network-addons-operator-6bc8d95bb7-52dbv      1/1     Running   0          12m
+hco-operator-7b495c4df5-8f274                         1/1     Running   0          12m
+hostpath-provisioner-operator-75b7fc56d5-978c5        1/1     Running   0          12m
+kube-cni-linux-bridge-plugin-4kf8s                    1/1     Running   0          5m13s
+kube-cni-linux-bridge-plugin-62qpw                    1/1     Running   0          5m13s
+kube-cni-linux-bridge-plugin-d6jmq                    1/1     Running   0          5m13s
+kube-cni-linux-bridge-plugin-kc26d                    1/1     Running   0          5m15s
+kube-cni-linux-bridge-plugin-nsb6m                    1/1     Running   0          5m14s
+kube-cni-linux-bridge-plugin-v96sd                    1/1     Running   0          5m14s
+kubemacpool-mac-controller-manager-6f9c447bbd-4m9ch   1/1     Running   0          5m9s
+kubevirt-node-labeller-bbw9z                          1/1     Running   0          4m38s
+kubevirt-node-labeller-g7c95                          1/1     Running   0          4m38s
+kubevirt-node-labeller-vqxdt                          1/1     Running   0          4m39s
+kubevirt-ssp-operator-864dfcf594-4995q                1/1     Running   0          12m
+nmstate-handler-5cn7t                                 1/1     Running   0          5m1s
+nmstate-handler-5hqwb                                 1/1     Running   0          5m
+nmstate-handler-7cpj5                                 1/1     Running   0          5m
+nmstate-handler-9mb8q                                 1/1     Running   0          5m
+nmstate-handler-cr5vx                                 1/1     Running   0          5m1s
+nmstate-handler-kppf6                                 1/1     Running   0          5m2s
+node-maintenance-operator-6b8cc78559-s84jl            1/1     Running   0          12m
+ovs-cni-amd64-8499s                                   1/1     Running   1          4m53s
+ovs-cni-amd64-f2zr5                                   1/1     Running   0          4m53s
+ovs-cni-amd64-hm9c5                                   1/1     Running   2          4m57s
+ovs-cni-amd64-kbcrx                                   1/1     Running   0          4m57s
+ovs-cni-amd64-kn92k                                   1/1     Running   1          4m55s
+ovs-cni-amd64-lkn2v                                   1/1     Running   0          4m53s
+virt-api-7686f978db-mxbvd                             1/1     Running   0          4m24s
+virt-api-7686f978db-p9zl8                             1/1     Running   0          4m22s
+virt-controller-7d567db8c6-jpd74                      1/1     Running   0          3m32s
+virt-controller-7d567db8c6-kld5f                      1/1     Running   0          3m33s
+virt-handler-f5946                                    1/1     Running   0          3m32s
+virt-handler-q9m2n                                    1/1     Running   0          3m32s
+virt-handler-tdt5p                                    1/1     Running   0          3m33s
+virt-operator-869b8c8759-2889x                        0/1     Error     0          11m
+virt-operator-869b8c8759-xn7k4                        1/1     Running   2          11m
+virt-template-validator-5d9bbfbcc7-6v4qh              1/1     Running   0          4m46s
+~~~
 
 This will continue for some time, depending on your environment.
 
 You will know the process is complete when you can return to the top terminal and see that the operator installation has been successful by running the following command:
 
 ~~~bash
-$ oc get csv -n openshift-cnv
+[cloud-user@provision ~]$ oc get csv -n openshift-cnv
 NAME                                      DISPLAY                    VERSION   REPLACES   PHASE
-kubevirt-hyperconverged-operator.v2.4.0   OpenShift Virtualization   2.4.0                Succeeded
+kubevirt-hyperconverged-operator.v2.4.1   OpenShift Virtualization   2.4.1                Succeeded
 ~~~
 
 If you do not see `Succeeded` in the `PHASE` column then the deployment may still be progressing, or has failed. You will not be able to proceed until the installation has been successful. Once the `PHASE` changes to `Succeeded` you can validate that the required resources and the additional components have been deployed across the nodes. First let's check the pods deployed in the `openshift-cnv` namespace:
 
 ~~~bash
-$ oc get pods -n openshift-cnv
-NAME                                                 READY   STATUS    RESTARTS   AGE
-bridge-marker-h9hgl                                  1/1     Running   0          13m
-bridge-marker-j76lr                                  1/1     Running   0          13m
-bridge-marker-ljjgr                                  1/1     Running   0          13m
-bridge-marker-rf8vj                                  1/1     Running   0          13m
-bridge-marker-zxp52                                  1/1     Running   0          13m
-cdi-apiserver-7b5894bdbb-77p28                       1/1     Running   0          13m
-cdi-deployment-b4f97d69f-ncp22                       1/1     Running   0          13m
-cdi-operator-5f9b9c977b-xw7w2                        1/1     Running   0          14m
-cdi-uploadproxy-76c94b65c-x25dt                      1/1     Running   0          13m
+[cloud-user@provision ~]$ oc get pods -n openshift-cnv
+NAME                                                  READY   STATUS    RESTARTS   AGE
+bridge-marker-65kv5                                   1/1     Running   0          6m12s
+bridge-marker-9ckff                                   1/1     Running   0          6m9s
+bridge-marker-fk96v                                   1/1     Running   0          6m11s
+bridge-marker-kt4sw                                   1/1     Running   0          6m11s
+bridge-marker-m68cs                                   1/1     Running   0          6m8s
+bridge-marker-sklxs                                   1/1     Running   0          6m9s
+cdi-apiserver-7c4566c98c-4qkph                        1/1     Running   0          6m14s
+cdi-deployment-79fdcfdccb-prhfc                       1/1     Running   1          6m12s
+cdi-operator-75dc489559-mx49s                         1/1     Running   2          13m
+cdi-uploadproxy-5d4cc54b4c-ntj2x                      1/1     Running   0          6m11s
 (...)
 ~~~
 
@@ -99,34 +151,37 @@ Together, all of these pods are responsible for various functions of running a v
 There's also a few custom resources that get defined too, for example the `NodeNetworkState` (`nns` for short) definitions that can be used with the `nmstate-handler` pods to ensure that the NetworkManager state on each node is configured as required, e.g. for defining interfaces/bridges on each of the machines for connectivity for both the physical machine itself and for providing network access for pods (and virtual machines) within OpenShift/Kubernetes:
 
 ~~~bash
-$ oc get nns -A
-NAME                           AGE
-ocp4-master1.cnv.example.com   11m
-ocp4-master2.cnv.example.com   12m
-ocp4-master3.cnv.example.com   11m
-ocp4-worker1.cnv.example.com   12m
-ocp4-worker2.cnv.example.com   11m
+[cloud-user@provision ~]$ oc get nns -A
+NAME       AGE
+master-0   5m39s
+master-1   5m46s
+master-2   6m3s
+worker-0   6m8s
+worker-1   6m10s
+worker-2   6m9s
 
-$ oc get nns/ocp4-worker2.cnv.example.com -o yaml
+[cloud-user@provision ~]$ oc get nns/worker-2 -o yaml
 apiVersion: nmstate.io/v1alpha1
 kind: NodeNetworkState
 metadata:
-  creationTimestamp: "2020-03-09T11:24:42Z"
+  creationTimestamp: "2020-09-25T18:54:17Z"
   generation: 1
-  name: ocp4-worker2.cnv.example.com
+(...)
+  name: worker-2
 (...)
    interfaces:
-    - ipv4:
+- ipv4:
         enabled: false
       ipv6:
         enabled: false
-      mtu: 1450
-      name: br0
+      mac-address: 92:0a:eb:3f:f2:4e
+      mtu: 1400
+      name: br-ext
       state: down
       type: ovs-interface
     - ipv4:
         address:
-        - ip: 192.168.123.105
+        - ip: 172.22.0.48
           prefix-length: 24
         auto-dns: true
         auto-gateway: true
@@ -135,7 +190,7 @@ metadata:
         enabled: true
       ipv6:
         address:
-        - ip: fe80::dee4:6bcf:a5c7:3cee
+        - ip: fe80::5f23:c69d:ee2b:88a2
           prefix-length: 64
         auto-dns: true
         auto-gateway: true
@@ -143,19 +198,20 @@ metadata:
         autoconf: true
         dhcp: true
         enabled: true
-      mac-address: 52:54:00:B2:96:0E
+      mac-address: DE:AD:BE:EF:00:52
       mtu: 1500
-      name: enp1s0
+      name: ens3
       state: up
       type: ethernet
+
 (...)
 ~~~
 
 Here you can see the current state of the node (some of the output has been cut), the interfaces attached, and their physical/logical addresses. In a later section we're going to be modifying the network node state by applying a new configuration to allow nodes to utilise another interface to provide pod networking via a **bridge**. We will do this via a `NodeNetworkConfigurationEnactment` or `nnce` in short:
 
 ~~~bash
-$ oc get nnce -n openshift-cnv
-No resources found in openshift-cnv namespace.
+[cloud-user@provision ~]$ oc get nnce -n openshift-cnv
+No resources found
 ~~~
 
 > **NOTE**: As we've not set any additional configuration at this stage, it's perfectly normal to have 'no resources found' in the output above.
