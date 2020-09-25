@@ -76,8 +76,6 @@ Furthermore, each `BareMetalHost` doesn't have a `Node` assigned, verified by se
 
 <img src="img/no-node.png"/>
 
-> **NOTE**: There's a lot of output from the above command, but it's simply running a `patch` on each `Machine` object to link them together.
-
 Now, if you ask OpenShift for the details of one of the `Machines` you can see how it's all connected together, noting the bits we've added for clarity:
 
 ~~~bash
