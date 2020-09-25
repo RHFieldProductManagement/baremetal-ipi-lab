@@ -72,10 +72,6 @@ However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our ma
 
 <img src="img/no-machine.png"/>
 
-Furthermore, each `BareMetalHost` doesn't have a `Node` assigned, verified by selecting the '**Machines**' option in the same left hand side menu, note that you will need to select **all-projects** from the 'project' drop down at the top to see these entries:
-
-<img src="img/no-node.png"/>
-
 Now, if you ask OpenShift for the details of one of the `Machines` you can see how it's all connected together, noting the bits we've added for clarity:
 
 ~~~bash
