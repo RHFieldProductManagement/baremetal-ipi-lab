@@ -57,13 +57,13 @@ Now that we have our baremetal hosts registered with the baremetal operator, we 
 When we registered our baremetal hosts we created corresponding `Machine` objects (see **CONSUMER**) that are linked to our `BareMetalHost` objects:
 
 ~~~bash
-kni@provisioner$ oc get baremetalhosts -n openshift-machine-api | awk \
-	'{print $1 "  " $5;}' | column -t
-
-NAME                CONSUMER
-openshift-master-0  kni-master-0
-openshift-master-1  kni-master-1
-openshift-master-2  kni-master-2
+[cloud-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api -o=custom-columns=NAME:.metadata.name,CONSUMER:.spec.consumerRef.name
+NAME       CONSUMER
+master-0   schmaustech-master-0
+master-1   schmaustech-master-1
+master-2   schmaustech-master-2
+worker-0   schmaustech-worker-0-vlvbf
+worker-1   schmaustech-worker-0-rhsz4
 ~~~ 
 
 However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our masters, are not currently linked to their corresponding `Machine`. You can verify this in the UI too - if you open up your OpenShift console again and scroll down to '**Compute**' on the left hand side and select '**Nodes**', you'll notice that each of the nodes doesn't have a corresponding `Machine` reference:
@@ -73,16 +73,6 @@ However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our ma
 Furthermore, each `BareMetalHost` doesn't have a `Node` assigned, verified by selecting the '**Machines**' option in the same left hand side menu, note that you will need to select **all-projects** from the 'project' drop down at the top to see these entries:
 
 <img src="img/no-node.png"/>
-
-
-Thankfully we have a handy script that can link these for us:
-
-~~~
-kni@provisioner$ cd ~/dev-scripts/
-kni@provisioner$ for i in {0..2}; \
-	do ./link-machine-and-node.sh kni-master-$i master-$i ;done
-(...)
-~~~
 
 > **NOTE**: There's a lot of output from the above command, but it's simply running a `patch` on each `Machine` object to link them together.
 
