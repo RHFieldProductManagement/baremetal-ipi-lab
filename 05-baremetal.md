@@ -51,9 +51,9 @@ You'll also see that in OpenStack Ironic the nodes are stuck in an '**active**' 
 
 > **NOTE**: You'll also notice that the IP address for Ironic has changed, it's now *172.22.0.3*, whereas when we were deploying it was *172.22.0.2*, only because it's now running on the cluster, no longer on the (long-since-deleted) bootstrap VM.
 
-Great! All looks good with the baremetal nodes! However, there's one more step for us to do...
+Great! All looks good with the baremetal nodes!
 
-Now that we have our baremetal hosts registered with the baremetal operator, we need to tell OpenShift which `Node` is which. Every computer within a Kubernetes environment is considered a `Node`, but with OpenShift 4.0+ the cluster is more aware of the underlying infrastructure, so it can make adjustments such as scaling the cluster, adding new nodes, and deleting them. OpenShift utilises the concept of `Machines` and `MachineSets` to help it understand the different types of underlying infrastructure, including public cloud platforms like AWS. A `Machine` is a fundamental unit that describes the host for a `Node`.
+Now that we have our baremetal hosts registered with the baremetal operator, we can explore how OpenShift knows which `Node` is which. Every computer within a Kubernetes environment is considered a `Node`, but with OpenShift 4.0+ the cluster is more aware of the underlying infrastructure, so it can make adjustments such as scaling the cluster, adding new nodes, and deleting them. OpenShift utilises the concept of `Machines` and `MachineSets` to help it understand the different types of underlying infrastructure, including public cloud platforms like AWS. A `Machine` is a fundamental unit that describes the host for a `Node`.
 
 When we registered our baremetal hosts we created corresponding `Machine` objects (see **CONSUMER**) that are linked to our `BareMetalHost` objects:
 
@@ -68,7 +68,7 @@ worker-1   schmaustech-worker-0-rhsz4
 worker-2   schmaustech-worker-0-5tqpl
 ~~~ 
 
-However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our masters, are not currently linked to their corresponding `Machine`. You can verify this in the UI too - if you open up your OpenShift console again and scroll down to '**Compute**' on the left hand side and select '**Nodes**', you'll notice that each of the nodes doesn't have a corresponding `Machine` reference:
+However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our masters, are currently linked to their corresponding `Machine`. You can verify this in the UI too - if you open up your OpenShift console again and scroll down to '**Compute**' on the left hand side and select '**Nodes**', you'll notice that each of the nodes have a corresponding `Machine` reference:
 
 <img src="img/no-machine.png"/>
 
