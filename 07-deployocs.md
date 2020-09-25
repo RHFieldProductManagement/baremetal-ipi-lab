@@ -1,6 +1,6 @@
 #**Deploy OCS On Cluster**
 
-Now that we had added an additional worker node to our lab cluster environment we can deploy OpenShift Container Storage on top of the cluster.
+Now that we had added an additional worker node to our lab cluster environment we can deploy OpenShift Container Storage on top of the cluster.  The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.  However we will leverage command line and web-console to show the progress of the deployment.
 
 Currently the lab from a node perspective should look like the following from a master/worker node count:
 
