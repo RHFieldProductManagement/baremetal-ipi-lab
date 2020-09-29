@@ -1,6 +1,7 @@
 #**Create OpenShift Cluster***
 
-
+Discuss the install-config.yaml and show example.
+Talk about the parts of the config.
 
 ~~~bash
 [cloud-user@provision scripts]$ cat install-config.yaml
@@ -85,6 +86,7 @@ additionalTrustBundle: |
   -----END CERTIFICATE-----
 ~~~
 
+Before running deployment power off nodes
 
 ~~~bash
   /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6200 -Uadmin -Predhat chassis power off
@@ -95,6 +97,8 @@ additionalTrustBundle: |
   /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6205 -Uadmin -Predhat chassis power off
 ~~~
 
+Run the deployment using the install-config.yaml
+
 ~~~bash
   mkdir `pwd`/ocp
   cp `pwd`/install-config.yaml `pwd`/ocp
@@ -103,11 +107,5 @@ additionalTrustBundle: |
   `pwd`/openshift-baremetal-install --dir=ocp --log-level debug create cluster
 ~~~
 
+Show deployment log
 
-
-
-Confirm install-config.yml looks right
-Set export variables
-Run openshift-baremetal-install command to create cluster
-Open another terminal and watch the log or view the boostrap VM
-Show how to see what is happening in bootstrap vm
