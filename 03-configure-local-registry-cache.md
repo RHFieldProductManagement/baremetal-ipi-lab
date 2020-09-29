@@ -114,10 +114,9 @@ Lets take a quick peek at each pod so we can see where the data is stored.  On b
 (...)
 ~~~
 
+From the above output you can see where the data for each pod is mounted locally on the provisioning node.  For the httpd pod /nfs/ocp/ironic is the path and for poc-registry there are three paths: /nfs/registry/auth, /nfs/registry/certs, and /nfs/registry/data.
 
-
-
-Finally I want to point out that we created a domain.crt to be used for the poc-registry above.  A copy of that cert was placed into the scripts directory.  Lets go ahead and take a look at that cert:
+Finally I want to point out that we created a domain.crt to be used for the poc-registry above.  A copy of that cert was placed into the ~/scripts directory.  Lets go ahead and take a look at that cert:
 
 ~~~bash
 [cloud-user@provision scripts]$ ls -l ~/scripts/domain.crt 
@@ -162,9 +161,79 @@ Finally I want to point out that we created a domain.crt to be used for the poc-
 
 You can see that cert is a standard cert like any other but it is required for our disconnected installation because it allows the installer to talk to the local registry via a TLS connection.
 
+At this point we want to sync down the pod images from quay.io to our local registry.  To do this we need to take a few steps below:
+
+~~~bash
+[cloud-user@provision scripts]$   export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
+[cloud-user@provision scripts]$   export PULLSECRET=/home/cloud-user/pull-secret.json
+[cloud-user@provision scripts]$   export LOCAL_REG='provision.schmaustech.students.osp.opentlc.com:5000'
+[cloud-user@provision scripts]$   export LOCAL_REPO='ocp4/openshift4'
+~~~
+
+So what did we do above?  We ended using the version variable we set earlier to help us set the upstream registry and repository for our 4.5.9 release.  Further we set a pull secet variable and then our local registry and local repository variables.
+
+Now we can actually execute the mirroring:
+
+~~~bash
+[cloud-user@provision scripts]$ oc adm release mirror -a $PULLSECRET --from=$UPSTREAM_REPO --to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
+info: Mirroring 110 images to provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4 ...
+provision.schmaustech.students.osp.opentlc.com:5000/
+  ocp4/openshift4
+    manifests:
+      sha256:00edb6c1dae03e1870e1819b4a8d29b655fb6fc40a396a0db2d7c8a20bd8ab8d -> 4.5.9-local-storage-static-provisioner
+      sha256:0259aa5845ce43114c63d59cedeb71c9aa5781c0a6154fe5af8e3cb7bfcfa304 -> 4.5.9-machine-api-operator
+      sha256:07f11763953a2293bac5d662b6bd49c883111ba324599c6b6b28e9f9f74112be -> 4.5.9-cluster-kube-storage-version-migrator-operator
+(...)
+sha256:15be0e6de6e0d7bec726611f1dcecd162325ee57b993e0d886e70c25a1faacc3 provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9-openshift-controller-manager
+sha256:bc6c8fd4358d3a46f8df4d81cd424e8778b344c368e6855ed45492815c581438 provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9-hyperkube
+sha256:bcd6cd1559b62e4a8031cf0e1676e25585845022d240ac3d927ea47a93469597 provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9-machine-config-operator
+sha256:b05f9e685b3f20f96fa952c7c31b2bfcf96643e141ae961ed355684d2d209310 provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9-baremetal-installer
+info: Mirroring completed in 1.48s (0B/s)
+
+Success
+Update image:  provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9
+Mirror prefix: provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+
+To use the new mirrored repository to install, add the following section to the install-config.yaml:
+
+imageContentSources:
+- mirrors:
+  - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+- mirrors:
+  - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+  source: registry.svc.ci.openshift.org/ocp/release
 
 
- 
+To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
+
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: example
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+  - mirrors:
+    - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+    source: registry.svc.ci.openshift.org/ocp/release
+~~~
+
+The above command will take some time but once complete should have mirrored all the required images from the remote registry to our local registry.   Once key piece of output above is the imageContentSources.  That section of the output is needed for the install-config.yaml file that is used for our OpenShift deployment.   Edit the ~/scripts/install-config.yaml and add those lines to the end of the install-config.yaml:
+
+~~~bash
+
+~~~
+
+Now that we have the images synced down we can move on to syncing the RHCOS images needed for which their are two: an RHCOS qemu image and RHCOS openstack image.  The RHCOS qemu image is the image used for the bootstrap virtual machines that is created on the provisioning host during the initial phases of the deployment process.  The openstack image is the one used to image the master and worker nodes during the deployment process.
+
+To capture this image we have to set a few different environment variables to ensure we download the correct RHCOS image for the version release we are using.  Again in this labs case we are installing 4.5.9.  Lets set a few variables:
+
+~~~bash
+
+~~~
  
 Show how the local registry is already configured 
 Run through steps on how to pull down registry images to remote registry
