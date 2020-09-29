@@ -30,6 +30,90 @@ ce5a09cb9115  docker.io/library/registry:2     /etc/docker/regis...  18 hours ag
 
 As you can see from the output above we have two pods running: httpd and poc-registry.  The httpd pod is the one that will serve up the RHCOS images we are going to pull down and sync to this host.  The poc-registry is the local registry that will contain the pod images for the OpenShift installation locally.
 
+Lets take a quick peek at each pod so we can see where the data is stored.  On both pods run a sudo podman inspect with the pod name:
+
+~~~bash
+[cloud-user@provision scripts]$ sudo podman inspect httpd
+[
+    {
+        "Id": "9210ef6bc5f2c21a26e0963b4d57b779a1b0f6ddb5a875377aa24d6f3a3ded2a",
+        "Created": "2020-09-28T15:26:33.16424928-04:00",
+        "Path": "/bin/runhttpd",
+        "Args": [
+            "/bin/runhttpd"
+        ],
+(...)
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Name": "",
+                "Source": "/nfs/ocp/ironic",
+                "Destination": "/shared",
+                "Driver": "",
+                "Mode": "",
+                "Options": [
+                    "rbind"
+                ],
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+(...)
+
+[cloud-user@provision scripts]$ sudo podman inspect poc-registry
+[
+    {
+        "Id": "ce5a09cb911596d54b62affed45d47f98b5d2b255cc0f79884ccbc873c050858",
+        "Created": "2020-09-28T15:26:03.21874377-04:00",
+        "Path": "/entrypoint.sh",
+        "Args": [
+            "/etc/docker/registry/config.yml"
+        ],
+(...)
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Name": "",
+                "Source": "/nfs/registry/certs",
+                "Destination": "/certs",
+                "Driver": "",
+                "Mode": "",
+                "Options": [
+                    "rbind"
+                ],
+                "RW": true,
+                "Propagation": "rprivate"
+            },
+            {
+                "Type": "bind",
+                "Name": "",
+                "Source": "/nfs/registry/data",
+                "Destination": "/var/lib/registry",
+                "Driver": "",
+                "Mode": "",
+                "Options": [
+                    "rbind"
+                ],
+                "RW": true,
+                "Propagation": "rprivate"
+            },
+            {
+                "Type": "bind",
+                "Name": "",
+                "Source": "/nfs/registry/auth",
+                "Destination": "/auth",
+                "Driver": "",
+                "Mode": "",
+                "Options": [
+                    "rbind"
+                ],
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+(...)
+~~~
+
 
 
 
