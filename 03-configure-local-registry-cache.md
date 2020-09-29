@@ -224,7 +224,13 @@ spec:
 The above command will take some time but once complete should have mirrored all the required images from the remote registry to our local registry.   Once key piece of output above is the imageContentSources.  That section of the output is needed for the install-config.yaml file that is used for our OpenShift deployment.   Edit the ~/scripts/install-config.yaml and add those lines to the end of the install-config.yaml:
 
 ~~~bash
-
+imageContentSources:
+- mirrors:
+  - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+- mirrors:
+  - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+  source: registry.svc.ci.openshift.org/ocp/release
 ~~~
 
 Now that we have the images synced down we can move on to syncing the RHCOS images needed for which their are two: an RHCOS qemu image and RHCOS openstack image.  The RHCOS qemu image is the image used for the bootstrap virtual machines that is created on the provisioning host during the initial phases of the deployment process.  The openstack image is the one used to image the master and worker nodes during the deployment process.
