@@ -19,7 +19,7 @@ The output above shows us we have the 4.5.9 client for oc.  This will determine 
 4.5.9
 ~~~
 
-Now lets examine the version of the openshift-baremetal-install binary:
+Now lets examine the version of the openshift-baremetal-install binary version.  The commit number is important as that will be used to determine what version of the RHCOS image is pulled down later on in this section of the lab.
 
 ~~~bash
 [cloud-user@provision scripts]$ ./openshift-baremetal-install version
@@ -28,9 +28,9 @@ built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c
 release image quay.io/openshift-release-dev/ocp-release@sha256:7ad540594e2a667300dd2584fe2ede2c1a0b814ee6a62f60809d87ab564f4425
 ~~~
 
-At this point we are ready to build our private registry on the provisioning node.   In a production environment this registry could be anywhere within the organization but for this lab we will keep it simple.
+Now that we have examined the oc and openshift-baremetal-install binaries we are ready to build our private registry and httpd cache on the provisioning node.   In a production environment this registry and httpd cache could be anywhere within the organization but for this lab we will keep it simple and on the provisioning node.
 
-The first step is to install some additional packages podman and httpd which will also pull in some dependencies:
+The first step is to install podman and httpd which will also pull in some additional dependencies:
 
 ~~~bash
 [cloud-user@provision scripts]$ sudo yum -y install podman httpd httpd-tools
@@ -50,12 +50,14 @@ Installed:
 Complete!
 ~~~
 
-Create the directories you'll need to run the registry. These directories will be mounted in the container running the registry.
+Now lets create the directories you'll need to run the registry. These directories will be mounted in the container runtime environment for the registry.
 
 ~~~bash
 [cloud-user@provision scripts]$ sudo mkdir -p /nfs/registry/{auth,certs,data}
 [cloud-user@provision scripts]$ 
 ~~~
+
+We also need to create a self signed certificate for the registry:
 
 ~~~bash
 [cloud-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt -subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.students.osp.opentlc.com"
@@ -66,17 +68,23 @@ writing new private key to '/nfs/registry/certs/domain.key'
 -----
 ~~~
 
+Once the certificate has been created lets copy it into our home directory and also into the trust anchors on the provisioning node.  We will also need to run the update-ca-trust command:
+
 ~~~bash
-[cloud-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt $(pwd)/domain.crt
+[cloud-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt $HOME/scripts/domain.crt
 [cloud-user@provision scripts]$ sudo chown cloud-user:cloud-user $(pwd)/domain.crt
 [cloud-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
 [cloud-user@provision scripts]$ sudo update-ca-trust extract
 ~~~
 
+Our registry will need a simple authentication mechanism so we will use htpasswd.  Note that when you try to authenticate to your registry the password being passed has to be in bcrypt format.
+
 ~~~bash
 [cloud-user@provision scripts]$ sudo htpasswd -bBc /nfs/registry/auth/htpasswd dummy dummy
 Adding password for user dummy
 ~~~
+
+Now that we have a directy structure, certificate and a user configured for authentication we can go ahead and create the registry pod.  The command below will pull down the pod and mount the appropriate directory mount points we created earlier.
 
 ~~~bash
 [cloud-user@provision scripts]$ sudo podman create --name poc-registry --net host -p 5000:5000 -v /nfs/registry/data:/var/lib/registry:z -v /nfs/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" -e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /nfs/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
@@ -93,10 +101,14 @@ Storing signatures
 be06131e5dc4b98a1f55fdefc6afa6989cfbc8d878b6d65cf40426e96e2bede1
 ~~~
 
+Once pod creation is complete we can next start the pod:
+
 ~~~bash
 [cloud-user@provision scripts]$ sudo podman start poc-registry
 poc-registry
 ~~~
+
+Finally lets verify the pod is up and running via the podman command:
 
 ~~~bash
 [cloud-user@provision scripts]$ sudo podman ps
@@ -104,10 +116,14 @@ CONTAINER ID  IMAGE                         COMMAND               CREATED       
 be06131e5dc4  docker.io/library/registry:2  /etc/docker/regis...  2 minutes ago  Up 39 seconds ago         poc-registry
 ~~~
 
+We can further validate the registry is functional by using a curl command and passing the user/password to the registry URL.  Note here I do not have to use a bcrypt formatted password.
+
 ~~~bash
 [cloud-user@provision scripts]$ curl -u dummy:dummy -k https://provision.$GUID.students.osp.opentlc.com:5000/v2/_catalog
 {"repositories":[]}
 ~~~
+
+Now that our registry pod is up and we have validated it working lets configure the httpd cache pod which will store our Red Hat CoreOS images locally.  The first step is to create some directory structures and add the appropriate permissions:
 
 ~~~bash
 [cloud-user@provision scripts]$ export IRONIC_DATA_DIR=/nfs/ocp/ironic
@@ -173,24 +189,29 @@ be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes 
 ~~~~
 
 ~~~bash
-  cat <<EOF >> ~/reg-secret.txt
-"provision.$GUID.students.osp.opentlc.com:5000": {
-  "email": "dummy@redhat.com",
-  "auth": "ZHVtbXk6ZHVtbXk="
-}
-EOF
+[cloud-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0
+ZHVtbXk6ZHVtbXk=[cloud-user@provision scripts]$
 ~~~
 
 ~~~bash
-cp $PULLSECRET $PULLSECRET.orig
-cat $PULLSECRET | jq ".auths += {`cat ~/reg-secret.txt`}" > $PULLSECRET
-cat $PULLSECRET | tr -d '[:space:]' > tmp-secret
-mv -f tmp-secret $PULLSECRET
-rm -f ~/reg-secret.txt
-sed -i -e 's/^/  /' $(pwd)/domain.crt
-echo "additionalTrustBundle: |" >> $(pwd)/install-config.yaml
-cat $(pwd)/domain.crt >> $(pwd)/install-config.yaml
-sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" $(pwd)/install-config.yaml
+[cloud-user@provision scripts]$   cat <<EOF >> ~/reg-secret.txt
+> "provision.$GUID.students.osp.opentlc.com:5000": {
+>   "email": "dummy@redhat.com",
+>   "auth": "ZHVtbXk6ZHVtbXk="
+> }
+> EOF
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ cp $PULLSECRET $PULLSECRET.orig
+[cloud-user@provision scripts]$ cat $PULLSECRET | jq ".auths += {`cat ~/reg-secret.txt`}" > $PULLSECRET
+[cloud-user@provision scripts]$ cat $PULLSECRET | tr -d '[:space:]' > tmp-secret
+[cloud-user@provision scripts]$ mv -f tmp-secret $PULLSECRET
+[cloud-user@provision scripts]$ rm -f ~/reg-secret.txt
+[cloud-user@provision scripts]$ sed -i -e 's/^/  /' $(pwd)/domain.crt
+[cloud-user@provision scripts]$ echo "additionalTrustBundle: |" >> $(pwd)/install-config.yaml
+[cloud-user@provision scripts]$ cat $(pwd)/domain.crt >> $(pwd)/install-config.yaml
+[cloud-user@provision scripts]$ sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" $(pwd)/install-config.yaml
 ~~~
 
 
@@ -202,10 +223,10 @@ As you can see from the output above we have two pods running: httpd and poc-reg
 At this point we want to sync down the pod images from quay.io to our local registry.  To do this we need to take a few steps below:
 
 ~~~bash
-[cloud-user@provision scripts]$   export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
-[cloud-user@provision scripts]$   export PULLSECRET=/home/cloud-user/pull-secret.json
-[cloud-user@provision scripts]$   export LOCAL_REG="provision.$GUID.students.osp.opentlc.com:5000"
-[cloud-user@provision scripts]$   export LOCAL_REPO='ocp4/openshift4'
+[cloud-user@provision scripts]$ export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
+[cloud-user@provision scripts]$ export PULLSECRET=/home/cloud-user/pull-secret.json
+[cloud-user@provision scripts]$ export LOCAL_REG="provision.$GUID.students.osp.opentlc.com:5000"
+[cloud-user@provision scripts]$ export LOCAL_REPO='ocp4/openshift4'
 ~~~
 
 So what did we do above?  We ended using the version variable we set earlier to help us set the upstream registry and repository for our 4.5.9 release.  Further we set a pull secet variable and then our local registry and local repository variables.
