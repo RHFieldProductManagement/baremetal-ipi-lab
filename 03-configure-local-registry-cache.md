@@ -404,3 +404,25 @@ To capture this image we have to set a few different environment variables to en
 ~~~
  
 SHow the images that were downloaded and show updated install-config.yaml
+
+~~~bash
+[cloud-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_IMAGE
+-rw-rw-r--. 1 cloud-user cloud-user 896764070 Oct  5 11:39 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
+[cloud-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_BOOTSTRAP_IMAGE
+-rw-rw-r--. 1 cloud-user cloud-user 898670890 Oct  5 11:40 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz -o test.qcow2
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  857M  100  857M    0     0   338M      0  0:00:02  0:00:02 --:--:--  338M
+
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ ls -l test.qcow2
+-rw-rw-r--. 1 cloud-user cloud-user 898670890 Oct  5 13:15 test.qcow2
+[cloud-user@provision scripts]$ rm test.qcow2
+
+~~~
