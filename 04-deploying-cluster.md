@@ -278,6 +278,49 @@ INFO Time elapsed: 1h48m36s
 
 
 ~~~bash
-
+[cloud-user@provision ~]$ oc get nodes
+NAME       STATUS   ROLES    AGE   VERSION
+master-0   Ready    master   96m   v1.18.3+6c42de8
+master-1   Ready    master   84m   v1.18.3+6c42de8
+master-2   Ready    master   85m   v1.18.3+6c42de8
+worker-0   Ready    worker   57m   v1.18.3+6c42de8
+worker-1   Ready    worker   55m   v1.18.3+6c42de8
 ~~~
+
+~~~bash
+[cloud-user@provision ~]$ oc get clusteroperators
+NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
+authentication                             4.5.9     True        False         False      45m
+cloud-credential                           4.5.9     True        False         False      131m
+cluster-autoscaler                         4.5.9     True        False         False      64m
+config-operator                            4.5.9     True        False         False      64m
+console                                    4.5.9     True        False         False      48m
+csi-snapshot-controller                    4.5.9     True        False         False      54m
+dns                                        4.5.9     True        False         False      93m
+etcd                                       4.5.9     True        False         False      83m
+image-registry                             4.5.9     True        False         False      76m
+ingress                                    4.5.9     True        False         False      54m
+insights                                   4.5.9     True        False         False      79m
+kube-apiserver                             4.5.9     True        False         False      82m
+kube-controller-manager                    4.5.9     True        False         False      93m
+kube-scheduler                             4.5.9     True        False         False      93m
+kube-storage-version-migrator              4.5.9     True        False         False      55m
+machine-api                                4.5.9     True        False         False      71m
+machine-approver                           4.5.9     True        False         False      81m
+machine-config                             4.5.9     True        False         False      42m
+marketplace                                4.5.9     True        False         False      63m
+monitoring                                 4.5.9     True        False         False      42m
+network                                    4.5.9     True        False         False      96m
+node-tuning                                4.5.9     True        False         False      95m
+openshift-apiserver                        4.5.9     True        False         False      64m
+openshift-controller-manager               4.5.9     True        False         False      78m
+openshift-samples                          4.5.9     True        False         False      63m
+operator-lifecycle-manager                 4.5.9     True        False         False      94m
+operator-lifecycle-manager-catalog         4.5.9     True        False         False      94m
+operator-lifecycle-manager-packageserver   4.5.9     True        False         False      64m
+service-ca                                 4.5.9     True        False         False      95m
+storage                                    4.5.9     True        False         False      78m
+~~~
+
+
 
