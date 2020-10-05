@@ -84,26 +84,102 @@ additionalTrustBundle: |
   -----END CERTIFICATE-----
 ~~~
 
-Before running deployment power off nodes
+Now that we have examined the install-config.yaml we are ready to proceed with the deployment.  However before starting the deploy we should always make sure that the master and worker baremetal nodes we are going to use are in a powered off state:
 
 ~~~bash
-  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6200 -Uadmin -Predhat chassis power off
-  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6201 -Uadmin -Predhat chassis power off
-  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6202 -Uadmin -Predhat chassis power off
-  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6203 -Uadmin -Predhat chassis power off
-  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6204 -Uadmin -Predhat chassis power off
-  /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p6205 -Uadmin -Predhat chassis power off
+[cloud-user@provision scripts]$ for i in 0 1 2 3 4 5
+> do
+> /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p620$i -Uadmin -Predhat chassis power off
+> done
+Chassis Power Control: Down/Off
+Chassis Power Control: Down/Off
+Chassis Power Control: Down/Off
+Chassis Power Control: Down/Off
+Chassis Power Control: Down/Off
+Chassis Power Control: Down/Off
+[cloud-user@provision scripts]$
 ~~~
 
 Run the deployment using the install-config.yaml
 
 ~~~bash
-  mkdir `pwd`/ocp
-  cp `pwd`/install-config.yaml `pwd`/ocp
-  `pwd`/openshift-baremetal-install --dir=ocp --log-level debug create manifest
-  cp `pwd`/cluster-network-03-config.yml `pwd`/ocp/manifests/cluster-network-03-config.yml
+[cloud-user@provision scripts]$ mkdir $HOME/scripts/ocp
+[cloud-user@provision scripts]$ cp $HOME/scripts/install-config.yaml $HOME/scripts/ocp
+[cloud-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create manifests
+DEBUG OpenShift Installer 4.5.9                    
+DEBUG Built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c 
+DEBUG Fetching Master Machines...                  
+DEBUG Loading Master Machines...                   
+(...)
+DEBUG   Loading Private Cluster Outbound Service... 
+DEBUG   Loading Baremetal Config CR...             
+DEBUG   Loading Image...                           
+WARNING Discarding the Openshift Manifests that was provided in the target directory because its dependencies are dirty and it needs to be regenerated 
+DEBUG   Fetching Install Config...                 
+DEBUG   Reusing previously-fetched Install Config  
+DEBUG   Fetching Cluster ID...                     
+DEBUG   Reusing previously-fetched Cluster ID      
+DEBUG   Fetching Kubeadmin Password...             
+DEBUG   Generating Kubeadmin Password...           
+DEBUG   Fetching OpenShift Install (Manifests)...  
+DEBUG   Generating OpenShift Install (Manifests)... 
+DEBUG   Fetching CloudCredsSecret...               
+DEBUG   Generating CloudCredsSecret...             
+DEBUG   Fetching KubeadminPasswordSecret...        
+DEBUG   Generating KubeadminPasswordSecret...      
+DEBUG   Fetching RoleCloudCredsSecretReader...     
+DEBUG   Generating RoleCloudCredsSecretReader...   
+DEBUG   Fetching Private Cluster Outbound Service... 
+DEBUG   Generating Private Cluster Outbound Service... 
+DEBUG   Fetching Baremetal Config CR...            
+DEBUG   Generating Baremetal Config CR...          
+DEBUG   Fetching Image...                          
+DEBUG   Reusing previously-fetched Image           
+DEBUG Generating Openshift Manifests...  
+~~~
+
+Note that generating the manifests would be done automatically if we just ran create cluster out of the gate.  However if you had additional configuration yamls this would be how you could add them in now.  If we look in the manifests directory we can see there are all sorts of configuration items.  Further yamls could be placed here for customizations of the cluster before actually kicking off the deploy:
+
+~~~bash
+[cloud-user@provision scripts]$ ls -l $HOME/scripts/ocp/manifests/
+total 124
+-rw-r-----. 1 cloud-user cloud-user  169 Oct  5 13:49 04-openshift-machine-config-operator.yaml
+-rw-r-----. 1 cloud-user cloud-user 6383 Oct  5 13:49 cluster-config.yaml
+-rw-r-----. 1 cloud-user cloud-user  165 Oct  5 13:49 cluster-dns-02-config.yml
+-rw-r-----. 1 cloud-user cloud-user  581 Oct  5 13:49 cluster-infrastructure-02-config.yml
+-rw-r-----. 1 cloud-user cloud-user  170 Oct  5 13:49 cluster-ingress-02-config.yml
+-rw-r-----. 1 cloud-user cloud-user  513 Oct  5 13:49 cluster-network-01-crd.yml
+-rw-r-----. 1 cloud-user cloud-user  272 Oct  5 13:49 cluster-network-02-config.yml
+-rw-r-----. 1 cloud-user cloud-user  142 Oct  5 13:49 cluster-proxy-01-config.yaml
+-rw-r-----. 1 cloud-user cloud-user  171 Oct  5 13:49 cluster-scheduler-02-config.yml
+-rw-r-----. 1 cloud-user cloud-user  264 Oct  5 13:49 cvo-overrides.yaml
+-rw-r-----. 1 cloud-user cloud-user 1335 Oct  5 13:49 etcd-ca-bundle-configmap.yaml
+-rw-r-----. 1 cloud-user cloud-user 3958 Oct  5 13:49 etcd-client-secret.yaml
+-rw-r-----. 1 cloud-user cloud-user  434 Oct  5 13:49 etcd-host-service-endpoints.yaml
+-rw-r-----. 1 cloud-user cloud-user  271 Oct  5 13:49 etcd-host-service.yaml
+-rw-r-----. 1 cloud-user cloud-user 4009 Oct  5 13:49 etcd-metric-client-secret.yaml
+-rw-r-----. 1 cloud-user cloud-user 1359 Oct  5 13:49 etcd-metric-serving-ca-configmap.yaml
+-rw-r-----. 1 cloud-user cloud-user 3917 Oct  5 13:49 etcd-metric-signer-secret.yaml
+-rw-r-----. 1 cloud-user cloud-user  156 Oct  5 13:49 etcd-namespace.yaml
+-rw-r-----. 1 cloud-user cloud-user  334 Oct  5 13:49 etcd-service.yaml
+-rw-r-----. 1 cloud-user cloud-user 1336 Oct  5 13:49 etcd-serving-ca-configmap.yaml
+-rw-r-----. 1 cloud-user cloud-user 3890 Oct  5 13:49 etcd-signer-secret.yaml
+-rw-r-----. 1 cloud-user cloud-user  312 Oct  5 13:49 image-content-source-policy-0.yaml
+-rw-r-----. 1 cloud-user cloud-user  307 Oct  5 13:49 image-content-source-policy-1.yaml
+-rw-r-----. 1 cloud-user cloud-user  118 Oct  5 13:49 kube-cloud-config.yaml
+-rw-r-----. 1 cloud-user cloud-user 1304 Oct  5 13:49 kube-system-configmap-root-ca.yaml
+-rw-r-----. 1 cloud-user cloud-user 4134 Oct  5 13:49 machine-config-server-tls-secret.yaml
+-rw-r-----. 1 cloud-user cloud-user 5705 Oct  5 13:49 openshift-config-secret-pul
+~~~
+ 
+ Finally we have now arrived at the point where we can run the create cluster command to deploy our baremetal cluster.   This process will take about ~60-70 minutes to complete:
+  
+~~~bash
   `pwd`/openshift-baremetal-install --dir=ocp --log-level debug create cluster
 ~~~
 
-Show deployment log
+
+~~~bash
+
+~~~
 
