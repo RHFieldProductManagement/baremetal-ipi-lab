@@ -7,21 +7,21 @@ In the previous lab we configured a disconnected registry and httpd cache for RH
 apiVersion: v1
 baseDomain: students.osp.opentlc.com
 metadata:
-  name: schmaustech <===*cluster name*
+  name: schmaustech <===CLUSTER NAME
 networking:
-  networkType: OVNKubernetes
-  machineCIDR: 10.20.0.0/24
+  networkType: OVNKubernetes <===NETWORK SDN TO USE ON DEPLOY
+  machineCIDR: 10.20.0.0/24 <=== EXTERNAL/BAREMETAL NETWORK
 compute:
 - name: worker
-  replicas: 2
+  replicas: 2 <===NUMBER OF WORKERS ON DEPLOYMENT
 controlPlane:
   name: master
-  replicas: 3
+  replicas: 3 <===NUMBER OF MASTERS ON DEPLOYMENT
   platform:
     baremetal: {}
 platform:
   baremetal:
-    provisioningNetworkCIDR: 172.22.0.0/24
+    provisioningNetworkCIDR: 172.22.0.0/24 <=== NETWORK OF PROVISIONING NETWORK
     provisioningNetworkInterface: ens3
     apiVIP: 10.20.0.110
     ingressVIP: 10.20.0.112
@@ -69,7 +69,6 @@ platform:
           password: redhat
         bootMACAddress: de:ad:be:ef:00:51
         hardwareProfile: openstack
-
 sshKey: 'ssh-rsa REDACTED SSH KEY cloud-user@provision'
 imageContentSources:
 - mirrors:
