@@ -5,6 +5,8 @@
  Our current lab already has some of the components needed for a disconnected installation so lets first explore those.  The first component needed is the oc client.  If we type oc version at the command line we can see what version we have:
  
  ~~~bash
+ [cloud-user@provision ~]$ cd scripts/
+[cloud-user@provision scripts]$ 
  [cloud-user@provision scripts]$ oc version
 Client Version: 4.5.9
 Server Version: 4.5.9
@@ -135,6 +137,8 @@ Now that our registry pod is up and we have validated it working lets configure 
 [cloud-user@provision scripts]$ sudo chmod -R +r $IRONIC_DATA_DIR
 ~~~
 
+With the directory structures in place we can now create the caching pod and in our case we are using the the ironic pod that already exists in quay.io.
+
 ~~~bash
 [cloud-user@provision scripts]$ sudo podman pod create -n ironic-pod
 12385a4f6f8cb912e7733b725c2b488de4e21aef049552efd21afc28dd647014
@@ -170,12 +174,16 @@ Storing signatures
 f069949f68fa147206d154417a22c20c49983f0c5b79e9c06d56750e9d3f470d
 ~~~
 
+Because we ran the create command and then a run command after there is no need to actually use podman to start the httpd pod.  We can see that if we look at the current running pods on the provisioning node:
+
 ~~~bash
 [cloud-user@provision scripts]$ sudo podman ps
 CONTAINER ID  IMAGE                            COMMAND               CREATED         STATUS             PORTS  NAMES
 f069949f68fa  quay.io/metal3-io/ironic:master                        8 seconds ago   Up 7 seconds ago          httpd
 be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes ago  Up 20 minutes ago         poc-registry
 ~~~
+
+Further we can test that our httpd cache is operational by using the curl command.  If you get a 301 code that is normal since we have yet to actually place any images in the cache.
 
 ~~~bash
 [cloud-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images
@@ -188,10 +196,14 @@ be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes 
 </body></html>
 ~~~~
 
+We are almost ready to do some downloading of images but we still have a few items to tend to.  First we need to generate a bcrypt password from our username and password we set on the registry.  We can do this by piping them into base64 and capturing the output:
+
 ~~~bash
 [cloud-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0
 ZHVtbXk6ZHVtbXk=[cloud-user@provision scripts]$
 ~~~
+
+Next we will want to take the output above and craft it into a registry secret text file:
 
 ~~~bash
 [cloud-user@provision scripts]$   cat <<EOF >> ~/reg-secret.txt
@@ -202,25 +214,68 @@ ZHVtbXk6ZHVtbXk=[cloud-user@provision scripts]$
 > EOF
 ~~~
 
+Now we can take our existing lab pull secret and our registry pull secret and merge them.  Below we will backup the existing pull secret and then add our registry pull secret to the file.  Further we will add our pull secret and registry cert, as a trust bundle, to the existing install-config.yaml.
+
 ~~~bash
+[cloud-user@provision scripts]$ export PULLSECRET=$HOME/pull-secret.json
 [cloud-user@provision scripts]$ cp $PULLSECRET $PULLSECRET.orig
 [cloud-user@provision scripts]$ cat $PULLSECRET | jq ".auths += {`cat ~/reg-secret.txt`}" > $PULLSECRET
 [cloud-user@provision scripts]$ cat $PULLSECRET | tr -d '[:space:]' > tmp-secret
 [cloud-user@provision scripts]$ mv -f tmp-secret $PULLSECRET
 [cloud-user@provision scripts]$ rm -f ~/reg-secret.txt
 [cloud-user@provision scripts]$ sed -i -e 's/^/  /' $(pwd)/domain.crt
-[cloud-user@provision scripts]$ echo "additionalTrustBundle: |" >> $(pwd)/install-config.yaml
-[cloud-user@provision scripts]$ cat $(pwd)/domain.crt >> $(pwd)/install-config.yaml
-[cloud-user@provision scripts]$ sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" $(pwd)/install-config.yaml
+[cloud-user@provision scripts]$ echo "additionalTrustBundle: |" >> $HOME/scripts/install-config.yaml
+[cloud-user@provision scripts]$ cat $(pwd)/domain.crt >> $HOME/scripts/install-config.yaml
+[cloud-user@provision scripts]$ sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" $HOME/scripts/install-config.yaml
 ~~~
 
+If you cat out the install-config.yaml you should be able to see the changes we made.
 
+~~~bash
+[cloud-user@provision scripts]$ cat install-config.yaml
+apiVersion: v1
+baseDomain: students.osp.opentlc.com
+(...)
+"},"provision.schmaustech.students.osp.opentlc.com:5000":{"email":"dummy@redhat.com","auth":"ZHVtbXk6ZHVtbXk="}}}'
+additionalTrustBundle: |
+  -----BEGIN CERTIFICATE-----
+  MIIGDzCCA/egAwIBAgIUc3tgxZl2g92XdCUX15hWMAIGi10wDQYJKoZIhvcNAQEL
+  BQAwgZYxCzAJBgNVBAYTAlVTMRYwFAYDVQQIDA1Ob3J0aENhcm9saW5hMRAwDgYD
+  VQQHDAdSYWxlaWdoMRAwDgYDVQQKDAdSZWQgSGF0MRIwEAYDVQQLDAlNYXJrZXRp
+  bmcxNzA1BgNVBAMMLnByb3Zpc2lvbi5zY2htYXVzdGVjaC5zdHVkZW50cy5vc3Au
+  b3BlbnRsYy5jb20wHhcNMjAxMDA1MTM0OTAzWhcNMjExMDA1MTM0OTAzWjCBljEL
+  MAkGA1UEBhMCVVMxFjAUBgNVBAgMDU5vcnRoQ2Fyb2xpbmExEDAOBgNVBAcMB1Jh
+  bGVpZ2gxEDAOBgNVBAoMB1JlZCBIYXQxEjAQBgNVBAsMCU1hcmtldGluZzE3MDUG
+  A1UEAwwucHJvdmlzaW9uLnNjaG1hdXN0ZWNoLnN0dWRlbnRzLm9zcC5vcGVudGxj
+  LmNvbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAMvffu+qXR0r3Yxg
+  Z1tUKYejJTmEXf7e4JDlKWyijeu8buDJD0T544gBtWDbEwpho7lsnRgC7w5Peasc
+  DpOQAqI980vQp8tAnS9ncJVroUAtNtf3WLLVpoEPbNTyRdZ2clEh17KcnJQ4Hsjd
+  mMiRNMLzmjBocAXeA2mGkjm2ZN/+fkaC2Zk1DtcPPuF7+apNRk9dizqYawupwgrF
+  zSjFitvf1IC49NtO5b01VWW3056HX+bx8KkGAAMNvqaRlz703HWEeplfsEkyVvTL
+  SOF2BJIbS1HxYZ92qnwIVjzgdx8eZPV954pDvQovEXJExShn9mDEZWuQDcwnwdyU
+  o+zgvzp1dFm9y6iC1u+8eG5wnmoJRkFyxkE3Uoysj2yMcSNGUK8z9O2rBulA8rPC
+  IO4oaizL102wUHj6+ESvbYm5Gjzj/trKuhEtCXYmtyndHe1PsKRmUEq8dZAJBrXY
+  axasroyODSIN6g6wSNSyS490wfu4QZnuEb1X9qXNsvNOgGRwrCEodyAiwCMvVNMw
+  eDA2XAukNktOUVmzrQiupn37lGVhpl47ssmPW5EKWI9SNehz09x16ZVlGRs2ojQU
+  XbutiswxseFm8Qn9teBKLqR2HuOAZb5xS9EDesocwoGRnenmqP+jYt8ifq4ajOEV
+  nJz8oGpIt9gLWaay0fnIzfG08KXHAgMBAAGjUzBRMB0GA1UdDgQWBBTJDjq5gFPw
+  5oqaDPOci3iikL61GTAfBgNVHSMEGDAWgBTJDjq5gFPw5oqaDPOci3iikL61GTAP
+  BgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4ICAQDBHCZeAKgkcGAGZOfS
+  F3ohdYj50MeN/lVtESbvUlirMGEs2f932YkY1oF8ulFy2n3EZftTTpUo2/tDKik7
+  3rZs/cCD8KrPnHAdSJGny7ud27w85DM+dFTwxuIjdHAXdMhoOKvV+lSkziW9Ltmg
+  p7MbOei2nqpxTpX42DfqqC2ZRZ1KyyQ8EClqTlYh3iozwyp1VwpHBnQkFnZLfLjc
+  cHcbayrEgxN7TxUJYqHUP90A7guHA1OfWSSduNN1b8aFACegOtb9MFTRjbIrbNw4
+  R1t5D5TsMc8RfIETHE+9xb1HLdojnXQA8Hwp3myVL7PNr6tKu01hKvbhhhykACFz
+  KtVFLCdv3EF/dZJHahQSJksThFY6Jaeyj7rE6OJ1lJbB/RMGdV/3l7kyDbs7A/mf
+  XKt6I4WoymEDcC7dlcif4sQHMWCKwHMtT8pen04T48CGb/5GLGBVwkx6qEynOE3S
+  KukJj2o1QZJOSi5KdSfGeILAUHW1eOOWank9l1SIS5OIaNBGkSmem6J9heGy6ulv
+  5IU9ahv5IMoJS8wJgkgTMc5B2B/Mbv2dL+kthbemyyPCdN62QtlvhkLCiOU4niI3
+  JdXFoPLSZ5nEb+Y/XB+WVaaz+j8CtGlDcwbGr4BFlakHluVxfK2sDN5n0NOLcQlw
+  Z2sCrU3XLJDME6tPetuPiBX/tA==
+  -----END CERTIFICATE-----
+~~~
 
-
-As you can see from the output above we have two pods running: httpd and poc-registry.  The httpd pod is the one that will serve up the RHCOS images we are going to pull down and sync to this host.  The poc-registry is the local registry that will contain the pod images for the OpenShift installation locally.
-
-
-At this point we want to sync down the pod images from quay.io to our local registry.  To do this we need to take a few steps below:
+Finally at this point we can sync down the pod images from quay.io to our local registry.  To do this we need to take a few steps below:
 
 ~~~bash
 [cloud-user@provision scripts]$ export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
@@ -280,17 +335,7 @@ spec:
     source: registry.svc.ci.openshift.org/ocp/release
 ~~~
 
-The above command will take some time but once complete should have mirrored all the required images from the remote registry to our local registry.   Once key piece of output above is the imageContentSources.  That section of the output is needed for the install-config.yaml file that is used for our OpenShift deployment.   Edit the ~/scripts/install-config.yaml and add those lines to the end of the install-config.yaml:
-
-~~~bash
-imageContentSources:
-- mirrors:
-  - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
-  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-- mirrors:
-  - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
-  source: registry.svc.ci.openshift.org/ocp/release
-~~~
+The above command will take some time but once complete should have mirrored all the required images from the remote registry to our local registry.   Once key piece of output above is the imageContentSources.  That section of the output is needed for the install-config.yaml file that is used for our OpenShift deployment.   If you look at the current ~/scripts/install-config.yaml you will notice those lines have already been added to the script for you.
 
 Now that we have the images synced down we can move on to syncing the RHCOS images needed for which their are two: an RHCOS qemu image and RHCOS openstack image.  The RHCOS qemu image is the image used for the bootstrap virtual machines that is created on the provisioning host during the initial phases of the deployment process.  The openstack image is the one used to image the master and worker nodes during the deployment process.
 
