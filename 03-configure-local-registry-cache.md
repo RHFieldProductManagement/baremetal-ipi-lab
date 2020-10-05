@@ -19,154 +19,192 @@ The output above shows us we have the 4.5.9 client for oc.  This will determine 
 4.5.9
 ~~~
 
-Lets go ahead now and issue a sudo podman ps command to see what containers if any we have running on our provisioning node:
+Now lets examine the version of the openshift-baremetal-install binary:
+
+~~~bash
+[cloud-user@provision scripts]$ ./openshift-baremetal-install version
+./openshift-baremetal-install 4.5.9
+built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c
+release image quay.io/openshift-release-dev/ocp-release@sha256:7ad540594e2a667300dd2584fe2ede2c1a0b814ee6a62f60809d87ab564f4425
+~~~
+
+At this point we are ready to build our private registry on the provisioning node.   In a production environment this registry could be anywhere within the organization but for this lab we will keep it simple.
+
+The first step is to install some additional packages podman and httpd which will also pull in some dependencies:
+
+~~~bash
+[cloud-user@provision scripts]$ sudo yum -y install podman httpd httpd-tools
+Updating Subscription Management repositories.
+Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)                                                                                                                              3.9 kB/s | 2.4 kB     00:00 
+(...)
+Installed:
+  apr-1.6.3-9.el8.x86_64                                                   apr-util-1.6.1-6.el8.x86_64                                         apr-util-bdb-1.6.1-6.el8.x86_64                                   
+  apr-util-openssl-1.6.1-6.el8.x86_64                                      conmon-2:2.0.6-1.module+el8.2.0+6368+cf16aa14.x86_64                container-selinux-2:2.124.0-1.module+el8.2.0+6368+cf16aa14.noarch 
+  containernetworking-plugins-0.8.3-5.module+el8.2.0+6368+cf16aa14.x86_64  containers-common-1:0.1.40-11.module+el8.2.0+6374+67f43e89.x86_64   criu-3.12-9.module+el8.2.0+6368+cf16aa14.x86_64                   
+  fuse-overlayfs-0.7.2-5.module+el8.2.0+6368+cf16aa14.x86_64               fuse3-libs-3.2.1-12.el8.x86_64                                      httpd-2.4.37-21.module+el8.2.0+5008+cca404a3.x86_64               
+  httpd-filesystem-2.4.37-21.module+el8.2.0+5008+cca404a3.noarch           httpd-tools-2.4.37-21.module+el8.2.0+5008+cca404a3.x86_64           libnet-1.1.6-15.el8.x86_64                                        
+  libvarlink-18-3.el8.x86_64                                               mailcap-2.1.48-3.el8.noarch                                         mod_http2-1.11.3-3.module+el8.2.0+4377+dc421495.x86_64            
+  podman-1.6.4-11.module+el8.2.0+6368+cf16aa14.x86_64                      protobuf-c-1.3.0-4.el8.x86_64                                       redhat-logos-httpd-81.1-1.el8.noarch                              
+  runc-1.0.0-65.rc10.module+el8.2.0+6368+cf16aa14.x86_64                   slirp4netns-0.4.2-3.git21fdece.module+el8.2.0+6368+cf16aa14.x86_64 
+
+Complete!
+~~~
+
+Create the directories you'll need to run the registry. These directories will be mounted in the container running the registry.
+
+~~~bash
+[cloud-user@provision scripts]$ sudo mkdir -p /nfs/registry/{auth,certs,data}
+[cloud-user@provision scripts]$ 
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt -subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.students.osp.opentlc.com"
+Generating a RSA private key
+......................................................................................................................................................................................................................................................................++++
+.............................................................................................................................................................................................................................................................++++
+writing new private key to '/nfs/registry/certs/domain.key'
+-----
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt $(pwd)/domain.crt
+[cloud-user@provision scripts]$ sudo chown cloud-user:cloud-user $(pwd)/domain.crt
+[cloud-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
+[cloud-user@provision scripts]$ sudo update-ca-trust extract
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ sudo htpasswd -bBc /nfs/registry/auth/htpasswd dummy dummy
+Adding password for user dummy
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ sudo podman create --name poc-registry --net host -p 5000:5000 -v /nfs/registry/data:/var/lib/registry:z -v /nfs/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" -e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /nfs/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
+Trying to pull docker.io/library/registry:2...
+Getting image source signatures
+Copying blob cbdbe7a5bc2a done
+Copying blob c1cc712bcecd done
+Copying blob 47112e65547d done
+Copying blob 3db6272dcbfa done
+Copying blob 46bcb632e506 done
+Copying config 2d4f4b5309 done
+Writing manifest to image destination
+Storing signatures
+be06131e5dc4b98a1f55fdefc6afa6989cfbc8d878b6d65cf40426e96e2bede1
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ sudo podman start poc-registry
+poc-registry
+~~~
 
 ~~~bash
 [cloud-user@provision scripts]$ sudo podman ps
-CONTAINER ID  IMAGE                            COMMAND               CREATED       STATUS           PORTS  NAMES
-9210ef6bc5f2  quay.io/metal3-io/ironic:master                        18 hours ago  Up 18 hours ago         httpd
-ce5a09cb9115  docker.io/library/registry:2     /etc/docker/regis...  18 hours ago  Up 18 hours ago         poc-registry
+CONTAINER ID  IMAGE                         COMMAND               CREATED        STATUS             PORTS  NAMES
+be06131e5dc4  docker.io/library/registry:2  /etc/docker/regis...  2 minutes ago  Up 39 seconds ago         poc-registry
 ~~~
+
+~~~bash
+[cloud-user@provision scripts]$ curl -u dummy:dummy -k https://provision.$GUID.students.osp.opentlc.com:5000/v2/_catalog
+{"repositories":[]}
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ export IRONIC_DATA_DIR=/nfs/ocp/ironic
+[cloud-user@provision scripts]$ export IRONIC_IMAGES_DIR="${IRONIC_DATA_DIR}/html/images"
+[cloud-user@provision scripts]$ export IRONIC_IMAGE=quay.io/metal3-io/ironic:master
+[cloud-user@provision scripts]$ sudo mkdir -p $IRONIC_IMAGES_DIR
+[cloud-user@provision scripts]$ sudo chown -R "${USER}:${USER}" "$IRONIC_DATA_DIR"
+[cloud-user@provision scripts]$ sudo find $IRONIC_DATA_DIR -type d -print0 | xargs -0 chmod 755
+[cloud-user@provision scripts]$ sudo chmod -R +r $IRONIC_DATA_DIR
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ sudo podman pod create -n ironic-pod
+12385a4f6f8cb912e7733b725c2b488de4e21aef049552efd21afc28dd647014
+[cloud-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
+Trying to pull quay.io/metal3-io/ironic:master...
+Getting image source signatures
+Copying blob 3c72a8ed6814 done
+Copying blob dedbfd2c2275 done
+Copying blob c7075fe6e7e3 done
+Copying blob b9d82df42627 done
+Copying blob 2f2cf2a5ca6f done
+Copying blob e3e9e5cd6698 done
+Copying blob 154a03d6108d done
+Copying blob eb117e61d6ae done
+Copying blob e6725534ffd1 done
+Copying blob e90326c4db9a done
+Copying blob 3781fb791002 done
+Copying blob fed77fc47bdf done
+Copying blob 8d14d6939957 done
+Copying blob 178237ba390f done
+Copying blob 3de95aba020f done
+Copying blob 558fb08cb05e done
+Copying blob 301d166a7a5e done
+Copying blob 50adcfd6cc77 done
+Copying blob 80bc06ff32a9 done
+Copying blob 3c09f26b5dc9 done
+Copying blob a3a07a6a652f done
+Copying blob 6d2ffbec6c34 done
+Copying blob db435f5910cb done
+Copying config 3733498f02 done
+Writing manifest to image destination
+Storing signatures
+f069949f68fa147206d154417a22c20c49983f0c5b79e9c06d56750e9d3f470d
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ sudo podman ps
+CONTAINER ID  IMAGE                            COMMAND               CREATED         STATUS             PORTS  NAMES
+f069949f68fa  quay.io/metal3-io/ironic:master                        8 seconds ago   Up 7 seconds ago          httpd
+be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes ago  Up 20 minutes ago         poc-registry
+~~~
+
+~~~bash
+[cloud-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>301 Moved Permanently</title>
+</head><body>
+<h1>Moved Permanently</h1>
+<p>The document has moved <a href="http://provision.schmaustech.students.osp.opentlc.com/images/">here</a>.</p>
+</body></html>
+~~~~
+
+~~~bash
+  cat <<EOF >> ~/reg-secret.txt
+"provision.$GUID.students.osp.opentlc.com:5000": {
+  "email": "dummy@redhat.com",
+  "auth": "ZHVtbXk6ZHVtbXk="
+}
+EOF
+~~~
+
+~~~bash
+cp $PULLSECRET $PULLSECRET.orig
+cat $PULLSECRET | jq ".auths += {`cat ~/reg-secret.txt`}" > $PULLSECRET
+cat $PULLSECRET | tr -d '[:space:]' > tmp-secret
+mv -f tmp-secret $PULLSECRET
+rm -f ~/reg-secret.txt
+sed -i -e 's/^/  /' $(pwd)/domain.crt
+echo "additionalTrustBundle: |" >> $(pwd)/install-config.yaml
+cat $(pwd)/domain.crt >> $(pwd)/install-config.yaml
+sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" $(pwd)/install-config.yaml
+~~~
+
+
+
 
 As you can see from the output above we have two pods running: httpd and poc-registry.  The httpd pod is the one that will serve up the RHCOS images we are going to pull down and sync to this host.  The poc-registry is the local registry that will contain the pod images for the OpenShift installation locally.
 
-Lets take a quick peek at each pod so we can see where the data is stored.  On both pods run a sudo podman inspect with the pod name:
-
-~~~bash
-[cloud-user@provision scripts]$ sudo podman inspect httpd
-[
-    {
-        "Id": "9210ef6bc5f2c21a26e0963b4d57b779a1b0f6ddb5a875377aa24d6f3a3ded2a",
-        "Created": "2020-09-28T15:26:33.16424928-04:00",
-        "Path": "/bin/runhttpd",
-        "Args": [
-            "/bin/runhttpd"
-        ],
-(...)
-        "Mounts": [
-            {
-                "Type": "bind",
-                "Name": "",
-                "Source": "/nfs/ocp/ironic",
-                "Destination": "/shared",
-                "Driver": "",
-                "Mode": "",
-                "Options": [
-                    "rbind"
-                ],
-                "RW": true,
-                "Propagation": "rprivate"
-            }
-        ],
-(...)
-
-[cloud-user@provision scripts]$ sudo podman inspect poc-registry
-[
-    {
-        "Id": "ce5a09cb911596d54b62affed45d47f98b5d2b255cc0f79884ccbc873c050858",
-        "Created": "2020-09-28T15:26:03.21874377-04:00",
-        "Path": "/entrypoint.sh",
-        "Args": [
-            "/etc/docker/registry/config.yml"
-        ],
-(...)
-        "Mounts": [
-            {
-                "Type": "bind",
-                "Name": "",
-                "Source": "/nfs/registry/certs",
-                "Destination": "/certs",
-                "Driver": "",
-                "Mode": "",
-                "Options": [
-                    "rbind"
-                ],
-                "RW": true,
-                "Propagation": "rprivate"
-            },
-            {
-                "Type": "bind",
-                "Name": "",
-                "Source": "/nfs/registry/data",
-                "Destination": "/var/lib/registry",
-                "Driver": "",
-                "Mode": "",
-                "Options": [
-                    "rbind"
-                ],
-                "RW": true,
-                "Propagation": "rprivate"
-            },
-            {
-                "Type": "bind",
-                "Name": "",
-                "Source": "/nfs/registry/auth",
-                "Destination": "/auth",
-                "Driver": "",
-                "Mode": "",
-                "Options": [
-                    "rbind"
-                ],
-                "RW": true,
-                "Propagation": "rprivate"
-            }
-        ],
-(...)
-~~~
-
-From the above output you can see where the data for each pod is mounted locally on the provisioning node.  For the httpd pod /nfs/ocp/ironic is the path and for poc-registry there are three paths: /nfs/registry/auth, /nfs/registry/certs, and /nfs/registry/data.
-
-Finally I want to point out that we created a domain.crt to be used for the poc-registry above.  A copy of that cert was placed into the ~/scripts directory.  Lets go ahead and take a look at that cert:
-
-~~~bash
-[cloud-user@provision scripts]$ ls -l ~/scripts/domain.crt 
--rw-r--r--. 1 cloud-user cloud-user 2233 Sep 28 15:28 /home/cloud-user/scripts/domain.crt
-[cloud-user@provision scripts]$ cat ~/scripts/domain.crt
-  -----BEGIN CERTIFICATE-----
-  MIIGDzCCA/egAwIBAgIUSN5qe5hK60T3jxllWcFtbIGG/9EwDQYJKoZIhvcNAQEL
-  BQAwgZYxCzAJBgNVBAYTAlVTMRYwFAYDVQQIDA1Ob3J0aENhcm9saW5hMRAwDgYD
-  VQQHDAdSYWxlaWdoMRAwDgYDVQQKDAdSZWQgSGF0MRIwEAYDVQQLDAlNYXJrZXRp
-  bmcxNzA1BgNVBAMMLnByb3Zpc2lvbi5zY2htYXVzdGVjaC5zdHVkZW50cy5vc3Au
-  b3BlbnRsYy5jb20wHhcNMjAwOTI4MTkyNTU5WhcNMjEwOTI4MTkyNTU5WjCBljEL
-  MAkGA1UEBhMCVVMxFjAUBgNVBAgMDU5vcnRoQ2Fyb2xpbmExEDAOBgNVBAcMB1Jh
-  bGVpZ2gxEDAOBgNVBAoMB1JlZCBIYXQxEjAQBgNVBAsMCU1hcmtldGluZzE3MDUG
-  A1UEAwwucHJvdmlzaW9uLnNjaG1hdXN0ZWNoLnN0dWRlbnRzLm9zcC5vcGVudGxj
-  LmNvbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAL26kc+lUeU/W6PB
-  sl2Hvd6bt7robNoNXsHasY8V2JCSAfhN7m98uTBm5DCcTvysAPEPsZfcbD/oMGhp
-  IjKyJC339znbUycSDlEz+5Q88pqGXUcSoZMihOR5d5yFhoEmFKouK7BZy+yjweJg
-  388JkBx+6Mj1cC2BRaxANRPj27b7nxg+OCaFRf7S1aoDsPEdhaBhpSQ3xta4u1dl
-  InwQFjx0Wcw+Wgpiv/VaASdI02ssqM+dktaFwOlUy8JLefmJs12UMRg+M4NhAmDx
-  2J9mkLkQTdbpW0+B32FyMqlE+R18pkOj0W43AqvBA5Jh8FHng7yn/LTCK1gCoyDP
-  IYw3/LGBhAXEx1igCU6bcX8kiompemnbauD6hAfpFm7mKFfjiGQYoX/D+jmq/QvX
-  JtuDGbRhIkqLwzLk+cxKUwr+4vQrt8knUwo5+0q37dkNdW2M9VM7RREKsl2L4atZ
-  TFvZPjPUUjT1Y3X/5tJxKa0RULsjJkxmGF6l25hLeEolAeehGXFAuUU6PKkWEYRL
-  wBkSQ7fX6drMBU4mTrkVZoX1fz8bsZVJQ2eLYWV7OKAPs7dMcZGkBacB7eHR+2x5
-  BkYQrdmaT0YIttsg8g2tTj5DaUkSATdBPQ0tA7yTSE9AUsrRM3vVsgAfCylnwVEV
-  bQEo/KYf67AYsolzMbinY2cwxCMjAgMBAAGjUzBRMB0GA1UdDgQWBBQW0tvxa/On
-  OcERLPlJM/3cCQvkNDAfBgNVHSMEGDAWgBQW0tvxa/OnOcERLPlJM/3cCQvkNDAP
-  BgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4ICAQCk0iM0Bq6nO34crslm
-  bzgNYxLSaATpmKIlPMLtO6+tH1VXUeqGq1Ba0+x//jWIyUyLAztZRGiRA2zfZ/Gb
-  IMC2iM1p/hGK2tvf0MY8yzU2rbwnS4Oelx8+of1LcHY28EmsaKetY8oo2LlSv2qF
-  9+xzV7GMb/3+49xpFwd+d3cRGOS04LodxSjpPqUAVprXQQcU8vHINYg+Pe5zgSIM
-  HvZCKXb78OPjmMRgRxdPdzeRRmfYGmiB+QdjSpir4V6aWO1Or/k1r9lqvE5xG8Xv
-  /x6/e9QggMrcbzOfWfUNzw4aAKmb8c9qP2hz7BUirvLvKcpVq3RuhpBeGnZqsdYw
-  f3xSKX5pks33WG9dlG9j58zSEU/R6Ck0Gh7IivHgwRdrRF/PO7EosZO20lmcf6X7
-  q0klH1tvi79Si9VgZossvoHG0eO0KmPuNTmxOozMtNhFxZlrfsfZerpKX244tLhZ
-  OJC4Uz5OXWZSZAe1jKvNS0lGrciX5MioHF9sELBdKTk9XotZLTGo/BVOl+QMstnJ
-  PXOch5SceU6yDTmOWpSGlYN3oLSzPC0aO/wl5/qx+1vNoiD38A/i2DTm64bzWTzJ
-  PRTMyM5MDADk4M1wbgSKNBWxrppMm1ThhlZfSjLFkyoSK3DxZ3Pp2jp4Qi9qmzYS
-  L2Ylo/Zc//XX3sBLTR/MobiuVQ==
-  -----END CERTIFICATE-----
-~~~
-
-You can see that cert is a standard cert like any other but it is required for our disconnected installation because it allows the installer to talk to the local registry via a TLS connection.
 
 At this point we want to sync down the pod images from quay.io to our local registry.  To do this we need to take a few steps below:
 
 ~~~bash
 [cloud-user@provision scripts]$   export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
 [cloud-user@provision scripts]$   export PULLSECRET=/home/cloud-user/pull-secret.json
-[cloud-user@provision scripts]$   export LOCAL_REG='provision.schmaustech.students.osp.opentlc.com:5000'
+[cloud-user@provision scripts]$   export LOCAL_REG="provision.$GUID.students.osp.opentlc.com:5000"
 [cloud-user@provision scripts]$   export LOCAL_REPO='ocp4/openshift4'
 ~~~
 
