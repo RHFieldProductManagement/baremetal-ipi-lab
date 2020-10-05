@@ -403,7 +403,7 @@ To capture this image we have to set a few different environment variables to en
 [cloud-user@provision scripts]$   sed -i "s/RHCOS_OPENSTACK_IMAGE/$RHCOS_OPENSTACK_IMAGE/g" $HOME/scripts/install-config.yaml
 ~~~
  
-SHow the images that were downloaded and show updated install-config.yaml
+Once the above commands have been run they should have downloaded two images: a RHCOS bootstrap qemu and a RHCOS openstack image.   We can confirm this by doing a directory listed on the $CACHED_MACHINE_OS_IMAGE and $CACHED_MACHINE_OS_BOOTSTRAP_IMAGE variables we set in the previous commands:
 
 ~~~bash
 [cloud-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_IMAGE
@@ -412,17 +412,29 @@ SHow the images that were downloaded and show updated install-config.yaml
 -rw-rw-r--. 1 cloud-user cloud-user 898670890 Oct  5 11:40 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
 ~~~
 
+We can see the images are there.  We can further show they are accessible from our httpd cache by manually curling one of them (the Bootstrap image in this example):
+
 ~~~bash
 [cloud-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz -o test.qcow2
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  857M  100  857M    0     0   338M      0  0:00:02  0:00:02 --:--:--  338M
-
 ~~~
+
+We can see we have a full sized image but lets remove it to save space:
 
 ~~~bash
 [cloud-user@provision scripts]$ ls -l test.qcow2
 -rw-rw-r--. 1 cloud-user cloud-user 898670890 Oct  5 13:15 test.qcow2
 [cloud-user@provision scripts]$ rm test.qcow2
-
 ~~~
+
+At the end of all of those commands we also ran two sed commands to update the install-config.yaml file with the appropriate paths for the bootstrap and cluster RHCOS images:
+
+~~~bash
+[cloud-user@provision scripts]$ grep qcow install-config.yaml
+    bootstrapOSImage: http://10.20.0.2/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz?sha256=c9e2698d0f3bcc48b7c66d7db901266abf27ebd7474b6719992de2d8db96995a
+    clusterOSImage: http://10.20.0.2/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz?sha256=359e7c3560fdd91e64cd0d8df6a172722b10e777aef38673af6246f14838ab1a
+~~~
+
+As you can see it is rather easy to build a local registry and httpd cache for the pod images and RHCOS images.  In the next lab we will leverage this content with a deployment of OpenShift!
