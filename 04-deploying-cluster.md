@@ -172,7 +172,7 @@ total 124
 -rw-r-----. 1 cloud-user cloud-user 5705 Oct  5 13:49 openshift-config-secret-pul
 ~~~
  
- Finally we have now arrived at the point where we can run the create cluster command to deploy our baremetal cluster.   This process will take about ~60-70 minutes to complete:
+ Finally we have now arrived at the point where we can run the create cluster command to deploy our baremetal cluster.   This process will take about ~60-90 minutes to complete:
   
 ~~~bash
 [cloud-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create cluster
@@ -276,6 +276,13 @@ DEBUG  Cluster Operators: 38m6s
 INFO Time elapsed: 1h48m36s  
 ~~~
 
+Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console.  Before we run the oc commands we need to export the KUBECONFIG variable:
+
+~~~bash
+export KUBECONFIG=$HOME/scripts/ocp/auth/kubeconfig
+~~~
+
+Now we can validate and confirm we have a 3 master and 2 worker cluster instantiated by issuing the oc get nodes command:
 
 ~~~bash
 [cloud-user@provision ~]$ oc get nodes
@@ -286,6 +293,8 @@ master-2   Ready    master   85m   v1.18.3+6c42de8
 worker-0   Ready    worker   57m   v1.18.3+6c42de8
 worker-1   Ready    worker   55m   v1.18.3+6c42de8
 ~~~
+
+Further we can also confirm all the cluster operators are functional and available by looking at the clusteroperators command:
 
 ~~~bash
 [cloud-user@provision ~]$ oc get clusteroperators
@@ -322,5 +331,6 @@ service-ca                                 4.5.9     True        False         F
 storage                                    4.5.9     True        False         False      78m
 ~~~
 
+At this point you are now ready to move onto the next lab where we will look at the Machine Config Operator (aka Baremetal Operator).
 
 
