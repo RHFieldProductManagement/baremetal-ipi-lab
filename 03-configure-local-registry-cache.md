@@ -366,8 +366,7 @@ To capture this image we have to set a few different environment variables to en
 [cloud-user@provision scripts]$   MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256}}
 ~~~
   
-  Above we are doing quite a bit but its all in an effort to derive the right RHCOS image for both the bootstrap and installer image.  
-  
+Above we are doing quite a bit but its all in an effort to derive the right RHCOS image for both the bootstrap and installer image.  We first have to gather the commit string from the installer version.  Then we have to grab the rhcos json content with that commit information.  Next we pull out the appropriate image and sha256 for two RHCOS images and finally we set two sets of variables for those two images so we can pull them down below:
   
 ~~~bash
   
