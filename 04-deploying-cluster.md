@@ -252,7 +252,28 @@ DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: downlo
 DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 0% complete 
 DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 41% complete 
 DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 57% complete 
-
+(...)
+DEBUG Still waiting for the cluster to initialize: Some cluster operators are still updating: authentication, console, csi-snapshot-controller, ingress, kube-storage-version-migrator, monitoring 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 86% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 86% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 86% complete 
+(...)
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 92% complete 
+DEBUG Cluster is initialized                       
+INFO Waiting up to 10m0s for the openshift-console route to be created... 
+DEBUG Route found in openshift-console namespace: console 
+DEBUG Route found in openshift-console namespace: downloads 
+DEBUG OpenShift console route is created           
+INFO Install complete!                            
+INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/cloud-user/scripts/ocp/auth/kubeconfig' 
+INFO Access the OpenShift web-console here: https://console-openshift-console.apps.schmaustech.students.osp.opentlc.com 
+INFO Login to the console with user: "kubeadmin", and password: "5VGM2-uMov3-4N2Vi-n5i3H" 
+DEBUG Time elapsed per stage:                      
+DEBUG     Infrastructure: 34m17s                   
+DEBUG Bootstrap Complete: 35m56s                   
+DEBUG  Bootstrap Destroy: 10s                      
+DEBUG  Cluster Operators: 38m6s                    
+INFO Time elapsed: 1h48m36s  
 ~~~
 
 
