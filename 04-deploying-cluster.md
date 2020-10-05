@@ -1,14 +1,13 @@
 #**Create OpenShift Cluster***
 
-Discuss the install-config.yaml and show example.
-Talk about the parts of the config.
+In the previous lab we configured a disconnected registry and httpd cache for RHCOS images.  This will allow us to test our disconnected OpenShift deploy in this section of the lab.  But before we begin lets look at a few parts of the install-config.yaml configuration file.  If we can out the file we can see there are various sections and attributes:
 
 ~~~bash
 [cloud-user@provision scripts]$ cat install-config.yaml
 apiVersion: v1
 baseDomain: students.osp.opentlc.com
 metadata:
-  name: schmaustech
+  name: schmaustech <===*cluster name*
 networking:
   networkType: OVNKubernetes
   machineCIDR: 10.20.0.0/24
