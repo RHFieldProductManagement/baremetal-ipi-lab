@@ -101,6 +101,22 @@ exit
 Removing debug pod ...
 ~~~
 
+Next we need to label our nodes for storage:
+
+~~~bash
+[cloud-user@provision ~]$ oc label nodes worker-0 cluster.ocs.openshift.io/openshift-storage=''
+node/worker-0 labeled
+[cloud-user@provision ~]$ oc label nodes worker-1 cluster.ocs.openshift.io/openshift-storage=''
+node/worker-1 labeled
+[cloud-user@provision ~]$ oc label nodes worker-2 cluster.ocs.openshift.io/openshift-storage=''
+node/worker-2 labeled
+[cloud-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
+NAME       STATUS   ROLES    AGE   VERSION
+worker-0   Ready    worker   19h   v1.18.3+6c42de8
+worker-1   Ready    worker   19h   v1.18.3+6c42de8
+worker-2   Ready    worker   17m   v1.18.3+6c42de8
+~~~
+
 We can see from the output above that on worker-0 the new 100GB volume was attached as vdb.  Repeat the above steps to confirm that the remaining workers also have their 100GB vbd volume attached.
 
 Now that we know the worker nodes have their disk we can proceed.  Before installing OCS we should first install the local-storage operator which we can configure the local disks on the worker nodes which in turn can be consumed by OCS as OSD devices.
