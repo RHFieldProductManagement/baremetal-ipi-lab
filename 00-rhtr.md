@@ -2,7 +2,7 @@
 
 # Deep-dive Hands-on with OpenShift Baremetal IPI & OpenShift Virtualization
 
-# Lab Overview
+## Lab Overview
 
 Firstly, welcome to Red Hat Tech Exchange 2020! The past few years have been an exciting time for both Red Hat and the OpenShift community; we've seen unprecedented interest and development in this new revolutionary technology and we're proud to be at the heart of it all. Red Hat is firmly committed to the future of OpenShift, Kubernetes, and the surrounding technologies; our goal is to continue to enhance the technology, make it more readily consumable and to enable our customers to be successful when using it.
 
@@ -10,7 +10,7 @@ One of the big steps forward was the introduction of tighter integration with th
 
 As OpenShift continues to evolve with each new release we continue to add more integrations for a variety of infrastructure providers, such as OpenStack, VMware, and now, as per the purpose of this lab, bare metal.
 
-# Lab Details
+## Lab Details
 
 This lab is primarily targeted to get you, the attendees, a little bit more familiar with how OpenShift Baremetal environment is built, what components it comprises of, and what it currently looks like in its early stages. The rest of the materials will aim to do the following:
 
@@ -22,7 +22,7 @@ This lab is primarily targeted to get you, the attendees, a little bit more fami
 
 * Demonstrate the deployment of some test workloads based on both virtual machines and standard Kubernetes pods, backed by OpenShift Container Storage (Rook/Ceph).
 
-# Hands On!
+## Hands On!
 
 We feel that getting hands on with Baremetal IPI is essential to helping you fully understand the details and specifics of this installtion method at a level even deeper than just slides alone. And of course, this training is designed to compliment and enhance the delivered messaging to better assist you in positioning, demonstrating, designing, and selling this important OpenShift installation pattern. 
 
