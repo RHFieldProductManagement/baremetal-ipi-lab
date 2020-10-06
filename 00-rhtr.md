@@ -1,6 +1,6 @@
 <img src="img/redhat.png" style="width: 350px;" border=0/>
 
-<h2>Deep-dive Hands-on with OpenShift Baremetal IPI & OpenShift Virtualization</h2>
+# Deep-dive Hands-on with OpenShift Baremetal IPI & OpenShift Virtualization
 
 # Lab Overview
 
