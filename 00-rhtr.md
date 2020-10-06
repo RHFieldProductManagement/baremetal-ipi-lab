@@ -2,20 +2,30 @@
 
 <h2>Deep-dive Hands-on with OpenShift Baremetal IPI & OpenShift Virtualization</h2>
 
-#**Lab Overview**
+# Lab Overview
 
 Firstly, welcome to Red Hat Tech Exchange 2020! The past few years have been an exciting time for both Red Hat and the OpenShift community; we've seen unprecedented interest and development in this new revolutionary technology and we're proud to be at the heart of it all. Red Hat is firmly committed to the future of OpenShift, Kubernetes, and the surrounding technologies; our goal is to continue to enhance the technology, make it more readily consumable and to enable our customers to be successful when using it.
 
-One of the big steps forward for us was to introduce tighter integration with the underlying infrastructure, allowing OpenShift to have more control over system deployment, maintenance, and configuration. With OpenShift 4.0 we came out with tight integration for Amazon Web Services, i.e. from a single bootstrap/provisioning node it could bring up a new OpenShift cluster that had control over AWS directly so it could automatically scale, build new nodes when required, upgrade cluster versions, and so on. As OpenShift 4.x continues to evolve we're adding further integrations such as OpenStack, VMware, and now, as per the purpose of this lab, bare metal.
+One of the big steps forward was the introduction of tighter integration with the underlying infrastructure, allowing OpenShift to have more control over system deployment, maintenance, and configuration. This began with OpenShift 4.0 where we introduced tight integration for Amazon Web Services (AWS). For example, from a single bootstrap/provisioning node an administrator could bring up a new OpenShift cluster through direct interaction with AWS API's. This makes things like automatic scaling, deploying new nodes, and even upgrading cluster versions, easy and fully programmatic. 
 
-This lab is primarily targeted to get you, the attendees, a little bit more familiar with how OpenShift Baremetal environment is built, what components it comprises of, and what it currently looks like in its early-development stage. The rest of the materials will aim to do the following-
+As OpenShift continues to evolve with each new release we continue to add more integrations for a variety of infrastructure providers, such as OpenStack, VMware, and now, as per the purpose of this lab, bare metal.
+
+# Lab Details
+
+This lab is primarily targeted to get you, the attendees, a little bit more familiar with how OpenShift Baremetal environment is built, what components it comprises of, and what it currently looks like in its early stages. The rest of the materials will aim to do the following:
 
 * Introduce the concepts of OpenShift Baremetal IPI Install, OpenShift virtualization and OpenShift Container Storage.
 
-* Provide access to a dedicated environment that will allow the installation to simulate an environment that's as close as feasibly possible to what Baremetal IPI will look like, albeit virtualised and not totally representative.
+* Provide each student access to a dedicated environment which allows the lab to simulate an installation environment as close as feasibly possible to what a real Baremetal IPI setup might look like. Please note, this environment is virtualised to maximise our delivery footprint so will not be as performant as true bare metal. 
 
-* Allow a full, end-to-end deployment of OpenShift Baremetal IPI with the current instructions.
+* Allow a full end-to-end deployment of OpenShift Baremetal IPI with the current instructions.
 
 * Demonstrate the deployment of some test workloads based on both virtual machines and standard Kubernetes pods, backed by OpenShift Container Storage (Rook/Ceph).
 
-We feel that giving you a hands-on lab of Baremetal IPI will be a lot more beneficial than just delivering slideware. If you have any problems at all or have any questions about Red Hat or our OpenShift offering, please put your hand-up and a lab moderator will be with you shortly to assist - we've asked some of our OpenShift experts to be here today, so please make use of their time. If you have printed materials, they're yours to take away with you, otherwise this online copy will be available for the foreseeable future; I hope that they'll be useful assets in the future.
+# Hands On!
+
+We feel that getting hands on with Baremetal IPI is essential to helping you fully understand the details and specifics of this installtion method at a level even deeper than just slides alone. And of course, this training is designed to compliment and enhance the delivered messaging to better assist you in positioning, demonstrating, designing, and selling this important OpenShift installation pattern. 
+
+If you have any problems with the lab or have any questions about Red Hat or our OpenShift offering, please let us know and a lab moderator will be available to assist. And don't worry, the online copy of the lab will be available for the foreseeable future for your review after the session.
+
+And please do stay in touch as we very much welcome contributions and pull requests! You can also reach out to the Field PM team directly at field-engagement@redhat.com
