@@ -77,7 +77,7 @@ Now, if you can tear yourself away from the game, let's build a VM...
 
 ## Deploying a Virtual Machine
 
-Now for the main task, let's deploy a VM on-top of our OpenShift cluster with CNV/KubeVirt. There's a few things we need to configure before we can do this, namely ensuring that we've got networking set-up correctly to serve our VM. Out of the box, CNV will simply attach networking in the same way that pod networking works, i.e. the VM will be mapped to the default Kubernetes network and will have limited network possibilities; remember that Kubernetes networking was designed for containerised applications, not for serving virtual machines that likely have much more complicated requirements.
+Now for the main task, let's deploy a VM on-top of our OpenShift cluster with Openshift virtualization. There's a few things we need to configure before we can do this, namely ensuring that we've got networking set-up correctly to serve our VM. Out of the box, Openshift virtualization will simply attach networking in the same way that pod networking works, i.e. the VM will be mapped to the default Kubernetes network and will have limited network possibilities; remember that Kubernetes networking was designed for containerised applications, not for serving virtual machines that likely have much more complicated requirements.
 
 Through Kubernetes' [container network interface](https://github.com/containernetworking/cni) (CNI) it's possible to setup all of your pods (and hence VM's) to attach to different network types, including SR/IOV, bridged networking, MACVLAN, and also to a wide variety of third party providers including Contrail and Calico, etc. The problem with this approach is that you're changing the core CNI plugin that Kubernetes uses for networking, and therefore normal functions that Kubernetes (and therefore OpenShift) provide may not be available, e.g. routes, cross-cluster communication via the internal IP's, and so on.
 
@@ -363,9 +363,9 @@ rbd image 'csi-vol-e5a4764d-bb5a-11e9-bdb0-0a580a820070':
         modify_timestamp: Sat Aug 10 10:37:51 2019
 ~~~
 
-## Deploying a VM in CNV
+## Deploying a VM in OpenShift virtualization
 
-Now we're ready to deploy our first virtual machine in CNV, backed by the RHEL 8 guest image based PVC from the previous step. There's a few different ways of doing this, but for speed and convenience we're going to create the `VirtualMachine` resource via the command-line, and then inspect it via the web-console in a later step.
+Now we're ready to deploy our first virtual machine in OpenShift virtualization, backed by the RHEL 8 guest image based PVC from the previous step. There's a few different ways of doing this, but for speed and convenience we're going to create the `VirtualMachine` resource via the command-line, and then inspect it via the web-console in a later step.
 
 Assuming that your importer pod has completed, let's create the virtual machine:
 
