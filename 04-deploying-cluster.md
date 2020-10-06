@@ -331,6 +331,30 @@ service-ca                                 4.5.9     True        False         F
 storage                                    4.5.9     True        False         False      78m
 ~~~
 
+One other thing we should do now that our cluster is deployed is patch the Image Registry Operator.  By default the Image Registry Operator needs to be configured with shared storage in a production environment.  However since this is a lab we will just configure it with an empty directy:
+
+~~~bash
+[cloud-user@provision ~]$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
+config.imageregistry.operator.openshift.io/cluster patched
+[cloud-user@provision ~]$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
+config.imageregistry.operator.openshift.io/cluster patched
+~~~
+
+Once the above is configured we should be able to see the pods related to the Image Registry Operator:
+
+~~~bash
+[cloud-user@provision ~]$ oc get pod -n openshift-image-registry
+NAME                                               READY   STATUS      RESTARTS   AGE
+cluster-image-registry-operator-574467db97-rkzb4   2/2     Running     0          18h
+image-pruner-1601942400-wbkxx                      0/1     Completed   0          14h
+image-registry-6fbc9d5597-lkt79                    1/1     Running     0          18m
+node-ca-255lq                                      1/1     Running     0          18h
+node-ca-2hd5t                                      1/1     Running     0          18h
+node-ca-8wc2g                                      1/1     Running     0          18h
+node-ca-ktzl6                                      1/1     Running     0          18h
+node-ca-vmcq2                                      1/1     Running     0          18h
+~~~
+
 At this point you are now ready to move onto the next lab where we will look at the Machine Config Operator (aka Baremetal Operator).
 
 
