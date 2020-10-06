@@ -1,83 +1,75 @@
 #**Running Workloads in the Environment**
 
-Let's get into actually testing some workloads on our environment... we've spent all of this time building it up but we haven't even proven that it's working properly yet! In this section we're going to be deploying some pods as well as deploying a VM using CNV/KubeVirt.
+Let's get into actually testing some workloads on our environment... we've spent all of this time building it up but we haven't even proven that it's working properly yet! In this section we're going to be deploying some pods as well as deploying a VM using OpenShift virtualization.
 
 ## Deploying a Container
 
 OK, so this is likely something that you've all done before, and it's hardly very exciting, but let's have a little bit of fun. Let's deploy a nifty little application inside of a pod and use it to verify that the OpenShift cluster is functioning properly; this will involve building an application from source and exposing it to your web-browser. We'll use the s2i (source to image) container type:
 
 ~~~bash
-kni@provisioner$ oc project default
-Now using project "default" on server "https://api.kni.example.com:6443".
+[cloud-user@provision ~]$ oc project default
+Already on project "default" on server "https://api.schmaustech.students.osp.opentlc.com:6443".
+[cloud-user@provision ~]$ oc new-app nodeshift/centos7-s2i-nodejs:12.x~https://github.com/vrutkovs/DuckHunt-JS
+--> Found container image 5b0b75b (11 months old) from Docker Hub for "nodeshift/centos7-s2i-nodejs:12.x"
 
-kni@provisioner$ oc new-app \
-	nodeshift/centos7-s2i-nodejs:12.x~https://github.com/vrutkovs/DuckHunt-JS
-
---> Found container image bc3b2b8 (6 days old) from Docker Hub for "nodeshift/centos7-s2i-nodejs:12.x"
-
-    Node.js 12.8.1
-    --------------
+    Node.js 12.12.0 
+    --------------- 
     Node.js  available as docker container is a base platform for building and running various Node.js  applications and frameworks. Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.
 
-    Tags: builder, nodejs, nodejs-12.8.1
+    Tags: builder, nodejs, nodejs-12.12.0
 
     * An image stream tag will be created as "centos7-s2i-nodejs:12.x" that will track the source image
     * A source build using source code from https://github.com/vrutkovs/DuckHunt-JS will be created
       * The resulting image will be pushed to image stream tag "duckhunt-js:latest"
       * Every time "centos7-s2i-nodejs:12.x" changes a new build will be triggered
-    * This image will be deployed in deployment config "duckhunt-js"
-    * Port 8080/tcp will be load balanced by service "duckhunt-js"
-      * Other containers can access this service through the hostname "duckhunt-js"
 
 --> Creating resources ...
-    imagestream.image.openshift.io "centos7-s2i-nodejs" created
-    imagestream.image.openshift.io "duckhunt-js" created
     buildconfig.build.openshift.io "duckhunt-js" created
-    deploymentconfig.apps.openshift.io "duckhunt-js" created
+    deployment.apps "duckhunt-js" created
     service "duckhunt-js" created
 --> Success
     Build scheduled, use 'oc logs -f bc/duckhunt-js' to track its progress.
     Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose svc/duckhunt-js'
+     'oc expose svc/duckhunt-js' 
     Run 'oc status' to view your app.
 ~~~
 
 Now our application will build from source, you can watch it happen with:
 
 ~~~bash
-kni@provisioner$ oc logs duckhunt-js-1-build -f
+[cloud-user@provision ~]$ oc logs duckhunt-js-1-build -f
+Caching blobs under "/var/cache/blobs".
+Getting image source signatures
+Copying blob sha256:d8d02d45731499028db01b6fa35475f91d230628b4e25fab8e3c015594dc3261
+Copying blob sha256:a11069b6e24573a516c9d542d7ed33adc115ebcde49101037d153958d3bc2e01
 (...)
-
-Successfully pushed image-registry.openshift-image-registry.svc:5000/default/duckhunt-js:latest@sha256:4d0186040826a4be9d678459c5d6831e107a60c403d65a0da77fb076ff89084c
+Writing manifest to image destination
+Storing signatures
+Successfully pushed image-registry.openshift-image-registry.svc:5000/default/duckhunt-js@sha256:a2eff4eca82019b2752bfbe7ab0f7dcb6875cc9a6ec16b09f351dd933612300b
 Push successful
 ~~~
-
-> **NOTE**: If you get any **tls errors** when running the above command(s) then you'll need to re-run the ./fix_certs.sh script again to ensure that your local client is accepting of the worker's certificate.
 
 Now you can check if the Duckhunt pod has finished building and is running:
 
 ~~~bash
-kni@provisioner$ oc get pods
-NAME                   READY   STATUS      RESTARTS   AGE
-duckhunt-js-1-build    0/1     Completed   0          5m17s
-duckhunt-js-2-deploy   0/1     Completed   0          3m8s
-duckhunt-js-2-sbcgr    1/1     Running     0          2m6s     <-- this is the one!
+[cloud-user@provision ~]$ oc get pods
+NAME                          READY   STATUS      RESTARTS   AGE
+duckhunt-js-1-build           0/1     Completed   0          2m21s
+duckhunt-js-cb885554b-qqmw2   1/1     Running     0          39s
 ~~~
 
 Now expose the application (via the service) so we can route to it from the outside...
 
 ~~~bash
-kni@provisioner$ oc expose svc/duckhunt-js
+[cloud-user@provision ~]$ oc expose svc/duckhunt-js
 route.route.openshift.io/duckhunt-js exposed
 
-kni@provisioner$ oc get route duckhunt-js
-NAME          HOST/PORT                                  PATH   SERVICES      PORT       TERMINATION   WILDCARD
-duckhunt-js   duckhunt-js-default.apps.kni.example.com          duckhunt-js   8080-tcp                 None
+[cloud-user@provision ~]$ oc get route duckhunt-js
+NAME          HOST/PORT                                                       PATH   SERVICES      PORT       TERMINATION   WILDCARD
+duckhunt-js   duckhunt-js-default.apps.schmaustech.students.osp.opentlc.com          duckhunt-js   8080-tcp                 None
 ~~~
 
-Now you should be able to open up the application in the same browser that you're using for proxying to the environment, i.e. the one that allows you to access the OpenShift console. Copy and paste the address from above, or click [here](http://duckhunt-js-default.apps.kni.example.com).
-
-You should now be able to have a quick play with this... good luck ;-)
+Now you should be able to open up the application in the same browser that you're using for access to the OpenShift console. Copy and paste the host address from above and you should now be able to have a quick play with this... good luck ;-
 
 <img src="img/duckhunt.png"/>
 
