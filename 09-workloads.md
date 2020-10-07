@@ -75,7 +75,7 @@ Now you should be able to open up the application in the same browser that you'r
 
 Now, if you can tear yourself away from the game, let's build a VM...
 
-## Deploying a Virtual Machine
+## Deploying a Virtual Machine (Schmaus needs to test and clean up still)
 
 Now for the main task, let's deploy a VM on-top of our OpenShift cluster with Openshift virtualization. There's a few things we need to configure before we can do this, namely ensuring that we've got networking set-up correctly to serve our VM. Out of the box, Openshift virtualization will simply attach networking in the same way that pod networking works, i.e. the VM will be mapped to the default Kubernetes network and will have limited network possibilities; remember that Kubernetes networking was designed for containerised applications, not for serving virtual machines that likely have much more complicated requirements.
 
