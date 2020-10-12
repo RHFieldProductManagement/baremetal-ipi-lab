@@ -5,9 +5,9 @@
  Our current lab already has some of the components needed for a disconnected installation so lets first explore those.  The first component needed is the oc client.  If we type oc version at the command line we can see what version we have:
  
  ~~~bash
- [cloud-user@provision ~]$ cd scripts/
-[cloud-user@provision scripts]$ 
- [cloud-user@provision scripts]$ oc version
+[lab-user@provision ~]$ cd scripts/
+[lab-user@provision scripts]$ 
+[lab-user@provision scripts]$ oc version
 Client Version: 4.5.9
 Server Version: 4.5.9
 Kubernetes Version: v1.18.3+6c42de8
@@ -16,15 +16,15 @@ Kubernetes Version: v1.18.3+6c42de8
 The output above shows us we have the 4.5.9 client for oc.  This will determine what version of the OpenShift cluster we will deploy.  Lets go ahead and set the environment variable of VERSION to that version now:
 
 ~~~bash
-[cloud-user@provision scripts]$ export VERSION=4.5.9
-[cloud-user@provision scripts]$ echo $VERSION
+[lab-user@provision scripts]$ export VERSION=4.5.9
+[lab-user@provision scripts]$ echo $VERSION
 4.5.9
 ~~~
 
 Now lets examine the version of the openshift-baremetal-install binary version.  The commit number is important as that will be used to determine what version of the RHCOS image is pulled down later on in this section of the lab.
 
 ~~~bash
-[cloud-user@provision scripts]$ ./openshift-baremetal-install version
+[lab-user@provision scripts]$ ./openshift-baremetal-install version
 ./openshift-baremetal-install 4.5.9
 built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c
 release image quay.io/openshift-release-dev/ocp-release@sha256:7ad540594e2a667300dd2584fe2ede2c1a0b814ee6a62f60809d87ab564f4425
@@ -35,7 +35,7 @@ Now that we have examined the oc and openshift-baremetal-install binaries we are
 The first step is to install podman and httpd which will also pull in some additional dependencies:
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo yum -y install podman httpd httpd-tools
+[lab-user@provision scripts]$ sudo yum -y install podman httpd httpd-tools
 Updating Subscription Management repositories.
 Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)                                                                                                                              3.9 kB/s | 2.4 kB     00:00 
 (...)
@@ -55,14 +55,14 @@ Complete!
 Now lets create the directories you'll need to run the registry. These directories will be mounted in the container runtime environment for the registry.
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo mkdir -p /nfs/registry/{auth,certs,data}
-[cloud-user@provision scripts]$ 
+[lab-user@provision scripts]$ sudo mkdir -p /nfs/registry/{auth,certs,data}
+[lab-user@provision scripts]$ 
 ~~~
 
 We also need to create a self signed certificate for the registry:
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt -subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.students.osp.opentlc.com"
+[lab-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt -subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.students.osp.opentlc.com"
 Generating a RSA private key
 ......................................................................................................................................................................................................................................................................++++
 .............................................................................................................................................................................................................................................................++++
@@ -73,23 +73,23 @@ writing new private key to '/nfs/registry/certs/domain.key'
 Once the certificate has been created lets copy it into our home directory and also into the trust anchors on the provisioning node.  We will also need to run the update-ca-trust command:
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt $HOME/scripts/domain.crt
-[cloud-user@provision scripts]$ sudo chown cloud-user:cloud-user $(pwd)/domain.crt
-[cloud-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
-[cloud-user@provision scripts]$ sudo update-ca-trust extract
+[lab-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt $HOME/scripts/domain.crt
+[lab-user@provision scripts]$ sudo chown lab-user $HOME/scripts/domain.crt
+[lab-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
+[lab-user@provision scripts]$ sudo update-ca-trust extract
 ~~~
 
 Our registry will need a simple authentication mechanism so we will use htpasswd.  Note that when you try to authenticate to your registry the password being passed has to be in bcrypt format.
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo htpasswd -bBc /nfs/registry/auth/htpasswd dummy dummy
+[lab-user@provision scripts]$ sudo htpasswd -bBc /nfs/registry/auth/htpasswd dummy dummy
 Adding password for user dummy
 ~~~
 
 Now that we have a directy structure, certificate and a user configured for authentication we can go ahead and create the registry pod.  The command below will pull down the pod and mount the appropriate directory mount points we created earlier.
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo podman create --name poc-registry --net host -p 5000:5000 -v /nfs/registry/data:/var/lib/registry:z -v /nfs/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" -e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /nfs/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
+[lab-user@provision scripts]$ sudo podman create --name poc-registry --net host -p 5000:5000 -v /nfs/registry/data:/var/lib/registry:z -v /nfs/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" -e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /nfs/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
 Trying to pull docker.io/library/registry:2...
 Getting image source signatures
 Copying blob cbdbe7a5bc2a done
@@ -106,14 +106,14 @@ be06131e5dc4b98a1f55fdefc6afa6989cfbc8d878b6d65cf40426e96e2bede1
 Once pod creation is complete we can next start the pod:
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo podman start poc-registry
+[lab-user@provision scripts]$ sudo podman start poc-registry
 poc-registry
 ~~~
 
 Finally lets verify the pod is up and running via the podman command:
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo podman ps
+[lab-user@provision scripts]$ sudo podman ps
 CONTAINER ID  IMAGE                         COMMAND               CREATED        STATUS             PORTS  NAMES
 be06131e5dc4  docker.io/library/registry:2  /etc/docker/regis...  2 minutes ago  Up 39 seconds ago         poc-registry
 ~~~
@@ -121,28 +121,28 @@ be06131e5dc4  docker.io/library/registry:2  /etc/docker/regis...  2 minutes ago 
 We can further validate the registry is functional by using a curl command and passing the user/password to the registry URL.  Note here I do not have to use a bcrypt formatted password.
 
 ~~~bash
-[cloud-user@provision scripts]$ curl -u dummy:dummy -k https://provision.$GUID.students.osp.opentlc.com:5000/v2/_catalog
+[lab-user@provision scripts]$ curl -u dummy:dummy -k https://provision.$GUID.students.osp.opentlc.com:5000/v2/_catalog
 {"repositories":[]}
 ~~~
 
 Now that our registry pod is up and we have validated it working lets configure the httpd cache pod which will store our Red Hat CoreOS images locally.  The first step is to create some directory structures and add the appropriate permissions:
 
 ~~~bash
-[cloud-user@provision scripts]$ export IRONIC_DATA_DIR=/nfs/ocp/ironic
-[cloud-user@provision scripts]$ export IRONIC_IMAGES_DIR="${IRONIC_DATA_DIR}/html/images"
-[cloud-user@provision scripts]$ export IRONIC_IMAGE=quay.io/metal3-io/ironic:master
-[cloud-user@provision scripts]$ sudo mkdir -p $IRONIC_IMAGES_DIR
-[cloud-user@provision scripts]$ sudo chown -R "${USER}:${USER}" "$IRONIC_DATA_DIR"
-[cloud-user@provision scripts]$ sudo find $IRONIC_DATA_DIR -type d -print0 | xargs -0 chmod 755
-[cloud-user@provision scripts]$ sudo chmod -R +r $IRONIC_DATA_DIR
+[lab-user@provision scripts]$ export IRONIC_DATA_DIR=/nfs/ocp/ironic
+[lab-user@provision scripts]$ export IRONIC_IMAGES_DIR="${IRONIC_DATA_DIR}/html/images"
+[lab-user@provision scripts]$ export IRONIC_IMAGE=quay.io/metal3-io/ironic:master
+[lab-user@provision scripts]$ sudo mkdir -p $IRONIC_IMAGES_DIR
+[lab-user@provision scripts]$ sudo chown -R "${USER}:${USER}" "$IRONIC_DATA_DIR"
+[lab-user@provision scripts]$ sudo find $IRONIC_DATA_DIR -type d -print0 | xargs -0 chmod 755
+[lab-user@provision scripts]$ sudo chmod -R +r $IRONIC_DATA_DIR
 ~~~
 
 With the directory structures in place we can now create the caching pod and in our case we are using the the ironic pod that already exists in quay.io.
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo podman pod create -n ironic-pod
+[lab-user@provision scripts]$ sudo podman pod create -n ironic-pod
 12385a4f6f8cb912e7733b725c2b488de4e21aef049552efd21afc28dd647014
-[cloud-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
+[lab-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
 Trying to pull quay.io/metal3-io/ironic:master...
 Getting image source signatures
 Copying blob 3c72a8ed6814 done
@@ -177,7 +177,7 @@ f069949f68fa147206d154417a22c20c49983f0c5b79e9c06d56750e9d3f470d
 Because we ran the create command and then a run command after there is no need to actually use podman to start the httpd pod.  We can see that if we look at the current running pods on the provisioning node:
 
 ~~~bash
-[cloud-user@provision scripts]$ sudo podman ps
+[lab-user@provision scripts]$ sudo podman ps
 CONTAINER ID  IMAGE                            COMMAND               CREATED         STATUS             PORTS  NAMES
 f069949f68fa  quay.io/metal3-io/ironic:master                        8 seconds ago   Up 7 seconds ago          httpd
 be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes ago  Up 20 minutes ago         poc-registry
@@ -186,7 +186,7 @@ be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes 
 Further we can test that our httpd cache is operational by using the curl command.  If you get a 301 code that is normal since we have yet to actually place any images in the cache.
 
 ~~~bash
-[cloud-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images
+[lab-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html><head>
 <title>301 Moved Permanently</title>
@@ -199,14 +199,14 @@ Further we can test that our httpd cache is operational by using the curl comman
 We are almost ready to do some downloading of images but we still have a few items to tend to.  First we need to generate a bcrypt password from our username and password we set on the registry.  We can do this by piping them into base64 and capturing the output:
 
 ~~~bash
-[cloud-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0
+[lab-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0
 ZHVtbXk6ZHVtbXk=[cloud-user@provision scripts]$
 ~~~
 
 Next we will want to take the output above and craft it into a registry secret text file:
 
 ~~~bash
-[cloud-user@provision scripts]$   cat <<EOF >> ~/reg-secret.txt
+[lab-user@provision scripts]$   cat <<EOF >> ~/reg-secret.txt
 > "provision.$GUID.students.osp.opentlc.com:5000": {
 >   "email": "dummy@redhat.com",
 >   "auth": "ZHVtbXk6ZHVtbXk="
@@ -217,16 +217,16 @@ Next we will want to take the output above and craft it into a registry secret t
 Now we can take our existing lab pull secret and our registry pull secret and merge them.  Below we will backup the existing pull secret and then add our registry pull secret to the file.  Further we will add our pull secret and registry cert, as a trust bundle, to the existing install-config.yaml.
 
 ~~~bash
-[cloud-user@provision scripts]$ export PULLSECRET=$HOME/pull-secret.json
-[cloud-user@provision scripts]$ cp $PULLSECRET $PULLSECRET.orig
-[cloud-user@provision scripts]$ cat $PULLSECRET | jq ".auths += {`cat ~/reg-secret.txt`}" > $PULLSECRET
-[cloud-user@provision scripts]$ cat $PULLSECRET | tr -d '[:space:]' > tmp-secret
-[cloud-user@provision scripts]$ mv -f tmp-secret $PULLSECRET
-[cloud-user@provision scripts]$ rm -f ~/reg-secret.txt
-[cloud-user@provision scripts]$ sed -i -e 's/^/  /' $(pwd)/domain.crt
-[cloud-user@provision scripts]$ echo "additionalTrustBundle: |" >> $HOME/scripts/install-config.yaml
-[cloud-user@provision scripts]$ cat $(pwd)/domain.crt >> $HOME/scripts/install-config.yaml
-[cloud-user@provision scripts]$ sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" $HOME/scripts/install-config.yaml
+[lab-user@provision scripts]$ export PULLSECRET=$HOME/pull-secret.json
+[lab-user@provision scripts]$ cp $PULLSECRET $PULLSECRET.orig
+[lab-user@provision scripts]$ cat $PULLSECRET | jq ".auths += {`cat ~/reg-secret.txt`}" > $PULLSECRET
+[lab-user@provision scripts]$ cat $PULLSECRET | tr -d '[:space:]' > tmp-secret
+[lab-user@provision scripts]$ mv -f tmp-secret $PULLSECRET
+[lab-user@provision scripts]$ rm -f ~/reg-secret.txt
+[lab-user@provision scripts]$ sed -i -e 's/^/  /' $(pwd)/domain.crt
+[lab-user@provision scripts]$ echo "additionalTrustBundle: |" >> $HOME/scripts/install-config.yaml
+[lab-user@provision scripts]$ cat $(pwd)/domain.crt >> $HOME/scripts/install-config.yaml
+[lab-user@provision scripts]$ sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" $HOME/scripts/install-config.yaml
 ~~~
 
 If you cat out the install-config.yaml you should be able to see the changes we made.
