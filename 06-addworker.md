@@ -5,14 +5,14 @@ In this section we're going to demonstrate how to expand a Baremetal IPI environ
 We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully in this lab there is a handy way to achieve this.  First we need to obtain the ipmi port of the **worker-2** node by using the following one liner against the install-config.yaml we used to deploy the initial cluster:
 
 ~~~bash
-[cloud-user@provision scripts]$ for PORT in 6200 6201 6202 6203 6204 6205; do grep -q $PORT ~/scripts/install-config.yaml; if [ $? -eq 1 ]; then echo $PORT; fi; done
+[lab-user@provision scripts]$ for PORT in 6200 6201 6202 6203 6204 6205; do grep -q $PORT ~/scripts/install-config.yaml; if [ $? -eq 1 ]; then echo $PORT; fi; done
 6203
 ~~~
 
 One we have the port number lets create the following baremetal node definition file.  Make sure to update the port number to in the ipmi address line to the value you obtained above.  All other values, including the MAC address can remain the same since this lab is running in a virtualized environment.
 
 ~~~bash
-[cloud-user@provision scripts]$ cat << EOF > ~/bmh.yaml
+[lab-user@provision scripts]$ cat << EOF > ~/bmh.yaml
 ---
 apiVersion: v1
 kind: Secret
@@ -40,7 +40,7 @@ EOF
 Let's look at the file that it created:
 
 ~~~bash
-$ cat ~/bmh.yaml
+[lab-user@provision scripts]$ cat ~/bmh.yaml
 ---
 apiVersion: v1
 kind: Secret
@@ -69,15 +69,13 @@ You'll see that this is set to create two different resources, one is a `secret`
 Let's now create these resources:
 
 ~~~bash
-
-[cloud-user@provision ~]$ oc create -f ~/bmh.yaml -n openshift-machine-api
-
+[lab-user@provision ~]$ oc create -f ~/bmh.yaml -n openshift-machine-api
 ~~~
 
 Immediately you should this being reflected in as a new `BareMetalHost`, note the new entry with a status of "**inspecting**":
 
 ~~~bash
-[cloud-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api
+[lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api
 NAME       STATUS   PROVISIONING STATUS      CONSUMER                     BMC                     HARDWARE PROFILE   ONLINE   ERROR
 master-0   OK       externally provisioned   schmaustech-master-0         ipmi://10.20.0.3:6202                      true     
 master-1   OK       externally provisioned   schmaustech-master-1         ipmi://10.20.0.3:6201                      true     
@@ -90,8 +88,8 @@ worker-2   OK       inspecting                                            ipmi:/
 You'll also notice this is listed (and managed) by Ironic that's running on the cluster as part of the baremetal operator (note the "inspect wait" status as per the above):
 
 ~~~bash
-[cloud-user@provision ~]$ export OS_URL=http://172.22.0.3:6385; export OS_TOKEN=fake-token
-[cloud-user@provision ~]$ openstack baremetal node list
+[lab-user@provision ~]$ export OS_URL=http://172.22.0.3:6385; export OS_TOKEN=fake-token
+[lab-user@provision ~]$ openstack baremetal node list
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 | UUID                                 | Name     | Instance UUID                        | Power State | Provisioning State | Maintenance |
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
@@ -109,7 +107,7 @@ This additional worker node will now be inspected, data will be gathered about t
 What I recommend is that you watch the list of `BareMetalHosts` every 10s or so to see when it has finished this inspection step (you're looking for the node state of the worker to be '**ready**'):
 
 ~~~bash
-[cloud-user@provision ~]$ watch -n10 oc get baremetalhosts -n openshift-machine-api
+[lab-user@provision ~]$ watch -n10 oc get baremetalhosts -n openshift-machine-api
 (...)
 
 (Ctrl-C to stop)
@@ -118,7 +116,7 @@ What I recommend is that you watch the list of `BareMetalHosts` every 10s or so 
 Now you should see the machine as '**ready**' in the list (you likely saw it in the 'watch' as above, but it's worth confirming):
 
 ~~~bash
-[cloud-user@provision ~]$ oc get baremetalhosts/worker-2 -n openshift-machine-api
+[lab-user@provision ~]$ oc get baremetalhosts/worker-2 -n openshift-machine-api
 NAME       STATUS   PROVISIONING STATUS   CONSUMER   BMC                     HARDWARE PROFILE   ONLINE   ERROR
 worker-2   OK       ready                            ipmi://10.20.0.3:6203   openstack          true  
 ~~~
@@ -126,7 +124,7 @@ worker-2   OK       ready                            ipmi://10.20.0.3:6203   ope
 For it to become managed by OpenShift as a `Machine` and for it to become a `Node`, so we can run applications on it, we need to scale the respective `MachineSet` up; this will kick off the process for deploying CoreOS, installing the OpenShift components, configuring the components to talk to our cluster, and ensuring everything is running properly. When the baremetal opertator is deployed, it creates a `MachineSet` for worker nodes automatically for us:
 
 ~~~bash
-[cloud-user@provision ~]$ oc -n openshift-machine-api get machineset
+[lab-user@provision ~]$ oc -n openshift-machine-api get machineset
 NAME                   DESIRED   CURRENT   READY   AVAILABLE   AGE
 schmaustech-worker-0   2         2         2       2           77m
 ~~~
@@ -136,14 +134,14 @@ Much like scaling other platforms that are integrated with OpenShift 4.x (e.g. A
 Let's now scale our cluster:
 
 ~~~bash
-[cloud-user@provision ~]$ oc -n openshift-machine-api scale machineset schmaustech-worker-0 --replicas=3
+[lab-user@provision ~]$ oc -n openshift-machine-api scale machineset schmaustech-worker-0 --replicas=3
 machineset.machine.openshift.io/schmaustech-worker-0 scaled
 ~~~
 
 Now if you check the `BareMetalHosts` you should see a slightly different state for our worker:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api
+[lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api
 NAME       STATUS   PROVISIONING STATUS      CONSUMER                     BMC                     HARDWARE PROFILE   ONLINE   ERROR
 master-0   OK       externally provisioned   schmaustech-master-0         ipmi://10.20.0.3:6202                      true     
 master-1   OK       externally provisioned   schmaustech-master-1         ipmi://10.20.0.3:6201                      true     
@@ -156,7 +154,7 @@ worker-2   OK       provisioning             schmaustech-worker-0-kbwlb   ipmi:/
 You should also notice that Ironic gives us an updated output to say that it's actually **deploying**, and it's at this point that we deploy CoreOS on our node:
 
 ~~~bash
-[cloud-user@provision ~]$ openstack baremetal node list
+[lab-user@provision ~]$ openstack baremetal node list
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 | UUID                                 | Name     | Instance UUID                        | Power State | Provisioning State | Maintenance |
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
@@ -172,7 +170,7 @@ You should also notice that Ironic gives us an updated output to say that it's a
 If you re-run an extended `watch` command you can keep track of the process across multiple components:
 
 ~~~bash
-[cloud-user@provision ~]$ watch -n10 "openstack baremetal node list && echo \
+[lab-user@provision ~]$ watch -n10 "openstack baremetal node list && echo \
 	&& oc get baremetalhosts -n openshift-machine-api && echo \
 	&& oc get nodes"
 
@@ -186,7 +184,7 @@ If you re-run an extended `watch` command you can keep track of the process acro
 Now let's verify the node status:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get nodes
+[lab-user@provision ~]$ oc get nodes
 NAME                                            STATUS     ROLES    AGE   VERSION
 master-0.schmaustech.students.osp.opentlc.com   Ready      master   84m   v1.18.3+2cf11e2
 master-1.schmaustech.students.osp.opentlc.com   Ready      master   86m   v1.18.3+2cf11e2
