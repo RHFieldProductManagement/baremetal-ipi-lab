@@ -200,7 +200,7 @@ We are almost ready to do some downloading of images but we still have a few ite
 
 ~~~bash
 [lab-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0
-ZHVtbXk6ZHVtbXk=[cloud-user@provision scripts]$
+ZHVtbXk6ZHVtbXk=
 ~~~
 
 Next we will want to take the output above and craft it into a registry secret text file:
@@ -232,7 +232,7 @@ Now we can take our existing lab pull secret and our registry pull secret and me
 If you cat out the install-config.yaml you should be able to see the changes we made.
 
 ~~~bash
-[cloud-user@provision scripts]$ cat install-config.yaml
+[lab-user@provision scripts]$ cat install-config.yaml
 apiVersion: v1
 baseDomain: students.osp.opentlc.com
 (...)
@@ -278,10 +278,10 @@ additionalTrustBundle: |
 Finally at this point we can sync down the pod images from quay.io to our local registry.  To do this we need to take a few steps below:
 
 ~~~bash
-[cloud-user@provision scripts]$ export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
-[cloud-user@provision scripts]$ export PULLSECRET=/home/cloud-user/pull-secret.json
-[cloud-user@provision scripts]$ export LOCAL_REG="provision.$GUID.students.osp.opentlc.com:5000"
-[cloud-user@provision scripts]$ export LOCAL_REPO='ocp4/openshift4'
+[lab-user@provision scripts]$ export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
+[lab-user@provision scripts]$ export PULLSECRET=/home/cloud-user/pull-secret.json
+[lab-user@provision scripts]$ export LOCAL_REG="provision.$GUID.students.osp.opentlc.com:5000"
+[lab-user@provision scripts]$ export LOCAL_REPO='ocp4/openshift4'
 ~~~
 
 So what did we do above?  We ended using the version variable we set earlier to help us set the upstream registry and repository for our 4.5.9 release.  Further we set a pull secet variable and then our local registry and local repository variables.
@@ -289,7 +289,7 @@ So what did we do above?  We ended using the version variable we set earlier to 
 Now we can actually execute the mirroring:
 
 ~~~bash
-[cloud-user@provision scripts]$ oc adm release mirror -a $PULLSECRET --from=$UPSTREAM_REPO --to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
+[lab-user@provision scripts]$ oc adm release mirror -a $PULLSECRET --from=$UPSTREAM_REPO --to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
 info: Mirroring 110 images to provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4 ...
 provision.schmaustech.students.osp.opentlc.com:5000/
   ocp4/openshift4
@@ -342,79 +342,78 @@ Now that we have the images synced down we can move on to syncing the RHCOS imag
 To capture this image we have to set a few different environment variables to ensure we download the correct RHCOS image for the version release we are using.  Again in this labs case we are installing 4.5.9.  Lets set a few variables:
 
 ~~~bash
-[cloud-user@provision scripts]$ OPENSHIFT_INSTALLER=$HOME/scripts/openshift-baremetal-install
-[cloud-user@provision scripts]$ IRONIC_DATA_DIR=/nfs/ocp/ironic
-[cloud-user@provision scripts]$ OPENSHIFT_INSTALL_COMMIT=$($OPENSHIFT_INSTALLER version | grep commit | cut -d' ' -f4)
-[cloud-user@provision scripts]$ OPENSHIFT_INSTALLER_MACHINE_OS=${OPENSHIFT_INSTALLER_MACHINE_OS:-https://raw.githubusercontent.com/openshift/installer/$OPENSHIFT_INSTALL_COMMIT/data/data/rhcos.json}
+[lab-user@provision scripts]$ OPENSHIFT_INSTALLER=$HOME/scripts/openshift-baremetal-install
+[lab-user@provision scripts]$ IRONIC_DATA_DIR=/nfs/ocp/ironic
+[lab-user@provision scripts]$ OPENSHIFT_INSTALL_COMMIT=$($OPENSHIFT_INSTALLER version | grep commit | cut -d' ' -f4)
+[lab-user@provision scripts]$ OPENSHIFT_INSTALLER_MACHINE_OS=${OPENSHIFT_INSTALLER_MACHINE_OS:-https://raw.githubusercontent.com/openshift/installer/$OPENSHIFT_INSTALL_COMMIT/data/data/rhcos.json}
 
-[cloud-user@provision scripts]$ MACHINE_OS_IMAGE_JSON=$(curl "${OPENSHIFT_INSTALLER_MACHINE_OS}")
+[lab-user@provision scripts]$ MACHINE_OS_IMAGE_JSON=$(curl "${OPENSHIFT_INSTALLER_MACHINE_OS}")
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  5334  100  5334    0     0  17374      0 --:--:-- --:--:-- --:--:-- 17431
 
-[cloud-user@provision scripts]$ MACHINE_OS_INSTALLER_IMAGE_URL=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.baseURI + .images.openstack.path')
-[cloud-user@provision scripts]$ MACHINE_OS_INSTALLER_IMAGE_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.openstack.sha256')
-[cloud-user@provision scripts]$ MACHINE_OS_IMAGE_URL=${MACHINE_OS_IMAGE_URL:-${MACHINE_OS_INSTALLER_IMAGE_URL}}
-[cloud-user@provision scripts]$ MACHINE_OS_IMAGE_NAME=$(basename ${MACHINE_OS_IMAGE_URL})
-[cloud-user@provision scripts]$ MACHINE_OS_IMAGE_SHA256=${MACHINE_OS_IMAGE_SHA256:-${MACHINE_OS_INSTALLER_IMAGE_SHA256}}
-[cloud-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_URL=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.baseURI + .images.qemu.path')
-[cloud-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.qemu.sha256')
-[cloud-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_URL=${MACHINE_OS_BOOTSTRAP_IMAGE_URL:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_URL}}
-[cloud-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_NAME=$(basename ${MACHINE_OS_BOOTSTRAP_IMAGE_URL})
-[cloud-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_SHA256}}
-[cloud-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.qemu["uncompressed-sha256"]')
+[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_IMAGE_URL=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.baseURI + .images.openstack.path')
+[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_IMAGE_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.openstack.sha256')
+[lab-user@provision scripts]$ MACHINE_OS_IMAGE_URL=${MACHINE_OS_IMAGE_URL:-${MACHINE_OS_INSTALLER_IMAGE_URL}}
+[lab-user@provision scripts]$ MACHINE_OS_IMAGE_NAME=$(basename ${MACHINE_OS_IMAGE_URL})
+[lab-user@provision scripts]$ MACHINE_OS_IMAGE_SHA256=${MACHINE_OS_IMAGE_SHA256:-${MACHINE_OS_INSTALLER_IMAGE_SHA256}}
+[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_URL=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.baseURI + .images.qemu.path')
+[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.qemu.sha256')
+[lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_URL=${MACHINE_OS_BOOTSTRAP_IMAGE_URL:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_URL}}
+[lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_NAME=$(basename ${MACHINE_OS_BOOTSTRAP_IMAGE_URL})
+[lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_SHA256}}
+[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.qemu["uncompressed-sha256"]')
 [cloud-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256}}
 ~~~
   
 Above we are doing quite a bit but its all in an effort to derive the right RHCOS image for both the bootstrap and installer image.  We first have to gather the commit string from the installer version.  Then we have to grab the rhcos json content with that commit information.  Next we pull out the appropriate image and sha256 for two RHCOS images and finally we set two sets of variables for those two images so we can pull them down below:
   
 ~~~bash
-  
-[cloud-user@provision scripts]$ CACHED_MACHINE_OS_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_IMAGE_NAME}"
-[cloud-user@provision scripts]$ curl -g --insecure -L -o "${CACHED_MACHINE_OS_IMAGE}" "${MACHINE_OS_IMAGE_URL}"
+[lab-user@provision scripts]$ CACHED_MACHINE_OS_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_IMAGE_NAME}"
+[lab-user@provision scripts]$ curl -g --insecure -L -o "${CACHED_MACHINE_OS_IMAGE}" "${MACHINE_OS_IMAGE_URL}"
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   161  100   161    0     0   1319      0 --:--:-- --:--:-- --:--:--  1319
 100  855M  100  855M    0     0  52.0M      0  0:00:16  0:00:16 --:--:-- 53.6M
 
-[cloud-user@provision scripts]$ echo "${MACHINE_OS_IMAGE_SHA256} ${CACHED_MACHINE_OS_IMAGE}" | tee ${CACHED_MACHINE_OS_IMAGE}.sha256sum
+[lab-user@provision scripts]$ echo "${MACHINE_OS_IMAGE_SHA256} ${CACHED_MACHINE_OS_IMAGE}" | tee ${CACHED_MACHINE_OS_IMAGE}.sha256sum
 359e7c3560fdd91e64cd0d8df6a172722b10e777aef38673af6246f14838ab1a /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
-[cloud-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_IMAGE}.sha256sum
+[lab-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_IMAGE}.sha256sum
 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz: OK
 
 
-[cloud-user@provision scripts]$ CACHED_MACHINE_OS_BOOTSTRAP_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_BOOTSTRAP_IMAGE_NAME}"
-[cloud-user@provision scripts]$ curl -g --insecure -L -o "${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" "${MACHINE_OS_BOOTSTRAP_IMAGE_URL}"
+[lab-user@provision scripts]$ CACHED_MACHINE_OS_BOOTSTRAP_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_BOOTSTRAP_IMAGE_NAME}"
+[lab-user@provision scripts]$ curl -g --insecure -L -o "${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" "${MACHINE_OS_BOOTSTRAP_IMAGE_URL}"
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   161  100   161    0     0   2012      0 --:--:-- --:--:-- --:--:--  2012
 100  857M  100  857M    0     0  40.5M      0  0:00:21  0:00:21 --:--:-- 39.1M
 
-[cloud-user@provision scripts]$ echo "${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256} ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" | tee ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
+[lab-user@provision scripts]$ echo "${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256} ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" | tee ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
 80ab9b70566c50a7e0b5e62626e5ba391a5f87ac23ea17e5d7376dcc1e2d39ce /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
 [cloud-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz: OK
 
 
-[cloud-user@provision scripts]$ RHCOS_QEMU_IMAGE=$MACHINE_OS_BOOTSTRAP_IMAGE_NAME?sha256=$MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256
-[cloud-user@provision scripts]$ RHCOS_OPENSTACK_IMAGE=$MACHINE_OS_IMAGE_NAME?sha256=$MACHINE_OS_IMAGE_SHA256
-[cloud-user@provision scripts]$ sed -i "s/RHCOS_QEMU_IMAGE/$RHCOS_QEMU_IMAGE/g" $HOME/scripts/install-config.yaml
-[cloud-user@provision scripts]$ sed -i "s/RHCOS_OPENSTACK_IMAGE/$RHCOS_OPENSTACK_IMAGE/g" $HOME/scripts/install-config.yaml
+[lab-user@provision scripts]$ RHCOS_QEMU_IMAGE=$MACHINE_OS_BOOTSTRAP_IMAGE_NAME?sha256=$MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256
+[lab-user@provision scripts]$ RHCOS_OPENSTACK_IMAGE=$MACHINE_OS_IMAGE_NAME?sha256=$MACHINE_OS_IMAGE_SHA256
+[lab-user@provision scripts]$ sed -i "s/RHCOS_QEMU_IMAGE/$RHCOS_QEMU_IMAGE/g" $HOME/scripts/install-config.yaml
+[lab-user@provision scripts]$ sed -i "s/RHCOS_OPENSTACK_IMAGE/$RHCOS_OPENSTACK_IMAGE/g" $HOME/scripts/install-config.yaml
 ~~~
  
 Once the above commands have been run they should have downloaded two images: a RHCOS bootstrap qemu and a RHCOS openstack image.   We can confirm this by doing a directory listed on the $CACHED_MACHINE_OS_IMAGE and $CACHED_MACHINE_OS_BOOTSTRAP_IMAGE variables we set in the previous commands:
 
 ~~~bash
-[cloud-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_IMAGE
+[lab-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_IMAGE
 -rw-rw-r--. 1 cloud-user cloud-user 896764070 Oct  5 11:39 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
-[cloud-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_BOOTSTRAP_IMAGE
+[lab-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_BOOTSTRAP_IMAGE
 -rw-rw-r--. 1 cloud-user cloud-user 898670890 Oct  5 11:40 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
 ~~~
 
 We can see the images are there.  We can further show they are accessible from our httpd cache by manually curling one of them (the Bootstrap image in this example):
 
 ~~~bash
-[cloud-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz -o test.qcow2
+[lab-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz -o test.qcow2
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  857M  100  857M    0     0   338M      0  0:00:02  0:00:02 --:--:--  338M
@@ -423,15 +422,15 @@ We can see the images are there.  We can further show they are accessible from o
 We can see we have a full sized image but lets remove it to save space:
 
 ~~~bash
-[cloud-user@provision scripts]$ ls -l test.qcow2
+[lab-user@provision scripts]$ ls -l test.qcow2
 -rw-rw-r--. 1 cloud-user cloud-user 898670890 Oct  5 13:15 test.qcow2
-[cloud-user@provision scripts]$ rm test.qcow2
+[lab-user@provision scripts]$ rm test.qcow2
 ~~~
 
 At the end of all of those commands we also ran two sed commands to update the install-config.yaml file with the appropriate paths for the bootstrap and cluster RHCOS images:
 
 ~~~bash
-[cloud-user@provision scripts]$ grep qcow install-config.yaml
+[lab-user@provision scripts]$ grep qcow install-config.yaml
     bootstrapOSImage: http://10.20.0.2/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz?sha256=c9e2698d0f3bcc48b7c66d7db901266abf27ebd7474b6719992de2d8db96995a
     clusterOSImage: http://10.20.0.2/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz?sha256=359e7c3560fdd91e64cd0d8df6a172722b10e777aef38673af6246f14838ab1a
 ~~~
