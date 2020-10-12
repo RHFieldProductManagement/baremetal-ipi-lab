@@ -279,7 +279,7 @@ Finally at this point we can sync down the pod images from quay.io to our local 
 
 ~~~bash
 [lab-user@provision scripts]$ export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
-[lab-user@provision scripts]$ export PULLSECRET=/home/cloud-user/pull-secret.json
+[lab-user@provision scripts]$ export PULLSECRET=$HOME/pull-secret.json
 [lab-user@provision scripts]$ export LOCAL_REG="provision.$GUID.students.osp.opentlc.com:5000"
 [lab-user@provision scripts]$ export LOCAL_REPO='ocp4/openshift4'
 ~~~
@@ -363,7 +363,7 @@ To capture this image we have to set a few different environment variables to en
 [lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_NAME=$(basename ${MACHINE_OS_BOOTSTRAP_IMAGE_URL})
 [lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_SHA256}}
 [lab-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.qemu["uncompressed-sha256"]')
-[cloud-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256}}
+[lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256}}
 ~~~
   
 Above we are doing quite a bit but its all in an effort to derive the right RHCOS image for both the bootstrap and installer image.  We first have to gather the commit string from the installer version.  Then we have to grab the rhcos json content with that commit information.  Next we pull out the appropriate image and sha256 for two RHCOS images and finally we set two sets of variables for those two images so we can pull them down below:
