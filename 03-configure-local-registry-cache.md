@@ -391,7 +391,7 @@ Above we are doing quite a bit but its all in an effort to derive the right RHCO
 
 [lab-user@provision scripts]$ echo "${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256} ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" | tee ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
 80ab9b70566c50a7e0b5e62626e5ba391a5f87ac23ea17e5d7376dcc1e2d39ce /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
-[cloud-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
+[lab-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz: OK
 
 
@@ -405,9 +405,9 @@ Once the above commands have been run they should have downloaded two images: a 
 
 ~~~bash
 [lab-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_IMAGE
--rw-rw-r--. 1 cloud-user cloud-user 896764070 Oct  5 11:39 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
+-rw-rw-r--. 1 lab-user lab-user 896764070 Oct  5 11:39 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
 [lab-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_BOOTSTRAP_IMAGE
--rw-rw-r--. 1 cloud-user cloud-user 898670890 Oct  5 11:40 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
+-rw-rw-r--. 1 lab-user lab-user 898670890 Oct  5 11:40 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
 ~~~
 
 We can see the images are there.  We can further show they are accessible from our httpd cache by manually curling one of them (the Bootstrap image in this example):
@@ -423,7 +423,7 @@ We can see we have a full sized image but lets remove it to save space:
 
 ~~~bash
 [lab-user@provision scripts]$ ls -l test.qcow2
--rw-rw-r--. 1 cloud-user cloud-user 898670890 Oct  5 13:15 test.qcow2
+-rw-rw-r--. 1 lab-user lab-user 898670890 Oct  5 13:15 test.qcow2
 [lab-user@provision scripts]$ rm test.qcow2
 ~~~
 
