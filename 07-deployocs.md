@@ -5,7 +5,7 @@ Now that we had added an additional worker node to our lab cluster environment w
 Currently the lab from a node perspective should look like the following from a master/worker node count:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get nodes
+[lab-user@provision ~]$ oc get nodes
 NAME       STATUS   ROLES    AGE   VERSION
 master-0   Ready    master   18h   v1.18.3+6c42de8
 master-1   Ready    master   18h   v1.18.3+6c42de8
@@ -20,7 +20,7 @@ We need to attach a 100GB disk to each of our worker nodes in the lab environmen
 Before we run the script lets take a look at it:
 
 ~~~bash
-[cloud-user@provision ~]$ cat ~/scripts/10_volume-attach.sh
+[lab-user@provision ~]$ cat ~/scripts/10_volume-attach.sh
 #!/bin/bash
 OSP_PROJECT="msp-f143-project"
 GUID="schmaustech"
@@ -63,15 +63,15 @@ We can see the script will attach and detach volumes from a list of worker nodes
 Lets go ahead and run the script:
 
 ~~~bash
-[cloud-user@provision ~]$ ~/scripts/10_volume-attach.sh 
-[cloud-user@provision ~]$ echo $?
+[lab-user@provision ~]$ ~/scripts/10_volume-attach.sh 
+[lab-user@provision ~]$ echo $?
 0
 ~~~
 
 We can validate that each node has the extra disk by using the debug container on the worker node:
 
 ~~~bash
-[cloud-user@provision ~]$ oc debug node/worker-0
+[lab-user@provision ~]$ oc debug node/worker-0
 Starting pod/worker-0-debug ...
 To use host binaries, run `chroot /host`
 Pod IP: 10.20.0.200
@@ -104,13 +104,13 @@ Removing debug pod ...
 Next we need to label our nodes for storage:
 
 ~~~bash
-[cloud-user@provision ~]$ oc label nodes worker-0 cluster.ocs.openshift.io/openshift-storage=''
+[lab-user@provision ~]$ oc label nodes worker-0 cluster.ocs.openshift.io/openshift-storage=''
 node/worker-0 labeled
-[cloud-user@provision ~]$ oc label nodes worker-1 cluster.ocs.openshift.io/openshift-storage=''
+[lab-user@provision ~]$ oc label nodes worker-1 cluster.ocs.openshift.io/openshift-storage=''
 node/worker-1 labeled
-[cloud-user@provision ~]$ oc label nodes worker-2 cluster.ocs.openshift.io/openshift-storage=''
+[lab-user@provision ~]$ oc label nodes worker-2 cluster.ocs.openshift.io/openshift-storage=''
 node/worker-2 labeled
-[cloud-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
+[lab-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
 NAME       STATUS   ROLES    AGE   VERSION
 worker-0   Ready    worker   19h   v1.18.3+6c42de8
 worker-1   Ready    worker   19h   v1.18.3+6c42de8
@@ -148,14 +148,14 @@ Once the operator is installed we can navigate to Operators->Installed Operators
 We can also validate from the command line that the operator is installed and running as well:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get pods -n local-storage
+[lab-user@provision ~]$ oc get pods -n local-storage
 local-storage-operator-57455d9cb4-4tj54   1/1     Running   0          10m
 ~~~
 
 Now that we have the local storage operator installed lets make a storage definition file that will use the disk device in each node:
 
 ~~~bash
-[cloud-user@provision scripts]$ cat << EOF > ~/local-storage.yaml
+[lab-user@provision scripts]$ cat << EOF > ~/local-storage.yaml
 apiVersion: local.storage.openshift.io/v1
 kind: LocalVolume
 metadata:
@@ -180,7 +180,7 @@ EOF
 Let's take a look at the file that it created:
 
 ~~~bash
-[cloud-user@provision scripts]$ cat ~/local-storage.yaml
+[lab-user@provision scripts]$ cat ~/local-storage.yaml
 apiVersion: local.storage.openshift.io/v1
 kind: LocalVolume
 metadata:
@@ -206,7 +206,7 @@ You'll see that this is set to create a local volume on every host from the bloc
 At this point we should label our nodes with the OCS storage label:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}'
+[lab-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}'
 worker-0
 worker-1
 worker-2
@@ -215,14 +215,14 @@ worker-2
 Now we can go ahead and create the assests for this local-storage configuration using the local-storage.yaml we created above.
 
 ~~~bash
-[cloud-user@provision ~]$ oc create -f ~/local-storage.yaml
+[lab-user@provision ~]$ oc create -f ~/local-storage.yaml
 localvolume.local.storage.openshift.io/local-block created
 ~~~
 
 If we jump over to the provisioning node and execute an oc get pods command on the namespace of local-storage we will see containers being created in relationship to the assets from our local-storage.yaml file:
 
 ~~~bash
-[cloud-user@provision ~]$ oc -n local-storage get pods
+[lab-user@provision ~]$ oc -n local-storage get pods
 NAME                                      READY   STATUS              RESTARTS   AGE
 local-block-local-diskmaker-626kf         0/1     ContainerCreating   0          8s
 local-block-local-diskmaker-w5l5h         0/1     ContainerCreating   0          9s
@@ -236,7 +236,7 @@ local-storage-operator-57455d9cb4-4tj54   1/1     Running             0         
 The pods generated are a provisioner and diskmaker on every worker node where the node selector matched.
 
 ~~~bash
-[cloud-user@provision ~]$ oc -n local-storage get pods
+[lab-user@provision ~]$ oc -n local-storage get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
 local-block-local-diskmaker-626kf         1/1     Running   0          21s
 local-block-local-diskmaker-w5l5h         1/1     Running   0          22s
@@ -252,7 +252,7 @@ As you can see from the above we had labeled 3 worker nodes and we have 3 provis
 Further we can now see that 3 pvs have been created which comprise our 100GB vdb disks we attached at the beginning of the lab:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get pv
+[lab-user@provision ~]$ oc get pv
 NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
 local-pv-40d06fba   100Gi      RWO            Delete           Available           localblock              22s
 local-pv-8aea98b7   100Gi      RWO            Delete           Available           localblock              22s
@@ -262,7 +262,7 @@ local-pv-e62c1b44   100Gi      RWO            Delete           Available        
 And finally a storageclass was created for the local-storage asset we created:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get sc | grep localblock
+[lab-user@provision ~]$ oc get sc | grep localblock
 localblock   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  53s
 ~~~
 
@@ -285,7 +285,7 @@ Once the operator has been installed the OpenShift Console will display the OCS 
 We can further confirm the operator is up and running by looking at it from the command line where we should see 3 running pods under the openshift-storage namespace:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get pods -n openshift-storage
+[lab-user@provision ~]$ oc get pods -n openshift-storage
 NAME                                  READY   STATUS    RESTARTS   AGE
 noobaa-operator-5567695698-fc8t6      1/1     Running   0          10m
 ocs-operator-6888cb5bdf-7w6ct         1/1     Running   0          10m
@@ -305,7 +305,7 @@ If we quickly jump over to the command line and issue a oc get pods on the opens
 <img src="img/options-create-cluster-ocs-operator.png"/>
 
 ~~~bash
-[cloud-user@provision ~]$ oc get pods -n openshift-storage
+[lab-user@provision ~]$ oc get pods -n openshift-storage
 NAME                                            READY   STATUS              RESTARTS   AGE
 csi-cephfsplugin-6mk78                          0/3     ContainerCreating   0          21s
 csi-cephfsplugin-9fglq                          0/3     ContainerCreating   0          21s
@@ -331,7 +331,7 @@ Finally we should see in the OpenShift Console that the cluster is marked as rea
 We can further confirm this from the command line by issuing the same oc get pods command against the openshift-storage namespace.   Can you see there is a mon and osd per each node?
 
 ~~~bash
-[cloud-user@provision ~]$ oc get pods -n openshift-storage
+[lab-user@provision ~]$ oc get pods -n openshift-storage
 NAME                                                              READY   STATUS      RESTARTS   AGE
 csi-cephfsplugin-6mk78                                            3/3     Running     0          5m1s
 csi-cephfsplugin-9fglq                                            3/3     Running     0          5m1s
@@ -378,7 +378,7 @@ In the OpenShift Console if we go to Storage->Storageclasses we can also see add
 We can also confirm this from the command line by issuing an oc get storageclass.  We should see 4 new storageclasses: one for block (rbd), two for object (rgw/nooba) and one for file(cephfs).  
 
 ~~~bash
-[cloud-user@provision ~]$ oc get storageclass
+[lab-user@provision ~]$ oc get storageclass
 NAME                          PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
 localblock                    kubernetes.io/no-provisioner            Delete          WaitForFirstConsumer   false                  115m
 ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete          Immediate              true                   5m36s
