@@ -3,7 +3,7 @@
 Now that our cluster is up and running, we can start playing around with it and figure out how all of the baremetal management is configured through the baremetal-operator. The baremetal-operator pods live in the 'openshift-machine-api' namespace:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get pods -n openshift-machine-api
+[lab-user@provision ~]$ oc get pods -n openshift-machine-api
 NAME                                           READY   STATUS    RESTARTS   AGE
 cluster-autoscaler-operator-568855ff87-vwc4r   2/2     Running   1          42h
 machine-api-controllers-74bc4b5dd7-pnxll       4/4     Running   0          42h
@@ -14,14 +14,14 @@ metal3-7c494cd968-xlgmk                        8/8     Running   20         42h
 Here, the metal3 pod is the pod we're interested in - it's where we house all of the relevant containers, including the baremetal-operator itself:
 
 ~~~bash
-[cloud-user@provision ~]$ oc describe pod metal3-85898fbcd6-bjl69 -n openshift-machine-api
+[lab-user@provision ~]$ oc describe pod metal3-85898fbcd6-bjl69 -n openshift-machine-api
 (...)
 ~~~
 
 As part of the initial bootstrap of the cluster, the OpenShift installer handed control over the underlying baremetal machines to the baremetal-operator running on the cluster and automatically seeded the `BareMetalHost` resources:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api
+[lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api
 NAME       STATUS   PROVISIONING STATUS      CONSUMER                     BMC                     HARDWARE PROFILE   ONLINE   ERROR
 master-0   OK       externally provisioned   schmaustech-master-0         ipmi://10.20.0.3:6202                      true     
 master-1   OK       externally provisioned   schmaustech-master-1         ipmi://10.20.0.3:6201                      true     
@@ -34,9 +34,9 @@ worker-2   OK       provisioned              schmaustech-worker-0-5tqpl   ipmi:/
 You'll also see that in OpenStack Ironic the nodes are stuck in an '**active**' state, not allowing them to progress:
 
 ~~~bash
-[cloud-user@provision ~]$ export OS_TOKEN=fake-token
-[cloud-user@provision ~]$ export OS_URL=http://172.22.0.3:6385
-[cloud-user@provision ~]$ openstack baremetal node list
+[lab-user@provision ~]$ export OS_TOKEN=fake-token
+[lab-user@provision ~]$ export OS_URL=http://172.22.0.3:6385
+[lab-user@provision ~]$ openstack baremetal node list
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 | UUID                                 | Name     | Instance UUID                        | Power State | Provisioning State | Maintenance |
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
@@ -58,7 +58,7 @@ Now that we have our baremetal hosts registered with the baremetal operator, we 
 When we registered our baremetal hosts we created corresponding `Machine` objects (see **CONSUMER**) that are linked to our `BareMetalHost` objects:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api -o=custom-columns=NAME:.metadata.name,CONSUMER:.spec.consumerRef.name
+[lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api -o=custom-columns=NAME:.metadata.name,CONSUMER:.spec.consumerRef.name
 NAME       CONSUMER
 master-0   schmaustech-master-0
 master-1   schmaustech-master-1
@@ -75,7 +75,7 @@ However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our ma
 Now, if you ask OpenShift for the details of one of the `Machines` you can see how it's all connected together, noting the bits we've added for clarity:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get machine/schmaustech-master-0 -n openshift-machine-api -o yaml
+[lab-user@provision ~]$ oc get machine/schmaustech-master-0 -n openshift-machine-api -o yaml
 apiVersion: machine.openshift.io/v1beta1
 kind: Machine
 metadata:
