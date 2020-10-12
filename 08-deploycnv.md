@@ -33,7 +33,7 @@ Whilst this does its thing, you can move to the '**Workloads**' --> '**Pods**' m
 You can also return to the 'terminal' tab in your hosted lab guide and watch via the CLI:
 
 ~~~bash
-[cloud-user@provision ~]$ watch -n2 'oc get pods -n openshift-cnv'
+[lab-user@provision ~]$ watch -n2 'oc get pods -n openshift-cnv'
 (...)
 ~~~
 
@@ -99,7 +99,7 @@ This will continue for some time, depending on your environment.
 You will know the process is complete when you can return to the top terminal and see that the operator installation has been successful by running the following command:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get csv -n openshift-cnv
+[lab-user@provision ~]$ oc get csv -n openshift-cnv
 NAME                                      DISPLAY                    VERSION   REPLACES   PHASE
 kubevirt-hyperconverged-operator.v2.4.1   OpenShift Virtualization   2.4.1                Succeeded
 ~~~
@@ -107,7 +107,7 @@ kubevirt-hyperconverged-operator.v2.4.1   OpenShift Virtualization   2.4.1      
 If you do not see `Succeeded` in the `PHASE` column then the deployment may still be progressing, or has failed. You will not be able to proceed until the installation has been successful. Once the `PHASE` changes to `Succeeded` you can validate that the required resources and the additional components have been deployed across the nodes. First let's check the pods deployed in the `openshift-cnv` namespace:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get pods -n openshift-cnv
+[lab-user@provision ~]$ oc get pods -n openshift-cnv
 NAME                                                  READY   STATUS    RESTARTS   AGE
 bridge-marker-65kv5                                   1/1     Running   0          6m12s
 bridge-marker-9ckff                                   1/1     Running   0          6m9s
@@ -151,7 +151,7 @@ Together, all of these pods are responsible for various functions of running a v
 There's also a few custom resources that get defined too, for example the `NodeNetworkState` (`nns` for short) definitions that can be used with the `nmstate-handler` pods to ensure that the NetworkManager state on each node is configured as required, e.g. for defining interfaces/bridges on each of the machines for connectivity for both the physical machine itself and for providing network access for pods (and virtual machines) within OpenShift/Kubernetes:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get nns -A
+[lab-user@provision ~]$ oc get nns -A
 NAME       AGE
 master-0   5m39s
 master-1   5m46s
@@ -160,7 +160,7 @@ worker-0   6m8s
 worker-1   6m10s
 worker-2   6m9s
 
-[cloud-user@provision ~]$ oc get nns/worker-2 -o yaml
+[lab-user@provision ~]$ oc get nns/worker-2 -o yaml
 apiVersion: nmstate.io/v1alpha1
 kind: NodeNetworkState
 metadata:
@@ -210,7 +210,7 @@ metadata:
 Here you can see the current state of the node (some of the output has been cut), the interfaces attached, and their physical/logical addresses. In a later section we're going to be modifying the network node state by applying a new configuration to allow nodes to utilise another interface to provide pod networking via a **bridge**. We will do this via a `NodeNetworkConfigurationEnactment` or `nnce` in short:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get nnce -n openshift-cnv
+[lab-user@provision ~]$ oc get nnce -n openshift-cnv
 No resources found
 ~~~
 
