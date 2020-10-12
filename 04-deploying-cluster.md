@@ -69,7 +69,7 @@ platform:
           password: redhat
         bootMACAddress: de:ad:be:ef:00:51
         hardwareProfile: openstack
-sshKey: 'ssh-rsa REDACTED SSH KEY cloud-user@provision'
+sshKey: 'ssh-rsa REDACTED SSH KEY lab-user@provision'
 imageContentSources:
 - mirrors:
   - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
@@ -194,7 +194,7 @@ DEBUG     Using Install Config loaded from state file
 DEBUG   Using Cluster ID loaded from state file
 (...)
 INFO Obtaining RHCOS image file from 'http://10.20.0.2/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz?sha256=c9e2698d0f3bcc48b7c66d7db901266abf27ebd7474b6719992de2d8db96995a' 
-INFO The file was found in cache: /home/cloud-user/.cache/openshift-installer/image_cache/ad57fdbef98553f778ac17b95b094a1a. Reusing... 
+INFO The file was found in cache: /home/lab-user/.cache/openshift-installer/image_cache/ad57fdbef98553f778ac17b95b094a1a. Reusing... 
 INFO Consuming OpenShift Install (Manifests) from target directory 
 (...)
 DEBUG module.masters.ironic_node_v1.openshift-master-host[1]: Still creating... [2m10s elapsed] 
@@ -265,7 +265,7 @@ DEBUG Route found in openshift-console namespace: console
 DEBUG Route found in openshift-console namespace: downloads 
 DEBUG OpenShift console route is created           
 INFO Install complete!                            
-INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/cloud-user/scripts/ocp/auth/kubeconfig' 
+INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/lab-user/scripts/ocp/auth/kubeconfig' 
 INFO Access the OpenShift web-console here: https://console-openshift-console.apps.schmaustech.students.osp.opentlc.com 
 INFO Login to the console with user: "kubeadmin", and password: "5VGM2-uMov3-4N2Vi-n5i3H" 
 DEBUG Time elapsed per stage:                      
