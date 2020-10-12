@@ -208,9 +208,9 @@ At this point we should label our nodes with the OCS storage label:
 
 ~~~bash
 [lab-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}'
-worker-0
-worker-1
-worker-2
+worker-0.dtchw.dynamic.opentlc.com
+worker-1.dtchw.dynamic.opentlc.com
+worker-2.dtchw.dynamic.opentlc.com
 ~~~
 
 Now we can go ahead and create the assests for this local-storage configuration using the local-storage.yaml we created above.
