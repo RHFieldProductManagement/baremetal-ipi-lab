@@ -7,9 +7,9 @@ Let's get into actually testing some workloads on our environment... we've spent
 OK, so this is likely something that you've all done before, and it's hardly very exciting, but let's have a little bit of fun. Let's deploy a nifty little application inside of a pod and use it to verify that the OpenShift cluster is functioning properly; this will involve building an application from source and exposing it to your web-browser. We'll use the s2i (source to image) container type:
 
 ~~~bash
-[cloud-user@provision ~]$ oc project default
+[lab-user@provision ~]$ oc project default
 Already on project "default" on server "https://api.schmaustech.students.osp.opentlc.com:6443".
-[cloud-user@provision ~]$ oc new-app nodeshift/centos7-s2i-nodejs:12.x~https://github.com/vrutkovs/DuckHunt-JS
+[lab-user@provision ~]$ oc new-app nodeshift/centos7-s2i-nodejs:12.x~https://github.com/vrutkovs/DuckHunt-JS
 --> Found container image 5b0b75b (11 months old) from Docker Hub for "nodeshift/centos7-s2i-nodejs:12.x"
 
     Node.js 12.12.0 
@@ -37,7 +37,7 @@ Already on project "default" on server "https://api.schmaustech.students.osp.ope
 Now our application will build from source, you can watch it happen with:
 
 ~~~bash
-[cloud-user@provision ~]$ oc logs duckhunt-js-1-build -f
+[lab-user@provision ~]$ oc logs duckhunt-js-1-build -f
 Caching blobs under "/var/cache/blobs".
 Getting image source signatures
 Copying blob sha256:d8d02d45731499028db01b6fa35475f91d230628b4e25fab8e3c015594dc3261
@@ -52,7 +52,7 @@ Push successful
 Now you can check if the Duckhunt pod has finished building and is running:
 
 ~~~bash
-[cloud-user@provision ~]$ oc get pods
+[lab-user@provision ~]$ oc get pods
 NAME                          READY   STATUS      RESTARTS   AGE
 duckhunt-js-1-build           0/1     Completed   0          2m21s
 duckhunt-js-cb885554b-qqmw2   1/1     Running     0          39s
@@ -61,10 +61,10 @@ duckhunt-js-cb885554b-qqmw2   1/1     Running     0          39s
 Now expose the application (via the service) so we can route to it from the outside...
 
 ~~~bash
-[cloud-user@provision ~]$ oc expose svc/duckhunt-js
+[lab-user@provision ~]$ oc expose svc/duckhunt-js
 route.route.openshift.io/duckhunt-js exposed
 
-[cloud-user@provision ~]$ oc get route duckhunt-js
+[lab-user@provision ~]$ oc get route duckhunt-js
 NAME          HOST/PORT                                                       PATH   SERVICES      PORT       TERMINATION   WILDCARD
 duckhunt-js   duckhunt-js-default.apps.schmaustech.students.osp.opentlc.com          duckhunt-js   8080-tcp                 None
 ~~~
