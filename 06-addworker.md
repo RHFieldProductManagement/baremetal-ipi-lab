@@ -134,7 +134,7 @@ Much like scaling other platforms that are integrated with OpenShift 4.x (e.g. A
 Let's now scale our cluster:
 
 ~~~bash
-[lab-user@provision ~]$ oc -n openshift-machine-api scale machineset schmaustech-worker-0 --replicas=3
+[lab-user@provision ~]$ oc -n openshift-machine-api scale machineset $GUID-worker-0 --replicas=3
 machineset.machine.openshift.io/schmaustech-worker-0 scaled
 ~~~
 
