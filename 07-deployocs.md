@@ -6,13 +6,14 @@ Currently the lab from a node perspective should look like the following from a 
 
 ~~~bash
 [lab-user@provision ~]$ oc get nodes
-NAME       STATUS   ROLES    AGE   VERSION
-master-0   Ready    master   18h   v1.18.3+6c42de8
-master-1   Ready    master   18h   v1.18.3+6c42de8
-master-2   Ready    master   18h   v1.18.3+6c42de8
-worker-0   Ready    worker   17h   v1.18.3+6c42de8
-worker-1   Ready    worker   17h   v1.18.3+6c42de8
-worker-2   Ready    worker   17h   v1.18.3+6c42de8
+NAME                                 STATUS   ROLES    AGE   VERSION
+master-0.dtchw.dynamic.opentlc.com   Ready    master   63m   v1.18.3+47c0e71
+master-1.dtchw.dynamic.opentlc.com   Ready    master   63m   v1.18.3+47c0e71
+master-2.dtchw.dynamic.opentlc.com   Ready    master   63m   v1.18.3+47c0e71
+worker-0.dtchw.dynamic.opentlc.com   Ready    worker   44m   v1.18.3+47c0e71
+worker-1.dtchw.dynamic.opentlc.com   Ready    worker   43m   v1.18.3+47c0e71
+worker-2.dtchw.dynamic.opentlc.com   Ready    worker   23m   v1.18.3+47c0e71
+
 ~~~
 
 We need to attach a 100GB disk to each of our worker nodes in the lab environment.  Thankfully we have a little script to do this for us on the provisioning node.
@@ -22,8 +23,8 @@ Before we run the script lets take a look at it:
 ~~~bash
 [lab-user@provision ~]$ cat ~/scripts/10_volume-attach.sh
 #!/bin/bash
-OSP_PROJECT="msp-f143-project"
-GUID="schmaustech"
+OSP_PROJECT="dtchw-project"
+GUID="dtchw"
 
 attach() {
   for NODE in $( openstack --os-cloud=$OSP_PROJECT server list|grep worker|cut -d\| -f3|sed 's/ //g' )
@@ -71,7 +72,7 @@ Lets go ahead and run the script:
 We can validate that each node has the extra disk by using the debug container on the worker node:
 
 ~~~bash
-[lab-user@provision ~]$ oc debug node/worker-0
+[lab-user@provision ~]$ oc debug node/worker-0.$GUID.dynamic.opentlc.com
 Starting pod/worker-0-debug ...
 To use host binaries, run `chroot /host`
 Pod IP: 10.20.0.200
@@ -104,17 +105,17 @@ Removing debug pod ...
 Next we need to label our nodes for storage:
 
 ~~~bash
-[lab-user@provision ~]$ oc label nodes worker-0 cluster.ocs.openshift.io/openshift-storage=''
+[lab-user@provision ~]$ oc label nodes worker-0.$GUID.dynamic.opentlc.com cluster.ocs.openshift.io/openshift-storage=''
 node/worker-0 labeled
-[lab-user@provision ~]$ oc label nodes worker-1 cluster.ocs.openshift.io/openshift-storage=''
+[lab-user@provision ~]$ oc label nodes worker-1.$GUID.dynamic.opentlc.com cluster.ocs.openshift.io/openshift-storage=''
 node/worker-1 labeled
-[lab-user@provision ~]$ oc label nodes worker-2 cluster.ocs.openshift.io/openshift-storage=''
+[lab-user@provision ~]$ oc label nodes worker-2.$GUID.dynamic.opentlc.com cluster.ocs.openshift.io/openshift-storage=''
 node/worker-2 labeled
 [lab-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
-NAME       STATUS   ROLES    AGE   VERSION
-worker-0   Ready    worker   19h   v1.18.3+6c42de8
-worker-1   Ready    worker   19h   v1.18.3+6c42de8
-worker-2   Ready    worker   17m   v1.18.3+6c42de8
+NAME                                 STATUS   ROLES    AGE   VERSION
+worker-0.dtchw.dynamic.opentlc.com   Ready    worker   47m   v1.18.3+47c0e71
+worker-1.dtchw.dynamic.opentlc.com   Ready    worker   46m   v1.18.3+47c0e71
+worker-2.dtchw.dynamic.opentlc.com   Ready    worker   26m   v1.18.3+47c0e71
 ~~~
 
 We can see from the output above that on worker-0 the new 100GB volume was attached as vdb.  Repeat the above steps to confirm that the remaining workers also have their 100GB vbd volume attached.
