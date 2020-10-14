@@ -16,7 +16,7 @@ The output above shows us we have the 4.5.12 client for oc.  This will determine
 ~~~bash
 [lab-user@provision scripts]$ export VERSION=4.5.12
 [lab-user@provision scripts]$ echo $VERSION
-4.5.9
+4.5.12
 ~~~
 
 Now lets examine the version of the openshift-baremetal-install binary version.  The commit number is important as that will be used to determine what version of the RHCOS image is pulled down later on in this section of the lab.
