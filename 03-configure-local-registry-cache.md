@@ -1,4 +1,4 @@
- #**Configure Disconnected Registry and RHCOS httpd Cache**
+ # **Configure Disconnected Registry and RHCOS httpd Cache**
  
  In this lab we will explore what has been a popular topic when it comes to OpenShift: the disconnected installation.  A disconnected installation is one where the master and worker nodes do not have access to the internet. Thus the Red Hat CoreOS images and the OpenShift pod images need to be hosted locally to support the given installation.
  
