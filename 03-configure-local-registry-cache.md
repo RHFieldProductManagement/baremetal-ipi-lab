@@ -214,7 +214,7 @@ Further we can test that our httpd cache is operational by using the curl comman
 We are almost ready to do some downloading of images but we still have a few items to tend to.  First we need to generate a bcrypt password from our username and password we set on the registry.  We can do this by piping them into base64 and capturing the output:
 
 ~~~bash
-[lab-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0
+[lab-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0 && echo
 ZHVtbXk6ZHVtbXk=
 ~~~
 
