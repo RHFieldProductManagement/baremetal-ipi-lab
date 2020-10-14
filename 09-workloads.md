@@ -1,4 +1,4 @@
-#**Running Workloads in the Environment**
+# **Running Workloads in the Environment**
 
 Let's get into actually testing some workloads on our environment... we've spent all of this time building it up but we haven't even proven that it's working properly yet! In this section we're going to be deploying some pods as well as deploying a VM using OpenShift virtualization.
 
@@ -8,7 +8,7 @@ OK, so this is likely something that you've all done before, and it's hardly ver
 
 ~~~bash
 [lab-user@provision ~]$ oc project default
-Already on project "default" on server "https://api.schmaustech.students.osp.opentlc.com:6443".
+Already on project "default" on server "https://api.schmaustech.dynamic.opentlc.com:6443".
 [lab-user@provision ~]$ oc new-app nodeshift/centos7-s2i-nodejs:12.x~https://github.com/vrutkovs/DuckHunt-JS
 --> Found container image 5b0b75b (11 months old) from Docker Hub for "nodeshift/centos7-s2i-nodejs:12.x"
 
@@ -66,7 +66,7 @@ route.route.openshift.io/duckhunt-js exposed
 
 [lab-user@provision ~]$ oc get route duckhunt-js
 NAME          HOST/PORT                                                       PATH   SERVICES      PORT       TERMINATION   WILDCARD
-duckhunt-js   duckhunt-js-default.apps.schmaustech.students.osp.opentlc.com          duckhunt-js   8080-tcp                 None
+duckhunt-js   duckhunt-js-default.apps.schmaustech.dynamic.opentlc.com          duckhunt-js   8080-tcp                 None
 ~~~
 
 Now you should be able to open up the application in the same browser that you're using for access to the OpenShift console. Copy and paste the host address from above and you should now be able to have a quick play with this... good luck ;-
