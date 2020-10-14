@@ -1,4 +1,4 @@
-#**Deploy OCS On Cluster**
+# **Deploy OCS On Cluster**
 
 Now that we had added an additional worker node to our lab cluster environment we can deploy OpenShift Container Storage on top of the cluster.  The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.  However we will leverage command line and web-console to show the progress of the deployment.
 
@@ -87,13 +87,13 @@ sh-4.2# chroot /host
 sh-4.4# lsblk
 NAME                         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 vda                          252:0    0  100G  0 disk 
-|-vda1                       252:1    0  384M  0 part /boot
-|-vda2                       252:2    0  127M  0 part /boot/efi
-|-vda3                       252:3    0    1M  0 part 
-|-vda4                       252:4    0 99.4G  0 part 
+|-sda1                       252:1    0  384M  0 part /boot
+|-sda2                       252:2    0  127M  0 part /boot/efi
+|-sda3                       252:3    0    1M  0 part 
+|-sda4                       252:4    0 99.4G  0 part 
 | `-coreos-luks-root-nocrypt 253:0    0 99.4G  0 dm   /sysroot
-`-vda5                       252:5    0   65M  0 part 
-vdb                          252:16   0  100G  0 disk 
+`-sda5                       252:5    0   65M  0 part 
+sdb                          252:16   0  100G  0 disk 
 sh-4.4# exit
 exit
 sh-4.2# exit
@@ -174,7 +174,7 @@ spec:
     - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/vdb
+        - /dev/sdb
 EOF
 ~~~
 
@@ -199,7 +199,7 @@ spec:
     - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/vdb
+        - /dev/sdb
 ~~~
 
 You'll see that this is set to create a local volume on every host from the block device vdb where the selector key matches cluster.ocs.openshift.io/openshift-storage.  If we had additional devices on the worker nodes for example: vdc and vdd, we would just list those below the devicePaths to also be incorporated into our configuration.
