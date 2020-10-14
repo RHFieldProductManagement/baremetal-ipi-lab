@@ -106,7 +106,7 @@ Run the deployment using the install-config.yaml
 [lab-user@provision scripts]$ mkdir $HOME/scripts/ocp
 [lab-user@provision scripts]$ cp $HOME/scripts/install-config.yaml $HOME/scripts/ocp
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create manifests
-DEBUG OpenShift Installer 4.5.9                    
+DEBUG OpenShift Installer 4.5.12                    
 DEBUG Built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c 
 DEBUG Fetching Master Machines...                  
 DEBUG Loading Master Machines...                   
