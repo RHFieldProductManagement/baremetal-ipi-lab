@@ -245,14 +245,26 @@ Now we can take our existing lab pull secret and our registry pull secret and me
 	$HOME/scripts/install-config.yaml
 ~~~
 
-If you cat out the install-config.yaml you should be able to see the changes we made.
+Verify that the pull secret in `install-config.yaml` now includes the credentials for our local registry.
+
+~~~bash
+[lab-user@provision scripts]$ grep pullSecret install-config.yaml | sed 's/^pullSecret: //' | tr -d \' | jq .
+(...)
+    "provision.9mj2p.dynamic.opentlc.com:5000": {
+      "email": "dummy@redhat.com",
+      "auth": "ZHVtbXk6ZHVtbXk="
+    }
+  }
+}
+~~~
+
+And check that our certificate is included.
 
 ~~~bash
 [lab-user@provision scripts]$ cat install-config.yaml
 apiVersion: v1
 baseDomain: dynamic.opentlc.com
 (...)
-"},"provision.schmaustech.dynamic.opentlc.com:5000":{"email":"dummy@redhat.com","auth":"ZHVtbXk6ZHVtbXk="}}}'
 additionalTrustBundle: |
   -----BEGIN CERTIFICATE-----
   MIIGDzCCA/egAwIBAgIUc3tgxZl2g92XdCUX15hWMAIGi10wDQYJKoZIhvcNAQEL
