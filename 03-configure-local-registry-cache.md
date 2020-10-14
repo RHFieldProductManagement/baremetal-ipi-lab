@@ -133,7 +133,8 @@ be06131e5dc4  docker.io/library/registry:2  /etc/docker/regis...  2 minutes ago 
 We can further validate the registry is functional by using a curl command and passing the user/password to the registry URL.  Note here I do not have to use a bcrypt formatted password.
 
 ~~~bash
-[lab-user@provision scripts]$ curl -u dummy:dummy -k https://provision.$GUID.dynamic.opentlc.com:5000/v2/_catalog
+[lab-user@provision scripts]$ curl -u dummy:dummy -k \
+	https://provision.$GUID.dynamic.opentlc.com:5000/v2/_catalog
 {"repositories":[]}
 ~~~
 
