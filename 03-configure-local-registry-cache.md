@@ -59,11 +59,19 @@ Now lets create the directories you'll need to run the registry. These directori
 
 We also need to create a self signed certificate for the registry:
 
+> **NOTE:**  The `GUID` environment variable is automatically set.
+
 ~~~bash
-[lab-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt -subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.dynamic.opentlc.com"
+[lab-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 \
+	-keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt \
+	-subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.dynamic.opentlc.com"
 Generating a RSA private key
-......................................................................................................................................................................................................................................................................++++
-.............................................................................................................................................................................................................................................................++++
+..................................................................................................
+..................................................................................................
+..................................................................++++
+..................................................................................................
+..................................................................................................
+.........................................................++++
 writing new private key to '/nfs/registry/certs/domain.key'
 -----
 ~~~
