@@ -1,4 +1,4 @@
-# ** Deploy OpenShift Virtualization **
+# **Deploy OpenShift Virtualization**
 
 This section of the lab will focus on installing and configuring OpenShift virtualization to enable the OpenShift cluster to run virtual machines.
 
