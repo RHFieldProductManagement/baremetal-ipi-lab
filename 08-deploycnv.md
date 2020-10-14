@@ -268,7 +268,7 @@ Once they have been successfully configured we can then add our network attachme
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
-  name: tuning-bridge-fixed
+  name: brext
   annotations:
     k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/brext
 spec:
