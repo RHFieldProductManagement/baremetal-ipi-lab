@@ -51,7 +51,9 @@ See below for a description of each of the hosts you can see:
 
 You'll need to use your own laptop to connect into your (public cloud hosted) dedicated environment. It's on this environment that you'll perform the later lab instructions, and you should only need to use your terminal emulator and a web-browser to complete all of the tasks.
 
-To get started, we need to request your own dedicated session, from the Content Hub for RHTR 2020 you will be directed to [this link](https://portal.opentlc.com/catalog/explorer#/) (https://portal.opentlc.com/catalog/explorer#/). What you should see is as follows, noting that if there's more than one lab shown in the drop-down box ensure you select **'Hands-On w KNI for Baremetal OCP'**:
+To get started, we need to request your own dedicated session, from the Content Hub for RHTR 2020 you will be directed to https://portal.opentlc.com/catalog/explorer#/ . What you should see is as follows, noting that if there's more than one lab shown in the drop-down box ensure you select **Hands-On w KNI for Baremetal OCP**:
+
+> **NOTE:** The screenshot below was captured before this lab became generally available.  The lab will appear in the **RHTR 2020** catalog.
 
 <img src="img/guid1.png" style="width: 1000px;"/>
 
