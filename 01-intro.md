@@ -65,7 +65,7 @@ In Red Hat OpenShift Container Platform 4.x we introduced a brand new type of in
 
 More recently, the KNI team have been working to integrate all of the Metal³ requirements into the OpenShift installer in order to have a tightly integrated and optimal user experience for customers that want to deploy OpenShift on baremetal, without having to manually provision the infrastructure up-front. This has primarily meant ensuring that the installer has a Terraform provider for OpenStack Ironic and that it can deploy additional software to support baremetal clusters.
 
-The installer baremetal docs can be found [here](https://github.com/openshift/installer/blob/master/docs/user/metal/install_ipi.md) if you'd like to read more information about how it works.
+The installer baremetal docs can be found [here](https://github.com/openshift/installer/blob/master/docs/user/metal/install_ipi.md) if you'd like to read more information about how it works.  (General availability of baremetal IPI is planned for OpenShift 4.6, so the documentation will be moving "downstream" soon.)
 
 ## OpenShift Release
 
