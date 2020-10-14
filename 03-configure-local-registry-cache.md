@@ -62,7 +62,7 @@ Now lets create the directories you'll need to run the registry. These directori
 We also need to create a self signed certificate for the registry:
 
 ~~~bash
-[lab-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt -subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.students.osp.opentlc.com"
+[lab-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt -subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.dynamic.opentlc.com"
 Generating a RSA private key
 ......................................................................................................................................................................................................................................................................++++
 .............................................................................................................................................................................................................................................................++++
@@ -121,7 +121,7 @@ be06131e5dc4  docker.io/library/registry:2  /etc/docker/regis...  2 minutes ago 
 We can further validate the registry is functional by using a curl command and passing the user/password to the registry URL.  Note here I do not have to use a bcrypt formatted password.
 
 ~~~bash
-[lab-user@provision scripts]$ curl -u dummy:dummy -k https://provision.$GUID.students.osp.opentlc.com:5000/v2/_catalog
+[lab-user@provision scripts]$ curl -u dummy:dummy -k https://provision.$GUID.dynamic.opentlc.com:5000/v2/_catalog
 {"repositories":[]}
 ~~~
 
@@ -186,13 +186,13 @@ be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes 
 Further we can test that our httpd cache is operational by using the curl command.  If you get a 301 code that is normal since we have yet to actually place any images in the cache.
 
 ~~~bash
-[lab-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images
+[lab-user@provision scripts]$ curl http://provision.$GUID.dynamic.opentlc.com/images
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html><head>
 <title>301 Moved Permanently</title>
 </head><body>
 <h1>Moved Permanently</h1>
-<p>The document has moved <a href="http://provision.schmaustech.students.osp.opentlc.com/images/">here</a>.</p>
+<p>The document has moved <a href="http://provision.schmaustech.dynamic.opentlc.com/images/">here</a>.</p>
 </body></html>
 ~~~~
 
@@ -207,7 +207,7 @@ Next we will want to take the output above and craft it into a registry secret t
 
 ~~~bash
 [lab-user@provision scripts]$   cat <<EOF >> ~/reg-secret.txt
-> "provision.$GUID.students.osp.opentlc.com:5000": {
+> "provision.$GUID.dynamic.opentlc.com:5000": {
 >   "email": "dummy@redhat.com",
 >   "auth": "ZHVtbXk6ZHVtbXk="
 > }
@@ -234,9 +234,9 @@ If you cat out the install-config.yaml you should be able to see the changes we 
 ~~~bash
 [lab-user@provision scripts]$ cat install-config.yaml
 apiVersion: v1
-baseDomain: students.osp.opentlc.com
+baseDomain: dynamic.opentlc.com
 (...)
-"},"provision.schmaustech.students.osp.opentlc.com:5000":{"email":"dummy@redhat.com","auth":"ZHVtbXk6ZHVtbXk="}}}'
+"},"provision.schmaustech.dynamic.opentlc.com:5000":{"email":"dummy@redhat.com","auth":"ZHVtbXk6ZHVtbXk="}}}'
 additionalTrustBundle: |
   -----BEGIN CERTIFICATE-----
   MIIGDzCCA/egAwIBAgIUc3tgxZl2g92XdCUX15hWMAIGi10wDQYJKoZIhvcNAQEL
@@ -278,9 +278,9 @@ additionalTrustBundle: |
 Finally at this point we can sync down the pod images from quay.io to our local registry.  To do this we need to take a few steps below:
 
 ~~~bash
-[lab-user@provision scripts]$ export UPSTREAM_REPO="registry.svc.ci.openshift.org/ocp/release:$VERSION"
+[lab-user@provision scripts]$ export UPSTREAM_REPO="quay.io/openshift-release-dev/ocp-release:$VERSION-x86_64"
 [lab-user@provision scripts]$ export PULLSECRET=$HOME/pull-secret.json
-[lab-user@provision scripts]$ export LOCAL_REG="provision.$GUID.students.osp.opentlc.com:5000"
+[lab-user@provision scripts]$ export LOCAL_REG="provision.$GUID.dynamic.opentlc.com:5000"
 [lab-user@provision scripts]$ export LOCAL_REPO='ocp4/openshift4'
 ~~~
 
@@ -290,7 +290,7 @@ Now we can actually execute the mirroring:
 
 ~~~bash
 [lab-user@provision scripts]$ oc adm release mirror -a $PULLSECRET --from=$UPSTREAM_REPO --to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
-info: Mirroring 110 images to provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4 ...
+info: Mirroring 110 images to provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4 ...
 provision.schmaustech.students.osp.opentlc.com:5000/
   ocp4/openshift4
     manifests:
@@ -298,24 +298,24 @@ provision.schmaustech.students.osp.opentlc.com:5000/
       sha256:0259aa5845ce43114c63d59cedeb71c9aa5781c0a6154fe5af8e3cb7bfcfa304 -> 4.5.9-machine-api-operator
       sha256:07f11763953a2293bac5d662b6bd49c883111ba324599c6b6b28e9f9f74112be -> 4.5.9-cluster-kube-storage-version-migrator-operator
 (...)
-sha256:15be0e6de6e0d7bec726611f1dcecd162325ee57b993e0d886e70c25a1faacc3 provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9-openshift-controller-manager
-sha256:bc6c8fd4358d3a46f8df4d81cd424e8778b344c368e6855ed45492815c581438 provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9-hyperkube
-sha256:bcd6cd1559b62e4a8031cf0e1676e25585845022d240ac3d927ea47a93469597 provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9-machine-config-operator
-sha256:b05f9e685b3f20f96fa952c7c31b2bfcf96643e141ae961ed355684d2d209310 provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9-baremetal-installer
+sha256:15be0e6de6e0d7bec726611f1dcecd162325ee57b993e0d886e70c25a1faacc3 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9-openshift-controller-manager
+sha256:bc6c8fd4358d3a46f8df4d81cd424e8778b344c368e6855ed45492815c581438 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9-hyperkube
+sha256:bcd6cd1559b62e4a8031cf0e1676e25585845022d240ac3d927ea47a93469597 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9-machine-config-operator
+sha256:b05f9e685b3f20f96fa952c7c31b2bfcf96643e141ae961ed355684d2d209310 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9-baremetal-installer
 info: Mirroring completed in 1.48s (0B/s)
 
 Success
-Update image:  provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4:4.5.9
-Mirror prefix: provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+Update image:  provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9
+Mirror prefix: provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4
 
 To use the new mirrored repository to install, add the following section to the install-config.yaml:
 
 imageContentSources:
 - mirrors:
-  - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+  - provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 - mirrors:
-  - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+  - provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4
   source: registry.svc.ci.openshift.org/ocp/release
 
 
@@ -328,10 +328,10 @@ metadata:
 spec:
   repositoryDigestMirrors:
   - mirrors:
-    - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+    - provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
   - mirrors:
-    - provision.schmaustech.students.osp.opentlc.com:5000/ocp4/openshift4
+    - provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4
     source: registry.svc.ci.openshift.org/ocp/release
 ~~~
 
@@ -413,7 +413,7 @@ Once the above commands have been run they should have downloaded two images: a 
 We can see the images are there.  We can further show they are accessible from our httpd cache by manually curling one of them (the Bootstrap image in this example):
 
 ~~~bash
-[lab-user@provision scripts]$ curl http://provision.$GUID.students.osp.opentlc.com/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz -o test.qcow2
+[lab-user@provision scripts]$ curl http://provision.$GUID.dynamic.opentlc.com/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz -o test.qcow2
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  857M  100  857M    0     0   338M      0  0:00:02  0:00:02 --:--:--  338M
