@@ -95,7 +95,13 @@ Adding password for user dummy
 Now that we have a directy structure, certificate and a user configured for authentication we can go ahead and create the registry pod.  The command below will pull down the pod and mount the appropriate directory mount points we created earlier.
 
 ~~~bash
-[lab-user@provision scripts]$ sudo podman create --name poc-registry --net host -p 5000:5000 -v /nfs/registry/data:/var/lib/registry:z -v /nfs/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" -e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /nfs/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
+[lab-user@provision scripts]$ sudo podman create --name poc-registry --net host -p 5000:5000 \
+	-v /nfs/registry/data:/var/lib/registry:z -v /nfs/registry/auth:/auth:z \
+	-e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" \
+	-e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" \
+	-e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /nfs/registry/certs:/certs:z \
+	-e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+	-e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
 Trying to pull docker.io/library/registry:2...
 Getting image source signatures
 Copying blob cbdbe7a5bc2a done
