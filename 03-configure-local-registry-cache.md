@@ -305,7 +305,8 @@ So what did we do above?  We ended using the version variable we set earlier to 
 Now we can actually execute the mirroring:
 
 ~~~bash
-[lab-user@provision scripts]$ oc adm release mirror -a $PULLSECRET --from=$UPSTREAM_REPO --to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
+[lab-user@provision scripts]$ oc adm release mirror -a $PULLSECRET --from=$UPSTREAM_REPO \
+	--to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
 info: Mirroring 110 images to provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4 ...
 provision.schmaustech.dynamic.opentlc.com:5000/
   ocp4/openshift4
