@@ -130,7 +130,7 @@ Now that our registry pod is up and we have validated it working lets configure 
 [lab-user@provision scripts]$ export IRONIC_IMAGES_DIR="${IRONIC_DATA_DIR}/html/images"
 [lab-user@provision scripts]$ export IRONIC_IMAGE=quay.io/metal3-io/ironic:master
 [lab-user@provision scripts]$ sudo mkdir -p $IRONIC_IMAGES_DIR
-[lab-user@provision scripts]$ sudo chown -R "${USER}:${USER}" "$IRONIC_DATA_DIR"
+[lab-user@provision scripts]$ sudo chown -R "${USER}:users" "$IRONIC_DATA_DIR"
 [lab-user@provision scripts]$ sudo find $IRONIC_DATA_DIR -type d -print0 | xargs -0 chmod 755
 [lab-user@provision scripts]$ sudo chmod -R +r $IRONIC_DATA_DIR
 ~~~
