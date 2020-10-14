@@ -211,22 +211,22 @@ Further we can test that our httpd cache is operational by using the curl comman
 </body></html>
 ~~~~
 
-We are almost ready to do some downloading of images but we still have a few items to tend to.  First we need to generate a bcrypt password from our username and password we set on the registry.  We can do this by piping them into base64 and capturing the output:
+We are almost ready to do some downloading of images but we still have a few items to tend to.  First we need to generate a bcrypt password from our username and password we set on the registry.  We can do this by piping them into `base64`:
 
 ~~~bash
 [lab-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0 && echo
 ZHVtbXk6ZHVtbXk=
 ~~~
 
-Next we will want to take the output above and craft it into a registry secret text file:
+The bcrypt password needs to be embedded in a registry secret text file:
 
 ~~~bash
-[lab-user@provision scripts]$   cat <<EOF >> ~/reg-secret.txt
-> "provision.$GUID.dynamic.opentlc.com:5000": {
->   "email": "dummy@redhat.com",
->   "auth": "ZHVtbXk6ZHVtbXk="
-> }
-> EOF
+[lab-user@provision scripts]$ cat <<EOF > ~/reg-secret.txt
+"provision.$GUID.dynamic.opentlc.com:5000": {
+	"email": "dummy@redhat.com",
+	"auth": "$(echo -n 'dummy:dummy' | base64 -w0)"
+}
+EOF
 ~~~
 
 Now we can take our existing lab pull secret and our registry pull secret and merge them.  Below we will backup the existing pull secret and then add our registry pull secret to the file.  Further we will add our pull secret and registry cert, as a trust bundle, to the existing install-config.yaml.
