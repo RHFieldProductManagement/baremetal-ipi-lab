@@ -291,7 +291,7 @@ Now we can actually execute the mirroring:
 ~~~bash
 [lab-user@provision scripts]$ oc adm release mirror -a $PULLSECRET --from=$UPSTREAM_REPO --to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
 info: Mirroring 110 images to provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4 ...
-provision.schmaustech.students.osp.opentlc.com:5000/
+provision.schmaustech.dynamic.opentlc.com:5000/
   ocp4/openshift4
     manifests:
       sha256:00edb6c1dae03e1870e1819b4a8d29b655fb6fc40a396a0db2d7c8a20bd8ab8d -> 4.5.9-local-storage-static-provisioner
