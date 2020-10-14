@@ -241,7 +241,8 @@ Now we can take our existing lab pull secret and our registry pull secret and me
 [lab-user@provision scripts]$ sed -i -e 's/^/  /' $(pwd)/domain.crt
 [lab-user@provision scripts]$ echo "additionalTrustBundle: |" >> $HOME/scripts/install-config.yaml
 [lab-user@provision scripts]$ cat $HOME/scripts/domain.crt >> $HOME/scripts/install-config.yaml
-[lab-user@provision scripts]$ sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" $HOME/scripts/install-config.yaml
+[lab-user@provision scripts]$ sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" \
+	$HOME/scripts/install-config.yaml
 ~~~
 
 If you cat out the install-config.yaml you should be able to see the changes we made.
