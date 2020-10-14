@@ -45,11 +45,11 @@ See below for a description of each of the hosts you can see:
 | **worker-0** | A further empty system that we'll use during the deployment of OpenShift cluster.  Further we will add additional storage for OCS during lab.|
 | **worker-1** | As above, an additional worker. |
 | **worker-2** | As above, an additiona worker that will be added after OpenShift cluster deployment |
-| **bmc** | This host provides vBMC (i.e. virtual IPMI) capabilities and wraps IPMI commands back to the Ravello API with an authentication token. This setup is automated and you don't have to worry about configuring it in this lab; assume that IPMI is automagically available in your lab already.<br /><br /> This machine also hosts DHCP and DNS for our environment, as will be required for all KNI deployments in the field, and also acts as a package repo server. |
+| **bmc** | This host provides vBMC (i.e. virtual IPMI) capabilities and wraps IPMI commands back to the OpenStack API with an authentication token. This setup is automated and you don't have to worry about configuring it in this lab; assume that IPMI is automagically available in your lab already.<br /><br /> This machine also hosts DHCP and DNS for our environment, as will be required for all KNI deployments in the field, and also acts as a package repo server. |
 
 # Connecting
 
-You'll need to use your own laptop to connect into your (public cloud hosted) dedicated environment - hopefully the WiFi will sustain so many connections :-). It's on this environment that you'll perform the later lab instructions, and you should only need to use your terminal emulator and a web-browser to complete all of the tasks.
+You'll need to use your own laptop to connect into your (public cloud hosted) dedicated environment. It's on this environment that you'll perform the later lab instructions, and you should only need to use your terminal emulator and a web-browser to complete all of the tasks.
 
 To get started, we need to request your own dedicated session, from the Content Hub for RHTR 2020 you will be directed to [this link](https://portal.opentlc.com/catalog/explorer#/) (https://portal.opentlc.com/catalog/explorer#/). What you should see is as follows, noting that if there's more than one lab shown in the drop-down box ensure you select **'Hands-On w KNI for Baremetal OCP'**:
 
