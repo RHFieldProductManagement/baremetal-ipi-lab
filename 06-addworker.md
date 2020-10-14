@@ -1,4 +1,4 @@
-#**Add Additional Worker**
+# **Add Additional Worker**
 
 In this section we're going to demonstrate how to expand a Baremetal IPI environment with an additional 3rd **worker** node, i.e. a node that will just run workloads, not cluster services. The eagle eyed amongst you may notice that we listed _"NUM\_WORKERS=2"_ in our initial configuration file, but we've actually got a spare unused "baremetal" host in the environment you're working in. We simply need to tell the baremetal operator about it, and get it to deploy RHCOS and OpenShift onto it.
 
@@ -186,12 +186,12 @@ Now let's verify the node status:
 ~~~bash
 [lab-user@provision ~]$ oc get nodes
 NAME                                            STATUS     ROLES    AGE   VERSION
-master-0.schmaustech.students.osp.opentlc.com   Ready      master   84m   v1.18.3+2cf11e2
-master-1.schmaustech.students.osp.opentlc.com   Ready      master   86m   v1.18.3+2cf11e2
-master-2.schmaustech.students.osp.opentlc.com   Ready      master   84m   v1.18.3+2cf11e2
-worker-0.schmaustech.students.osp.opentlc.com   Ready      worker   63m   v1.18.3+2cf11e2
-worker-1.schmaustech.students.osp.opentlc.com   Ready      worker   62m   v1.18.3+2cf11e2
-worker-2.schmaustech.students.osp.opentlc.com   NotReady   worker   26s   v1.18.3+2cf11e2
+master-0.schmaustech.dynamic.opentlc.com   Ready      master   84m   v1.18.3+2cf11e2
+master-1.schmaustech.dynamic.opentlc.com   Ready      master   86m   v1.18.3+2cf11e2
+master-2.schmaustech.dynamic.opentlc.com   Ready      master   84m   v1.18.3+2cf11e2
+worker-0.schmaustech.dynamic.opentlc.com   Ready      worker   63m   v1.18.3+2cf11e2
+worker-1.schmaustech.dynamic.opentlc.com   Ready      worker   62m   v1.18.3+2cf11e2
+worker-2.schmaustech.dynamic.opentlc.com   NotReady   worker   26s   v1.18.3+2cf11e2
 ~~~
 
 It may demonstrate a '**NotReady**' status, if it does it will likely be because all of the necessary configuration will not have yet been applied, nor will it have all of the pods/containers running yet. Give it some time and all node should report in a '**Ready**' state.
