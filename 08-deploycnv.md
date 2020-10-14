@@ -209,18 +209,87 @@ metadata:
 (...)
 ~~~
 
-Here you can see the current state of the node (some of the output has been cut), the interfaces attached, and their physical/logical addresses. In a later section we're going to be modifying the network node state by applying a new configuration to allow nodes to utilise another interface to provide pod networking via a **bridge**. We will do this via a `NodeNetworkConfigurationEnactment` or `nnce` in short:
+Here you can see the current state of the node (some of the output has been cut), the interfaces attached, and their physical/logical addresses. Before we move on from this lab we need to ensure that we have setup a proper bridge for our VMs to get access to the network.  We can do this by creating a NetworkNodeConfigurationPolicy (nncp):
 
 ~~~bash
-[lab-user@provision ~]$ oc get nnce -n openshift-cnv
-No resources found
+[lab-user@provision ocp]$ cat << EOF | oc apply -f -
+apiVersion: nmstate.io/v1alpha1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: worker-brext-ens4
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  desiredState:
+    interfaces:
+      - name: brext
+        description: brext with ens4
+        type: linux-bridge
+        state: up
+        ipv4:
+          enabled: true
+          dhcp: true
+        bridge:
+          options:
+            stp:
+              enabled: false
+          port:
+            - name: ens4
+EOF
+nodenetworkconfigurationpolicy.nmstate.io/worker-brext-ens4 created
 ~~~
 
-> **NOTE**: As we've not set any additional configuration at this stage, it's perfectly normal to have 'no resources found' in the output above.
+The above policy will attache a brext bridge to the external network interface ens4.  We can watch the progress by running the following:
 
+~~~bash
+[lab-user@provision ocp]$ oc get nnce
+NAME                                                   STATUS
+master-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+master-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+master-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+worker-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
+worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
+worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
 
+[lab-user@provision ocp]$ oc get nnce
+NAME                                                   STATUS
+master-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+master-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+master-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+worker-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
+worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
+worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
+~~~
 
+Once they have been successfully configured we can then add our network attachment definition which will allow our VMs to consume that bridge interface:
 
+~~~bash
+[lab-user@provision ocp]$ cat << EOF | oc apply -f -
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: brext
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/brext
+spec:
+  config: '{
+    "cniVersion": "0.3.1",
+    "name": "brext",
+    "plugins": [
+      {
+        "type": "cnv-bridge",
+        "bridge": "brext"
+      },
+      {
+        "type": "tuning"
+      }
+    ]
+  }'
+EOF
+networkattachmentdefinition.k8s.cni.cncf.io/tuning-bridge-fixed created
+~~~
+
+Once those have been applied we can now move forward in the lab.
 
 ### Viewing the OpenShift virtualisation Dashboard
 
