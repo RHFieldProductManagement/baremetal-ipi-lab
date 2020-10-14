@@ -62,13 +62,9 @@ This will allocate a pre-deployed session for your usage with a **GUID** that's 
 The environment takes around 20 minutes to power-up, but don't be alarmed if you cannot connect in straight away, it may just require a few more minutes. Once it's up and running, we can connect to our jumphost:
 
 ~~~bash
-you@laptop$ ssh cloud-user@workstation-8a2e.rhpds.opentlc.com -L 8080:provisioner:3128
+
 (...)
 ~~~
-
-> **NOTE**: The password above is simply '**r3dh4t1!**' as displayed in the previous GuidGrabber page. Also note that we're using port forwarding within this environment so we can access the web console in a later lab session, but forget about this for now.
-
-<img src="img/logged-in.png" style="width: 1000px;"/>
 
 Now we're ready to proceed with the rest of our lab steps. If you had any problems getting access or if you have any questions, please feel free to ask any of the moderators at any time.
 
