@@ -286,50 +286,52 @@ Once the cluster has successfully deployed at the end of the logging you will be
 Now we can validate and confirm we have a 3 master and 2 worker cluster instantiated by issuing the oc get nodes command:
 
 ~~~bash
-[lab-user@provision ~]$ oc get nodes
-NAME       STATUS   ROLES    AGE   VERSION
-master-0   Ready    master   96m   v1.18.3+6c42de8
-master-1   Ready    master   84m   v1.18.3+6c42de8
-master-2   Ready    master   85m   v1.18.3+6c42de8
-worker-0   Ready    worker   57m   v1.18.3+6c42de8
-worker-1   Ready    worker   55m   v1.18.3+6c42de8
+[lab-user@provision scripts]$ oc get nodes
+NAME                                 STATUS   ROLES    AGE   VERSION
+master-0.schmaustech.dynamic.opentlc.com   Ready    master   38m   v1.18.3+47c0e71
+master-1.schmaustech.dynamic.opentlc.com   Ready    master   37m   v1.18.3+47c0e71
+master-2.schmaustech.dynamic.opentlc.com   Ready    master   38m   v1.18.3+47c0e71
+worker-0.schmaustech.dynamic.opentlc.com   Ready    worker   13m   v1.18.3+47c0e71
+worker-1.schmaustech.dynamic.opentlc.com   Ready    worker   13m   v1.18.3+47c0e71
+
 ~~~
 
 Further we can also confirm all the cluster operators are functional and available by looking at the clusteroperators command:
 
 ~~~bash
-[lab-user@provision ~]$ oc get clusteroperators
+[lab-user@provision scripts]$ oc get clusteroperators
 NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
-authentication                             4.5.9     True        False         False      45m
-cloud-credential                           4.5.9     True        False         False      131m
-cluster-autoscaler                         4.5.9     True        False         False      64m
-config-operator                            4.5.9     True        False         False      64m
-console                                    4.5.9     True        False         False      48m
-csi-snapshot-controller                    4.5.9     True        False         False      54m
-dns                                        4.5.9     True        False         False      93m
-etcd                                       4.5.9     True        False         False      83m
-image-registry                             4.5.9     True        False         False      76m
-ingress                                    4.5.9     True        False         False      54m
-insights                                   4.5.9     True        False         False      79m
-kube-apiserver                             4.5.9     True        False         False      82m
-kube-controller-manager                    4.5.9     True        False         False      93m
-kube-scheduler                             4.5.9     True        False         False      93m
-kube-storage-version-migrator              4.5.9     True        False         False      55m
-machine-api                                4.5.9     True        False         False      71m
-machine-approver                           4.5.9     True        False         False      81m
-machine-config                             4.5.9     True        False         False      42m
-marketplace                                4.5.9     True        False         False      63m
-monitoring                                 4.5.9     True        False         False      42m
-network                                    4.5.9     True        False         False      96m
-node-tuning                                4.5.9     True        False         False      95m
-openshift-apiserver                        4.5.9     True        False         False      64m
-openshift-controller-manager               4.5.9     True        False         False      78m
-openshift-samples                          4.5.9     True        False         False      63m
-operator-lifecycle-manager                 4.5.9     True        False         False      94m
-operator-lifecycle-manager-catalog         4.5.9     True        False         False      94m
-operator-lifecycle-manager-packageserver   4.5.9     True        False         False      64m
-service-ca                                 4.5.9     True        False         False      95m
-storage                                    4.5.9     True        False         False      78m
+authentication                             4.5.12    True        False         False      3m15s
+cloud-credential                           4.5.12    True        False         False      52m
+cluster-autoscaler                         4.5.12    True        False         False      31m
+config-operator                            4.5.12    True        False         False      31m
+console                                    4.5.12    True        False         False      8m45s
+csi-snapshot-controller                    4.5.12    True        False         False      14m
+dns                                        4.5.12    True        False         False      38m
+etcd                                       4.5.12    True        False         False      38m
+image-registry                             4.5.12    True        False         False      55s
+ingress                                    4.5.12    True        False         False      15m
+insights                                   4.5.12    True        False         False      34m
+kube-apiserver                             4.5.12    True        False         False      37m
+kube-controller-manager                    4.5.12    True        False         False      38m
+kube-scheduler                             4.5.12    True        False         False      37m
+kube-storage-version-migrator              4.5.12    True        False         False      15m
+machine-api                                4.5.12    True        False         False      26m
+machine-approver                           4.5.12    True        False         False      37m
+machine-config                             4.5.12    True        False         False      39m
+marketplace                                4.5.12    True        False         False      12m
+monitoring                                 4.5.12    True        False         False      14m
+network                                    4.5.12    True        False         False      39m
+node-tuning                                4.5.12    True        False         False      39m
+openshift-apiserver                        4.5.12    True        False         False      15m
+openshift-controller-manager               4.5.12    True        False         False      32m
+openshift-samples                          4.5.12    True        False         False      15m
+operator-lifecycle-manager                 4.5.12    True        False         False      39m
+operator-lifecycle-manager-catalog         4.5.12    True        False         False      39m
+operator-lifecycle-manager-packageserver   4.5.12    True        False         False      15m
+service-ca                                 4.5.12    True        False         False      39m
+storage                                    4.5.12    True        False         False      34m
+
 ~~~
 
 One other thing we should do now that our cluster is deployed is patch the Image Registry Operator.  By default the Image Registry Operator needs to be configured with shared storage in a production environment.  However since this is a lab we will just configure it with an empty directy:
