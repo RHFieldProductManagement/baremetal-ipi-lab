@@ -75,7 +75,7 @@ Now you should be able to open up the application in the same browser that you'r
 
 Now, if you can tear yourself away from the game, let's build a VM...
 
-## Deploying a Virtual Machine (Schmaus needs to test and clean up still)
+## Deploying a Virtual Machine
 
 If you recall back in the previous deploy OpenShift virtualization lab we went ahead and installed the OpenShift virtualization operater and created a virtualization cluster.  Further we went ahead and configured an external bridge so that are virtual machines can be connected to the outside network.  Therefore we are now at the point where we can launch a virtual machine.  To do this we will use the OpenShift Web Console and navigate to Workloads->Virtualization:
 
@@ -84,12 +84,28 @@ If you recall back in the previous deploy OpenShift virtualization lab we went a
 Select the New with Wizard option and the workflow for creating a new virtual machine will be brought up:
 
 <img src="img/cnvgeneral.png"/>
+
+
 <img src="img/cnvnetwork1.png"/>
+
+
 <img src="img/cnvnetwork2.png"/>
+
+
 <img src="img/cnvdisk1.png"/>
+
+
 <img src="img/cnvdisk2.png"/>
+
+
 <img src="img/cnvkey.png"/>
+
+
 <img src="img/cnvreview.png"/>
-<img src="img/cnvsucess.png"/>
+
+
+<img src="img/cnvsuccess.png"/>
+
+
 
 **Success**, we're done! Congratulations... if you've made it this far you've deployed KNI from the ground up, deployed Ceph via Rook, Container Native Virtualisation (CNV), and tested the solution with pods and VM's via the CLI and the OpenShift dashboard! I'd like to ***thank you*** for attending this lab; I hope that it was a valuable use of your time and that your learnt a lot from doing it. Please do let us know if there's anything else we can do to support you! There's also a CNV-based lab here at Red Hat Tech Exchange if you're keen on exploring it further.
