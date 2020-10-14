@@ -12,7 +12,13 @@ One of the big steps forward was the introduction of tighter integration with th
 
 As OpenShift continues to evolve with each new release we continue to add more integrations for a variety of infrastructure providers, such as OpenStack, VMware, and now, as per the purpose of this lab, bare metal. We're going to be walking you through the new baremetal flows that the OpenShift engineering organisation has been working on to bring the same capabilities  that our customers are used to with public cloud platforms to baremetal infrastructure through the use of the Kubernetes Native Infrastructure (KNI) concepts.
 
+Throughout the lab you're going to see references to "Baremetal IPI" (Installer Provisioned Infrastructure), which is the deployment methodology we're using here - the fully automated, installer driven mechanism for standing up baremetal OpenShift clusters by using the KNI components; we use these terms interchangeably.
+
+
+
 > **NOTE**: The features that we'll be using in this lab are [**technology preview**](https://access.redhat.com/support/offerings/techpreview) and aren't expected to GA until OpenShift 4.6, therefore there may be a few unexpected bugs/problems. Furthermore, due to the nature of the nested environment and providing things on-demand, you may run into some performance related timeouts; we've done our best to minimise these challenges and provided troubleshooting steps where possible. Please do reach out to the lab attendees if you get stuck!
+
+
 
 ## Lab Details
 
@@ -26,6 +32,8 @@ The aim of this lab is to get you, the attendees, a little bit more familiar wit
 
 * Demonstrate the deployment of some test workloads, based on both virtual machines and standard Kubernetes pods, backed by OpenShift Container Storage.
 
+
+
 ## Hands On!
 
 We feel that getting hands on with Baremetal IPI is essential to helping you fully understand the details and specifics of this installtion method at a level even deeper than just slides alone. And of course, this training is designed to complement and enhance the messaging to better assist you in positioning, demonstrating, designing, and selling this new option.
@@ -35,4 +43,4 @@ If you have any problems with the lab or have any questions about Red Hat or our
 Please do stay in touch as we very much welcome contributions and pull requests! You can also reach out to the authors of this lab, the Field Product Management team, directly at field-engagement@redhat.com. We hope you enjoy this lab.
 
 
-[Get Started...](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/01-intro.md)
+[Let's get started...](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/01-intro.md)
