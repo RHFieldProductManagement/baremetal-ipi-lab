@@ -62,10 +62,21 @@ This will allocate a pre-deployed session for your usage with a **GUID** that's 
 The environment takes around 20 minutes to power-up, but don't be alarmed if you cannot connect in straight away, it may just require a few more minutes. Once it's up and running, we can connect to our jumphost:
 
 ~~~bash
+[bschmaus@bschmaus ~]$ ssh lab-user@provision.hhnfk.dynamic.opentlc.com
+The authenticity of host 'provision.hhnfk.dynamic.opentlc.com (150.239.28.71)' can't be established.
+ECDSA key fingerprint is SHA256:wJtlUptPHgzqQWLzk0oRLA5sLkKR4hQ1NYbcF6gC4RQ.
+ECDSA key fingerprint is MD5:03:14:41:53:46:6a:0c:8e:87:34:3a:65:58:91:17:20.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'provision.hhnfk.dynamic.opentlc.com,150.239.28.71' (ECDSA) to the list of known hosts.
+lab-user@provision.hhnfk.dynamic.opentlc.com's password: 
+Activate the web console with: systemctl enable --now cockpit.socket
 
-(...)
+This system is not registered to Red Hat Insights. See https://cloud.redhat.com/
+To register this system, run: insights-client --register
+
+[lab-user@provision ~]$ ls
+pull-secret.json  scripts
+[lab-user@provision ~]$ 
 ~~~
 
 Now we're ready to proceed with the rest of our lab steps. If you had any problems getting access or if you have any questions, please feel free to ask any of the moderators at any time.
-
-
