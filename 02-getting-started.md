@@ -30,7 +30,7 @@ Each dedicated environment has a '**provision**' host that acts as a gateway in,
 
 The '**provision**' host has been prebuilt and will be used to bootstrap all of the OpenShift cluster on-top of the underlying "baremetal" infrastructure that will be automated through OpenStack Ironic and IPMI. This provisioner host has been partially configured for speed and convenience, but not in any way that will detract from the labs purpose, or cause confusion, this machine will be used extensively throughout the lab as our main point of execution.
 
-There are many other dedicated machines (VM's in RHPDS) that will make up the rest of the lab, some of the internals can be seen below, and will be accessible to you in your lab; and can be useful for viewing the console output of some of your systems, just be very careful with it when you're using it (a link will be displayed for you when you follow the instructions in the next section). For information purposes, here's mine:
+There are many other dedicated machines (VM's in OpenTLC) that will make up the rest of the lab, some of the internals can be seen below, and will be accessible to you in your lab; and can be useful for viewing the console output of some of your systems, just be very careful with it when you're using it (a link will be displayed for you when you follow the instructions in the next section). For information purposes, here's mine:
 
 <img src="img/hosts.png" style="width: 1000px;"/>
 
