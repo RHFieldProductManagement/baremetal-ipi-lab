@@ -212,7 +212,7 @@ metadata:
 Here you can see the current state of the node (some of the output has been cut), the interfaces attached, and their physical/logical addresses. Before we move on from this lab we need to ensure that we have setup a proper bridge for our VMs to get access to the network.  We can do this by creating a NetworkNodeConfigurationPolicy (nncp):
 
 ~~~bash
-cat << EOF | oc apply -f -
+[lab-user@provision ocp]$ cat << EOF | oc apply -f -
 apiVersion: nmstate.io/v1alpha1
 kind: NodeNetworkConfigurationPolicy
 metadata:
@@ -239,15 +239,31 @@ EOF
 ~~~
 
 The above policy will attache a brext bridge to the external network interface ens4.  We can watch the progress by running the following:
-~~~bash
 
-[lab-user@provision ~]$ oc get nnce
+~~~bash
+[lab-user@provision ocp]$ oc get nnce
+NAME                                                   STATUS
+master-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+master-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+master-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+worker-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
+worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
+worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
+
+[lab-user@provision ocp]$ oc get nnce
+NAME                                                   STATUS
+master-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+master-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+master-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
+worker-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
+worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
+worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
 ~~~
 
 Once they have been successfully configured we can then add our network attachment definition which will allow our VMs to consume that bridge interface:
 
 ~~~bash
-cat << EOF | oc apply -f -
+[lab-user@provision ocp]$ cat << EOF | oc apply -f -
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
