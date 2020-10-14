@@ -91,7 +91,7 @@ virt-controller-7d567db8c6-kld5f                      1/1     Running   0       
 virt-handler-f5946                                    1/1     Running   0          3m32s
 virt-handler-q9m2n                                    1/1     Running   0          3m32s
 virt-handler-tdt5p                                    1/1     Running   0          3m33s
-virt-operator-869b8c8759-2889x                        0/1     Error     0          11m
+virt-operator-869b8c8759-2889x                        1/1     Running   0          11m
 virt-operator-869b8c8759-xn7k4                        1/1     Running   2          11m
 virt-template-validator-5d9bbfbcc7-6v4qh              1/1     Running   0          4m46s
 ~~~
