@@ -236,6 +236,7 @@ spec:
           port:
             - name: ens4
 EOF
+nodenetworkconfigurationpolicy.nmstate.io/worker-brext-ens4 created
 ~~~
 
 The above policy will attache a brext bridge to the external network interface ens4.  We can watch the progress by running the following:
@@ -285,6 +286,7 @@ spec:
     ]
   }'
 EOF
+networkattachmentdefinition.k8s.cni.cncf.io/tuning-bridge-fixed created
 ~~~
 
 Once those have been applied we can now move forward in the lab.
