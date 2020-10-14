@@ -337,7 +337,7 @@ The above command will take some time but once complete should have mirrored all
 
 Now that we have the images synced down we can move on to syncing the RHCOS images needed for which their are two: an RHCOS qemu image and RHCOS openstack image.  The RHCOS qemu image is the image used for the bootstrap virtual machines that is created on the provisioning host during the initial phases of the deployment process.  The openstack image is the one used to image the master and worker nodes during the deployment process.
 
-To capture this image we have to set a few different environment variables to ensure we download the correct RHCOS image for the version release we are using.  Again in this labs case we are installing 4.5.9.  Lets set a few variables:
+To capture this image we have to set a few different environment variables to ensure we download the correct RHCOS image for the version release we are using.  Again in this labs case we are installing 4.5.12.  Lets set a few variables:
 
 ~~~bash
 [lab-user@provision scripts]$ OPENSHIFT_INSTALLER=$HOME/scripts/openshift-baremetal-install
