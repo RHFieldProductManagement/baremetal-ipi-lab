@@ -61,7 +61,7 @@ From a basic perspective, the architecture looks like the following:
 
 ## OpenShift Installer
 
-In Red Hat OpenShift Container Platform 4.x we introduced a brand new type of installer to the OpenShift world, based on the CoreOS operating system. This new installer leverages Terraform to both deploy CoreOS (now called Red Hat Enterprise Linux CoreOS) and Kubernetes (as Red Hat OpenShift Container Platform of course!) on top. The new installer is built with Golang and supports deployment on a number of platforms, but today the most comprehensive support is with Amazon Web Services.
+In Red Hat OpenShift Container Platform 4.x we introduced a brand new type of installer to the OpenShift world, based on the CoreOS operating system. This new installer leverages Terraform to both deploy CoreOS (now called Red Hat Enterprise Linux CoreOS) and Kubernetes (as Red Hat OpenShift Container Platform of course!) on top. The new installer is built with Golang and supports deployment on a number of cloud and virtualization platforms, as well as bare metal.
 
 More recently, the KNI team have been working to integrate all of the Metal³ requirements into the OpenShift installer in order to have a tightly integrated and optimal user experience for customers that want to deploy OpenShift on baremetal, without having to manually provision the infrastructure up-front. This has primarily meant ensuring that the installer has a Terraform provider for OpenStack Ironic and that it can deploy additional software to support baremetal clusters.
 
