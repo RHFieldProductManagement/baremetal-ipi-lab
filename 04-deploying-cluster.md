@@ -1,4 +1,4 @@
-#**Create OpenShift Cluster***
+# **Create OpenShift Cluster**
 
 In the previous lab we configured a disconnected registry and httpd cache for RHCOS images.  This will allow us to test our disconnected OpenShift deploy in this section of the lab.  But before we begin lets look at a few parts of the install-config.yaml configuration file.  If we can out the file we can see there are various sections and attributes:
 
@@ -106,8 +106,8 @@ Run the deployment using the install-config.yaml
 [lab-user@provision scripts]$ mkdir $HOME/scripts/ocp
 [lab-user@provision scripts]$ cp $HOME/scripts/install-config.yaml $HOME/scripts/ocp
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create manifests
-DEBUG OpenShift Installer 4.5.9                    
-DEBUG Built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c 
+DEBUG OpenShift Installer 4.5.12                    
+DEBUG Built from commit 9893a482f310ee72089872f1a4caea3dbec34f28 
 DEBUG Fetching Master Machines...                  
 DEBUG Loading Master Machines...                   
 (...)
@@ -142,34 +142,35 @@ Note that generating the manifests would be done automatically if we just ran cr
 
 ~~~bash
 [lab-user@provision scripts]$ ls -l $HOME/scripts/ocp/manifests/
-total 124
--rw-r-----. 1 lab-user lab-user  169 Oct  5 13:49 04-openshift-machine-config-operator.yaml
--rw-r-----. 1 lab-user lab-user 6383 Oct  5 13:49 cluster-config.yaml
--rw-r-----. 1 lab-user lab-user  165 Oct  5 13:49 cluster-dns-02-config.yml
--rw-r-----. 1 lab-user lab-user  581 Oct  5 13:49 cluster-infrastructure-02-config.yml
--rw-r-----. 1 lab-user lab-user  170 Oct  5 13:49 cluster-ingress-02-config.yml
--rw-r-----. 1 lab-user lab-user  513 Oct  5 13:49 cluster-network-01-crd.yml
--rw-r-----. 1 lab-user lab-user  272 Oct  5 13:49 cluster-network-02-config.yml
--rw-r-----. 1 lab-user lab-user  142 Oct  5 13:49 cluster-proxy-01-config.yaml
--rw-r-----. 1 lab-user lab-user  171 Oct  5 13:49 cluster-scheduler-02-config.yml
--rw-r-----. 1 lab-user lab-user  264 Oct  5 13:49 cvo-overrides.yaml
--rw-r-----. 1 lab-user lab-user 1335 Oct  5 13:49 etcd-ca-bundle-configmap.yaml
--rw-r-----. 1 lab-user lab-user 3958 Oct  5 13:49 etcd-client-secret.yaml
--rw-r-----. 1 lab-user lab-user  434 Oct  5 13:49 etcd-host-service-endpoints.yaml
--rw-r-----. 1 lab-user lab-user  271 Oct  5 13:49 etcd-host-service.yaml
--rw-r-----. 1 lab-user lab-user 4009 Oct  5 13:49 etcd-metric-client-secret.yaml
--rw-r-----. 1 lab-user lab-user 1359 Oct  5 13:49 etcd-metric-serving-ca-configmap.yaml
--rw-r-----. 1 lab-user lab-user 3917 Oct  5 13:49 etcd-metric-signer-secret.yaml
--rw-r-----. 1 lab-user lab-user  156 Oct  5 13:49 etcd-namespace.yaml
--rw-r-----. 1 lab-user lab-user  334 Oct  5 13:49 etcd-service.yaml
--rw-r-----. 1 lab-user lab-user 1336 Oct  5 13:49 etcd-serving-ca-configmap.yaml
--rw-r-----. 1 lab-user lab-user 3890 Oct  5 13:49 etcd-signer-secret.yaml
--rw-r-----. 1 lab-user lab-user  312 Oct  5 13:49 image-content-source-policy-0.yaml
--rw-r-----. 1 lab-user lab-user  307 Oct  5 13:49 image-content-source-policy-1.yaml
--rw-r-----. 1 lab-user lab-user  118 Oct  5 13:49 kube-cloud-config.yaml
--rw-r-----. 1 lab-user lab-user 1304 Oct  5 13:49 kube-system-configmap-root-ca.yaml
--rw-r-----. 1 lab-user lab-user 4134 Oct  5 13:49 machine-config-server-tls-secret.yaml
--rw-r-----. 1 lab-user lab-user 5705 Oct  5 13:49 openshift-config-secret-pul
+total 116
+-rw-r-----. 1 lab-user users  169 Oct 14 11:08 04-openshift-machine-config-operator.yaml
+-rw-r-----. 1 lab-user users 6309 Oct 14 11:08 cluster-config.yaml
+-rw-r-----. 1 lab-user users  154 Oct 14 11:08 cluster-dns-02-config.yml
+-rw-r-----. 1 lab-user users  542 Oct 14 11:08 cluster-infrastructure-02-config.yml
+-rw-r-----. 1 lab-user users  159 Oct 14 11:08 cluster-ingress-02-config.yml
+-rw-r-----. 1 lab-user users  513 Oct 14 11:08 cluster-network-01-crd.yml
+-rw-r-----. 1 lab-user users  272 Oct 14 11:08 cluster-network-02-config.yml
+-rw-r-----. 1 lab-user users  142 Oct 14 11:08 cluster-proxy-01-config.yaml
+-rw-r-----. 1 lab-user users  171 Oct 14 11:08 cluster-scheduler-02-config.yml
+-rw-r-----. 1 lab-user users  264 Oct 14 11:08 cvo-overrides.yaml
+-rw-r-----. 1 lab-user users 1335 Oct 14 11:08 etcd-ca-bundle-configmap.yaml
+-rw-r-----. 1 lab-user users 3962 Oct 14 11:08 etcd-client-secret.yaml
+-rw-r-----. 1 lab-user users  423 Oct 14 11:08 etcd-host-service-endpoints.yaml
+-rw-r-----. 1 lab-user users  271 Oct 14 11:08 etcd-host-service.yaml
+-rw-r-----. 1 lab-user users 4009 Oct 14 11:08 etcd-metric-client-secret.yaml
+-rw-r-----. 1 lab-user users 1359 Oct 14 11:08 etcd-metric-serving-ca-configmap.yaml
+-rw-r-----. 1 lab-user users 3921 Oct 14 11:08 etcd-metric-signer-secret.yaml
+-rw-r-----. 1 lab-user users  156 Oct 14 11:08 etcd-namespace.yaml
+-rw-r-----. 1 lab-user users  334 Oct 14 11:08 etcd-service.yaml
+-rw-r-----. 1 lab-user users 1336 Oct 14 11:08 etcd-serving-ca-configmap.yaml
+-rw-r-----. 1 lab-user users 3894 Oct 14 11:08 etcd-signer-secret.yaml
+-rw-r-----. 1 lab-user users  301 Oct 14 11:08 image-content-source-policy-0.yaml
+-rw-r-----. 1 lab-user users  296 Oct 14 11:08 image-content-source-policy-1.yaml
+-rw-r-----. 1 lab-user users  118 Oct 14 11:08 kube-cloud-config.yaml
+-rw-r-----. 1 lab-user users 1304 Oct 14 11:08 kube-system-configmap-root-ca.yaml
+-rw-r-----. 1 lab-user users 4094 Oct 14 11:08 machine-config-server-tls-secret.yaml
+-rw-r-----. 1 lab-user users 3993 Oct 14 11:08 openshift-config-secret-pull-secret.yaml
+-rw-r-----. 1 lab-user users 2411 Oct 14 11:08 user-ca-bundle-config.yaml
 ~~~
  
  Finally we have now arrived at the point where we can run the create cluster command to deploy our baremetal cluster.   This process will take about ~60-90 minutes to complete:
@@ -177,7 +178,7 @@ total 124
 ~~~bash
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create cluster
 DEBUG OpenShift Installer 4.5.12                    
-DEBUG Built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c 
+DEBUG Built from commit 9893a482f310ee72089872f1a4caea3dbec34f28 
 DEBUG Fetching Metadata...                         
 DEBUG Loading Metadata...                          
 DEBUG   Loading Cluster ID...                      
