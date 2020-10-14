@@ -292,18 +292,18 @@ info: Mirroring 110 images to provision.schmaustech.dynamic.opentlc.com:5000/ocp
 provision.schmaustech.dynamic.opentlc.com:5000/
   ocp4/openshift4
     manifests:
-      sha256:00edb6c1dae03e1870e1819b4a8d29b655fb6fc40a396a0db2d7c8a20bd8ab8d -> 4.5.9-local-storage-static-provisioner
-      sha256:0259aa5845ce43114c63d59cedeb71c9aa5781c0a6154fe5af8e3cb7bfcfa304 -> 4.5.9-machine-api-operator
-      sha256:07f11763953a2293bac5d662b6bd49c883111ba324599c6b6b28e9f9f74112be -> 4.5.9-cluster-kube-storage-version-migrator-operator
+      sha256:00edb6c1dae03e1870e1819b4a8d29b655fb6fc40a396a0db2d7c8a20bd8ab8d -> 4.5.12-local-storage-static-provisioner
+      sha256:0259aa5845ce43114c63d59cedeb71c9aa5781c0a6154fe5af8e3cb7bfcfa304 -> 4.5.12-machine-api-operator
+      sha256:07f11763953a2293bac5d662b6bd49c883111ba324599c6b6b28e9f9f74112be -> 4.5.12-cluster-kube-storage-version-migrator-operator
 (...)
-sha256:15be0e6de6e0d7bec726611f1dcecd162325ee57b993e0d886e70c25a1faacc3 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9-openshift-controller-manager
-sha256:bc6c8fd4358d3a46f8df4d81cd424e8778b344c368e6855ed45492815c581438 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9-hyperkube
-sha256:bcd6cd1559b62e4a8031cf0e1676e25585845022d240ac3d927ea47a93469597 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9-machine-config-operator
-sha256:b05f9e685b3f20f96fa952c7c31b2bfcf96643e141ae961ed355684d2d209310 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9-baremetal-installer
+sha256:15be0e6de6e0d7bec726611f1dcecd162325ee57b993e0d886e70c25a1faacc3 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.12-openshift-controller-manager
+sha256:bc6c8fd4358d3a46f8df4d81cd424e8778b344c368e6855ed45492815c581438 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.12-hyperkube
+sha256:bcd6cd1559b62e4a8031cf0e1676e25585845022d240ac3d927ea47a93469597 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.12-machine-config-operator
+sha256:b05f9e685b3f20f96fa952c7c31b2bfcf96643e141ae961ed355684d2d209310 provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.12-baremetal-installer
 info: Mirroring completed in 1.48s (0B/s)
 
 Success
-Update image:  provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.9
+Update image:  provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4:4.5.12
 Mirror prefix: provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4
 
 To use the new mirrored repository to install, add the following section to the install-config.yaml:
