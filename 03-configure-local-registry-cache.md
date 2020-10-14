@@ -155,7 +155,9 @@ With the directory structures in place we can now create the caching pod and in 
 ~~~bash
 [lab-user@provision scripts]$ sudo podman pod create -n ironic-pod
 12385a4f6f8cb912e7733b725c2b488de4e21aef049552efd21afc28dd647014
-[lab-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
+
+[lab-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod \
+	-v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
 Trying to pull quay.io/metal3-io/ironic:master...
 Getting image source signatures
 Copying blob 3c72a8ed6814 done
