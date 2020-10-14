@@ -56,8 +56,9 @@ From an OpenShift perspective, there are essentially two major baremetal host en
 
 From a basic perspective, the architecture looks like the following:
 
-<center><img src="img/bmo.png" style="width: 300px;"/></center>
+<center>
 
+<center><img src="img/bmo.png" style="width: 300px;"/></center>
 
 ## OpenShift Installer
 
@@ -69,7 +70,7 @@ The installer baremetal docs can be found [here](https://github.com/openshift/in
 
 ## OpenShift Release
 
-When you hear the term OpenShift release, what we're really talking about is the "imagestream" that makes up a particular snapshot in time of the OpenShift distribution. The OpenShift team has done a fantastic job of implementing a continuous CI system that tests every patch, including upgrade testing between releases. All of the current releases, both nightly builds and CI-passing code can be found [here](https://openshift-release.svc.ci.openshift.org/).
+When you hear the term OpenShift release, what we're really talkig about is the "imagestream" that makes up a particular snapshot in time of the OpenShift distribution. The OpenShift team has done a fantastic job of implementing a continuous CI system that tests every patch, including upgrade testing between releases. All of the current releases, both nightly builds and CI-passing code can be found [here](https://openshift-release.svc.ci.openshift.org/).
 
 Each OpenShift release contains, amongst many other things, a manifest of container images (and associated versions) that it will deploy, along with a built-in corresponding version of the OpenShift installer in binary format, as noted in the previous section above. When you deploy OpenShift you point to a given release, but usually this will be hidden from you - you'll simply pull the latest release and the installer will deploy OpenShift and pull the requested container images as per the manifest. In this lab we're going to be pulling a slightly customised OpenShift release so you'll get to see a bit of it.
 
@@ -115,3 +116,6 @@ The [Rook project](https://rook.io/) supports multiple different backends, but a
 
 <center><img src="img/rook-arch.png" style="width: 700px;"/></center>
 
+
+
+We'll be deploying OpenShift Container Storage in a later stage of the lab. For now, let's move on to getting access to your [dedicated environment](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/02-getting-started.md)...
