@@ -155,7 +155,9 @@ With the directory structures in place we can now create the caching pod and in 
 ~~~bash
 [lab-user@provision scripts]$ sudo podman pod create -n ironic-pod
 12385a4f6f8cb912e7733b725c2b488de4e21aef049552efd21afc28dd647014
-[lab-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
+
+[lab-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod \
+	-v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
 Trying to pull quay.io/metal3-io/ironic:master...
 Getting image source signatures
 Copying blob 3c72a8ed6814 done
@@ -212,7 +214,7 @@ Further we can test that our httpd cache is operational by using the curl comman
 We are almost ready to do some downloading of images but we still have a few items to tend to.  First we need to generate a bcrypt password from our username and password we set on the registry.  We can do this by piping them into base64 and capturing the output:
 
 ~~~bash
-[lab-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0
+[lab-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0 && echo
 ZHVtbXk6ZHVtbXk=
 ~~~
 
