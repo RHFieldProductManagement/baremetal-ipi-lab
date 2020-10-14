@@ -5,7 +5,7 @@ In the previous lab we configured a disconnected registry and httpd cache for RH
 ~~~bash
 [lab-user@provision scripts]$ cat install-config.yaml
 apiVersion: v1
-baseDomain: students.osp.opentlc.com
+baseDomain: dynamic.opentlc.com
 metadata:
   name: schmaustech <===CLUSTER NAME
 networking:
@@ -176,7 +176,7 @@ total 124
   
 ~~~bash
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create cluster
-DEBUG OpenShift Installer 4.5.9                    
+DEBUG OpenShift Installer 4.5.12                    
 DEBUG Built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c 
 DEBUG Fetching Metadata...                         
 DEBUG Loading Metadata...                          
@@ -238,27 +238,27 @@ DEBUG module.masters.ironic_deployment.openshift-master-deployment[0]: Still cre
 DEBUG module.masters.ironic_deployment.openshift-master-deployment[0]: Creation complete after 9m4s [id=63c12136-0605-4b0b-a2b3-b53b992b8189] 
 DEBUG                                              
 DEBUG Apply complete! Resources: 12 added, 0 changed, 0 destroyed. 
-DEBUG OpenShift Installer 4.5.9                    
+DEBUG OpenShift Installer 4.5.12                 
 DEBUG Built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c 
-INFO Waiting up to 20m0s for the Kubernetes API at https://api.schmaustech.students.osp.opentlc.com:6443... 
+INFO Waiting up to 20m0s for the Kubernetes API at https://api.schmaustech.dynamic.opentlc.com:6443... 
 INFO API v1.18.3+6c42de8 up                       
 INFO Waiting up to 40m0s for bootstrapping to complete...
 (...)
 DEBUG Bootstrap status: complete                   
 INFO Destroying the bootstrap resources... 
 (...)
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9 
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: downloading update 
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 0% complete 
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 41% complete 
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 57% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12: downloading update 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12: 0% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12: 41% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12: 57% complete 
 (...)
 DEBUG Still waiting for the cluster to initialize: Some cluster operators are still updating: authentication, console, csi-snapshot-controller, ingress, kube-storage-version-migrator, monitoring 
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 86% complete 
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 86% complete 
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 86% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12: 86% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12: 86% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12: 86% complete 
 (...)
-DEBUG Still waiting for the cluster to initialize: Working towards 4.5.9: 92% complete 
+DEBUG Still waiting for the cluster to initialize: Working towards 4.5.12: 92% complete 
 DEBUG Cluster is initialized                       
 INFO Waiting up to 10m0s for the openshift-console route to be created... 
 DEBUG Route found in openshift-console namespace: console 
@@ -266,7 +266,7 @@ DEBUG Route found in openshift-console namespace: downloads
 DEBUG OpenShift console route is created           
 INFO Install complete!                            
 INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/home/lab-user/scripts/ocp/auth/kubeconfig' 
-INFO Access the OpenShift web-console here: https://console-openshift-console.apps.schmaustech.students.osp.opentlc.com 
+INFO Access the OpenShift web-console here: https://console-openshift-console.apps.schmaustech.dynamic.opentlc.com 
 INFO Login to the console with user: "kubeadmin", and password: "5VGM2-uMov3-4N2Vi-n5i3H" 
 DEBUG Time elapsed per stage:                      
 DEBUG     Infrastructure: 34m17s                   
