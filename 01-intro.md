@@ -28,7 +28,7 @@ From a product perspective, this is ultimately what the stack for KNI looks like
 
 This is a long-term strategy that we're embarking on. 
 
-It's not a VMware replacement, it's not an OpenStack replacement, and it's not an RHV replacement. We _are_ beginning to build out the feature set of OpenShift to match those capabilities that some of the other on-premises solutions can provide, but we must "run before we walk" here and continue to sell what we have on the truck today - stable, mature, and capable pieces of software.
+It's not a VMware replacement, it's not an OpenStack replacement, and it's not (yet) an RHV replacement. We _are_ beginning to build out the feature set of OpenShift to match those capabilities that some of the other on-premises solutions can provide, but we must "run before we walk" here and continue to sell what we have on the truck today - stable, mature, and capable pieces of software.
 
 **This is an exciting journey for both us and our customers.**
 
