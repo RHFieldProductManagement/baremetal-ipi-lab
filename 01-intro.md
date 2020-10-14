@@ -107,14 +107,6 @@ A high level view of this environment would look something like this:
 
 > **NOTE**: As mentioned, the bootstrap VM will be terminated. Additionally, the provisioning host does not need to serve any future function and could added as a worker node for the cluster.
 
-## dev-scripts
-
-The dev-scripts are a set of scripts that have been used by KNI developers to spin up KNI-based environments quickly on virtual machines or baremetal for the purpose of writing code, testing features, or completing end to end demos. The dev-scripts are certainly not what customers would use, but as they're heavily maintained by the KNI engineering organisation they're a great way to get started. In this lab we do use some of the dev-scripts to deploy our environment, albeit slightly customised!
-
-The repo for the dev-scripts lives in the **"openshift-metal3"** repo and can be found [here](https://github.com/openshift-metal3/dev-scripts), where some handy documentation can be found to get yourself started if you want to take your KNI journey further after this lab.
-
-> **NOTE**: The dev-scripts repository is actually *contracting* over time as more and more of the code gets merged into OpenShift itself. The OpenShift community have really embraced baremetal as a target platform!
-
 ## OpenShift Container Storage (Ceph/Rook)
 
 OpenShift 4.x, going forward, is standardising on Ceph as the consistent backend storage platform, replacing some of the earlier generations of storage platforms based on Gluster. We're introducing OpenShift Container Storage based on the [Rook](https://rook.io) operator - Rook turns distributed storage systems into self-managing, self-scaling, self-healing storage services. It automates the tasks of a storage administrator: deployment, bootstrapping, configuration, provisioning, scaling, upgrading, migration, disaster recovery, monitoring, and resource management. Rook uses the power of the Kubernetes platform to deliver its services: cloud-native container management, scheduling, and orchestration.
