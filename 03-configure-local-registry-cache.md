@@ -8,15 +8,13 @@
 [lab-user@provision ~]$ cd scripts/
 [lab-user@provision scripts]$ 
 [lab-user@provision scripts]$ oc version
-Client Version: 4.5.9
-Server Version: 4.5.9
-Kubernetes Version: v1.18.3+6c42de8
+Client Version: 4.5.12
 ~~~
 
-The output above shows us we have the 4.5.9 client for oc.  This will determine what version of the OpenShift cluster we will deploy.  Lets go ahead and set the environment variable of VERSION to that version now:
+The output above shows us we have the 4.5.12 client for oc.  This will determine what version of the OpenShift cluster we will deploy.  Lets go ahead and set the environment variable of VERSION to that version now:
 
 ~~~bash
-[lab-user@provision scripts]$ export VERSION=4.5.9
+[lab-user@provision scripts]$ export VERSION=4.5.12
 [lab-user@provision scripts]$ echo $VERSION
 4.5.9
 ~~~
@@ -25,9 +23,9 @@ Now lets examine the version of the openshift-baremetal-install binary version. 
 
 ~~~bash
 [lab-user@provision scripts]$ ./openshift-baremetal-install version
-./openshift-baremetal-install 4.5.9
-built from commit 0d5c871ce7d03f3d03ab4371dc39916a5415cf5c
-release image quay.io/openshift-release-dev/ocp-release@sha256:7ad540594e2a667300dd2584fe2ede2c1a0b814ee6a62f60809d87ab564f4425
+./openshift-baremetal-install 4.5.12
+built from commit 9893a482f310ee72089872f1a4caea3dbec34f28
+release image quay.io/openshift-release-dev/ocp-release@sha256:d65574acbf8222bacf875f4b0128142d5ed9e687153ce8df2152ba6e0c3f2be3
 ~~~
 
 Now that we have examined the oc and openshift-baremetal-install binaries we are ready to build our private registry and httpd cache on the provisioning node.   In a production environment this registry and httpd cache could be anywhere within the organization but for this lab we will keep it simple and on the provisioning node.
