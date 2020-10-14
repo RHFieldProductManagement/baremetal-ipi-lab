@@ -300,7 +300,7 @@ Finally at this point we can sync down the pod images from quay.io to our local 
 [lab-user@provision scripts]$ export LOCAL_REPO='ocp4/openshift4'
 ~~~
 
-So what did we do above?  We ended using the version variable we set earlier to help us set the upstream registry and repository for our 4.5.9 release.  Further we set a pull secet variable and then our local registry and local repository variables.
+So what did we do above?  We ended using the version variable we set earlier to help us set the upstream registry and repository for our 4.5.12 release.  Further we set a pull secet variable and then our local registry and local repository variables.
 
 Now we can actually execute the mirroring:
 
