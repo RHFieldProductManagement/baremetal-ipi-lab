@@ -120,12 +120,6 @@ And place our install-config.yaml file into it:
 
 > **NOTE**: The installer will consume the install-config.yaml and remove the file from the state direcrtory. If you have not saved it somewhere else you can regenerate it with `openshift-baremetal-install create install-config --dir=ocp` on a running cluster.
 
-Before proceeding it's recommended that you download and install tmux (a terminal multiplexer) in case you lose connectivity to the provisining host. The install commands is quite long running so using tmux would prevent it from being compromised by network dropouts. 
-
-Install tmux by running `sudo dnf install tmux -y` from the provisoning host.
-
-> **NOTE**: For help with tmux search [google](https://www.google.com/search?q=tmux+help&oq=tmux+help) or try [here](https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html).
-
 ~~~bash
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create manifests
 DEBUG OpenShift Installer 4.5.12                    
@@ -198,6 +192,8 @@ total 116
 ### Create the cluster
 
 We have now arrived at the point where we can run the `create cluster` argument for the install command to deploy our baremetal cluster.  This process will take about ~60-90 minutes to complete so have tmux running is you want to avoid network issues causing problems! :)
+
+> **REMINDER**: Don't forget to use tmux!
   
 ~~~bash
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create cluster
