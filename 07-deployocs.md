@@ -1,6 +1,6 @@
-# **Deploy OCS On Cluster**
+# Deploy OpenShift Container Storage On Cluster
 
-Now that we had added an additional worker node to our lab cluster environment we can deploy OpenShift Container Storage on top of the cluster.  The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.  However we will leverage command line and web-console to show the progress of the deployment.
+Now that we had added an additional worker node to our lab cluster environment we can deploy OpenShift Container Storage (OCS) on top of the cluster.  The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.  However we will leverage command line and web-console to show the progress of the deployment.
 
 Currently the lab from a node perspective should look like the following from a master/worker node count:
 
@@ -102,15 +102,24 @@ exit
 Removing debug pod ...
 ~~~
 
+We can see from the output above that on worker-0 the new 100GB volume was attached as vdb.  Repeat the above steps to confirm that the remaining workers also have their 100GB sdb volume attached.
+
 Next we need to label our nodes for storage:
 
 ~~~bash
 [lab-user@provision ~]$ oc label nodes worker-0.$GUID.dynamic.opentlc.com cluster.ocs.openshift.io/openshift-storage=''
 node/worker-0 labeled
+
 [lab-user@provision ~]$ oc label nodes worker-1.$GUID.dynamic.opentlc.com cluster.ocs.openshift.io/openshift-storage=''
 node/worker-1 labeled
+
 [lab-user@provision ~]$ oc label nodes worker-2.$GUID.dynamic.opentlc.com cluster.ocs.openshift.io/openshift-storage=''
 node/worker-2 labeled
+~~~
+
+And confirm the change:
+
+~~~bash
 [lab-user@provision ~]$ oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
 NAME                                 STATUS   ROLES    AGE   VERSION
 worker-0.dtchw.dynamic.opentlc.com   Ready    worker   47m   v1.18.3+47c0e71
@@ -118,19 +127,17 @@ worker-1.dtchw.dynamic.opentlc.com   Ready    worker   46m   v1.18.3+47c0e71
 worker-2.dtchw.dynamic.opentlc.com   Ready    worker   26m   v1.18.3+47c0e71
 ~~~
 
-We can see from the output above that on worker-0 the new 100GB volume was attached as vdb.  Repeat the above steps to confirm that the remaining workers also have their 100GB vbd volume attached.
+Now that we know the worker nodes have their disk we can proceed. Before installing OCS we should first install the local-storage operator which we can configure the local disks on the worker nodes. These are the dusks which then can be consumed by OCS as OSD devices.
 
-Now that we know the worker nodes have their disk we can proceed.  Before installing OCS we should first install the local-storage operator which we can configure the local disks on the worker nodes which in turn can be consumed by OCS as OSD devices.
-
-The first step is to create a local storage namespace in the OpenShift console.  Navigate to Administration->Namespaces and click on the create namespace button.  Once the below dialogue appears enter in the namespace as local-storage.
+The first step is to create a local storage namespace in the OpenShift console.  Navigate to **Administration** -> **Namespaces** and click on the create namespace button.  Once the below dialogue appears, set the namespace Name to **local-storage**.
 
 <img src="img/create-local-storage-namespace.png"/>
 
-After creating the namespace if we click on it we can get details about the namespace and also confirm that the namespace is active:
+After creating the namespace we see the details about the namespace and also can confirm that the namespace is active:
 
 <img src="img/show-local-storage-namespace.png"/>
 
-Now we can go to Operators->OperatorHub and search for the local storage operator in the catalog:
+Now we can go to **Operators** -> **OperatorHub** and search for the local storage operator in the catalog:
 
 <img src="img/select-local-storage-operator.png"/>
 
