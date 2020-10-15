@@ -1,8 +1,8 @@
-# **Add Additional Worker**
+# Add Additional Worker
 
-In this section we're going to demonstrate how to expand a Baremetal IPI environment with an additional 3rd **worker** node, i.e. a node that will just run workloads, not cluster services. The eagle eyed amongst you may notice that we listed _"NUM\_WORKERS=2"_ in our initial configuration file, but we've actually got a spare unused "baremetal" host in the environment you're working in. We simply need to tell the baremetal operator about it, and get it to deploy RHCOS and OpenShift onto it.
+In this section we're going to demonstrate how to expand a baremetal IPI environment with an additional 3rd **worker** node, i.e. a node that will just run workloads, not cluster services. The eagle eyed amongst you may notice that we listed _"NUM\_WORKERS=2"_ in our initial configuration file, but we've actually got a spare unused "baremetal" host in the environment you're working in. We simply need to tell the baremetal operator about it, and get it to deploy RHCOS and OpenShift onto it.
 
-We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully in this lab there is a handy way to achieve this.  First we need to obtain the ipmi port of the **worker-2** node by using the following one liner against the install-config.yaml we used to deploy the initial cluster:
+We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully in this lab there is a handy way to achieve this.  First we need to obtain the IMPI port of the **worker-2** node by using the following one liner against the install-config.yaml we used to deploy the initial cluster:
 
 ~~~bash
 [lab-user@provision scripts]$ for PORT in 6200 6201 6202 6203 6204 6205; do grep -q $PORT ~/scripts/install-config.yaml; if [ $? -eq 1 ]; then echo $PORT; fi; done
@@ -39,6 +39,8 @@ EOF
 
 Let's look at the file that it created:
 
+> **NOTE**: Remember that the port specified in the line `address: ipmi://10.20.0.3:6203` should match the output from the PORT for loop above.
+
 ~~~bash
 [lab-user@provision scripts]$ cat ~/bmh.yaml
 ---
@@ -70,6 +72,9 @@ Let's now create these resources:
 
 ~~~bash
 [lab-user@provision ~]$ oc create -f ~/bmh.yaml -n openshift-machine-api
+
+secret/worker-2-bmc-secret created
+baremetalhost.metal3.io/worker-2 created
 ~~~
 
 Immediately you should this being reflected in as a new `BareMetalHost`, note the new entry with a status of "**inspecting**":
@@ -85,7 +90,7 @@ worker-1   OK       provisioned              schmaustech-worker-0-qgmhk   ipmi:/
 worker-2   OK       inspecting                                            ipmi://10.20.0.3:6203                      true  
 ~~~
 
-You'll also notice this is listed (and managed) by Ironic that's running on the cluster as part of the baremetal operator (note the "inspect wait" status as per the above):
+You'll also notice this is listed (and managed) by Ironic that's running on the cluster as part of the baremetal operator (note the "inspect wait" status in the OpenStack command below):
 
 ~~~bash
 [lab-user@provision ~]$ export OS_URL=http://172.22.0.3:6385; export OS_TOKEN=fake-token
@@ -102,13 +107,15 @@ You'll also notice this is listed (and managed) by Ironic that's running on the 
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 ~~~
 
-This additional worker node will now be inspected, data will be gathered about the system such as number of nic's, storage disks, CPU, memory, and so on. The system will then sit in a holding pattern - all we've done is add it as a baremetal host, NOT an OpenShift worker, nor has it actually had any components installed on it, it's merely just running from a basic ramdisk for now.
+This additional worker node will now be inspected, data will be gathered about the system such as number of NIC's, storage disks, CPU, memory, and so on. The system will then sit in a holding pattern - all we've done is add it as a baremetal host, NOT an OpenShift worker, nor has it actually had any components installed on it, it's merely just running from a basic ramdisk for now.
 
-What I recommend is that you watch the list of `BareMetalHosts` every 10s or so to see when it has finished this inspection step (you're looking for the node state of the worker to be '**ready**'):
+Try watching the list of `BareMetalHosts` every 10s or so to see when it has finished this inspection step (you're looking for the node state of the worker to be '**ready**'):
 
 ~~~bash
 [lab-user@provision ~]$ watch -n10 oc get baremetalhosts -n openshift-machine-api
 (...)
+
+worker-2   OK       ready                                           ipmi://10.20.0.3:6201   openstack          true
 
 (Ctrl-C to stop)
 ~~~
@@ -121,7 +128,7 @@ NAME       STATUS   PROVISIONING STATUS   CONSUMER   BMC                     HAR
 worker-2   OK       ready                            ipmi://10.20.0.3:6203   openstack          true  
 ~~~
 
-For it to become managed by OpenShift as a `Machine` and for it to become a `Node`, so we can run applications on it, we need to scale the respective `MachineSet` up; this will kick off the process for deploying CoreOS, installing the OpenShift components, configuring the components to talk to our cluster, and ensuring everything is running properly. When the baremetal opertator is deployed, it creates a `MachineSet` for worker nodes automatically for us:
+For it to become managed by OpenShift as a `Machine` and for it to become a `Node`, so we can run applications on it, we need to scale the respective `MachineSet` up. This will kick off the process for deploying RHCOS, installing the OpenShift components, configuring the components to talk to our cluster, and ensuring everything is running properly. When the baremetal opertator is deployed, it creates a `MachineSet` for worker nodes automatically for us:
 
 ~~~bash
 [lab-user@provision ~]$ oc -n openshift-machine-api get machineset
@@ -138,7 +145,7 @@ Let's now scale our cluster:
 machineset.machine.openshift.io/schmaustech-worker-0 scaled
 ~~~
 
-Now if you check the `BareMetalHosts` you should see a slightly different state for our worker:
+Now if you check the `BareMetalHosts` you should see a slightly different state for our worker (ie provisioning):
 
 ~~~bash
 [lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api
@@ -151,7 +158,7 @@ worker-1   OK       provisioned              schmaustech-worker-0-qgmhk   ipmi:/
 worker-2   OK       provisioning             schmaustech-worker-0-kbwlb   ipmi://10.20.0.3:6203   openstack          true   
 ~~~
 
-You should also notice that Ironic gives us an updated output to say that it's actually **deploying**, and it's at this point that we deploy CoreOS on our node:
+You should also notice that Ironic gives us an updated output to say that it's actually **deploying**, and it's at this point that we deploy RHCOS on our node:
 
 ~~~bash
 [lab-user@provision ~]$ openstack baremetal node list
@@ -205,3 +212,7 @@ If you click on the **"worker-2"** element on the left hand side you should be a
 <img src="img/worker-overview.png"/>
 
 That's it! We've successfully scaled our "baremetal" cluster using the baremetal operator.
+
+Now that we have this worker, we can go ahead and use it. 
+
+[Move on to the next lab to Deploy OpenShift Container Storage on to your cluster](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/07-deployocs.md)!
