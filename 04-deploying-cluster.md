@@ -100,6 +100,8 @@ Chassis Power Control: Down/Off
 [lab-user@provision scripts]$
 ~~~
 
+> **NOTE:** These commands may fail (`Unable to set Chassis Power Control to Down/Off`), if the load on the underlying infrastructure is too high.  If this happens, simply re-run the "script" until it succeeds for all nodes.
+
 ## Deploying OpenShift
 
 We're going to install the cluster using two steps, one to **create the manifests** and one to **install the cluster**. Generating the manifests separately like this isn't necessary as it is done automatically when we run a `create cluster`.  However it's interesting to be able to see these files so we've done it to allow you a chance to explore! Additionally, if you had more configuration files this would be where you would add them.
