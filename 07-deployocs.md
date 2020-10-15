@@ -103,7 +103,7 @@ exit
 Removing debug pod ...
 ~~~
 
-We can see from the output above that on worker-0 the new 100GB volume was attached as vdb.  Repeat the above steps to confirm that the remaining workers also have their 100GB sdb volume attached.
+We can see from the output above that on worker-0 the new 100GB volume was attached as sdb.  Repeat the above steps to confirm that the remaining workers also have their 100GB sdb volume attached.
 
 Next we need to label our nodes for storage:
 
