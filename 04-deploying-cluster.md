@@ -437,10 +437,12 @@ storage                                    4.5.12    True        False         F
 Finally, we need to patch the Image Registry Operator.  In a production environment the Image Registry Operator needs to be configured with shared storage; however, since this is a lab we can just configure it with an empty directory:
 
 ~~~bash
-[lab-user@provision ~]$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
+[lab-user@provision ~]$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge \
+	--patch '{"spec":{"storage":{"emptyDir":{}}}}'
 config.imageregistry.operator.openshift.io/cluster patched
 
-[lab-user@provision ~]$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
+[lab-user@provision ~]$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge \
+	--patch '{"spec":{"managementState":"Managed"}}'
 config.imageregistry.operator.openshift.io/cluster patched
 ~~~
 
