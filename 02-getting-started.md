@@ -90,4 +90,14 @@ pull-secret.json  scripts
 
 If you had any problems getting access or if you have any questions, please feel free to ask any of the moderators at any time.
 
-Ready? [Continue on to the next step](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/03-configure-local-registry-cache.md)!
+## tmux
+
+We also recommend that you download and install tmux (a terminal multiplexer) in case you lose connectivity to the provisining host. Some of the commands in the lab are long running  so running the lab in a tmux session will prevent your progress from being compromised by network dropouts. 
+
+Install tmux by running `sudo dnf install tmux -y` on the provisoning host.
+
+> **NOTE**: For help with tmux search [google](https://www.google.com/search?q=tmux+help&oq=tmux+help) or try [here](https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html).
+
+## To the lab!
+
+[Continue on to the labs!](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/03-configure-local-registry-cache.md)

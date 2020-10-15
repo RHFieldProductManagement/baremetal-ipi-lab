@@ -104,7 +104,9 @@ Chassis Power Control: Down/Off
 
 We're going to install the cluster using two steps, one to **create the manifests** and one to **install the cluster**. Generating the manifests separately like this isn't necessary as it is done automatically when we run a `create cluster`.  However it's interesting to be able to see these files so we've done it to allow you a chance to explore! Additionally, if you had more configuration files this would be where you would add them.
 
-Ok, let's create our cluster state drictory:
+### Create the manifests
+
+Ok, let's create our cluster state directory:
 
 ~~~bash
 [lab-user@provision scripts]$ mkdir $HOME/scripts/ocp
@@ -118,7 +120,11 @@ And place our install-config.yaml file into it:
 
 > **NOTE**: The installer will consume the install-config.yaml and remove the file from the state direcrtory. If you have not saved it somewhere else you can regenerate it with `openshift-baremetal-install create install-config --dir=ocp` on a running cluster.
 
-Now it's time to run the installation.
+Before proceeding it's recommended that you download and install tmux (a terminal multiplexer) in case you lose connectivity to the provisining host. The install commands is quite long running so using tmux would prevent it from being compromised by network dropouts. 
+
+Install tmux by running `sudo dnf install tmux -y` from the provisoning host.
+
+> **NOTE**: For help with tmux search [google](https://www.google.com/search?q=tmux+help&oq=tmux+help) or try [here](https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html).
 
 ~~~bash
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create manifests
@@ -154,7 +160,7 @@ DEBUG   Reusing previously-fetched Image
 DEBUG Generating Openshift Manifests...  
 ~~~
 
-Note that generating the manifests would be done automatically if we just ran create cluster out of the gate.  However if you had additional configuration yamls this would be how you could add them in now.  If we look in the manifests directory we can see there are all sorts of configuration items.  Further yamls could be placed here for customizations of the cluster before actually kicking off the deploy:
+If we look in the manifests directory we can see there are all sorts of configuration items.  As mentioned, additonal configruation could be placed here for customizations of the cluster before actually kicking off the deploy:
 
 ~~~bash
 [lab-user@provision scripts]$ ls -l $HOME/scripts/ocp/manifests/
@@ -189,7 +195,9 @@ total 116
 -rw-r-----. 1 lab-user users 2411 Oct 14 11:08 user-ca-bundle-config.yaml
 ~~~
  
- Finally we have now arrived at the point where we can run the create cluster command to deploy our baremetal cluster.   This process will take about ~60-90 minutes to complete:
+### Create the cluster
+
+We have now arrived at the point where we can run the `create cluster` argument for the install command to deploy our baremetal cluster.  This process will take about ~60-90 minutes to complete so have tmux running is you want to avoid network issues causing problems! :)
   
 ~~~bash
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create cluster
@@ -293,13 +301,13 @@ DEBUG  Cluster Operators: 38m6s
 INFO Time elapsed: 1h48m36s  
 ~~~
 
-Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console.  Before we run the oc commands we need to export the KUBECONFIG variable:
+Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console.  Before we run the `oc` commands we need to export the KUBECONFIG variable:
 
 ~~~bash
 [lab-user@provision ~]$ export KUBECONFIG=$HOME/scripts/ocp/auth/kubeconfig
 ~~~
 
-Now we can validate and confirm we have a 3 master and 2 worker cluster instantiated by issuing the oc get nodes command:
+Now we can validate and confirm we have a 3 master and 2 worker cluster instantiated by issuing the `oc get nodes` command:
 
 ~~~bash
 [lab-user@provision scripts]$ oc get nodes
@@ -312,7 +320,7 @@ worker-1.schmaustech.dynamic.opentlc.com   Ready    worker   13m   v1.18.3+47c0e
 
 ~~~
 
-Further we can also confirm all the cluster operators are functional and available by looking at the clusteroperators command:
+Further we can also confirm all the cluster operators are functional and available by looking at the `oc get clusteroperators` command:
 
 ~~~bash
 [lab-user@provision scripts]$ oc get clusteroperators
@@ -350,11 +358,12 @@ storage                                    4.5.12    True        False         F
 
 ~~~
 
-One other thing we should do now that our cluster is deployed is patch the Image Registry Operator.  By default the Image Registry Operator needs to be configured with shared storage in a production environment.  However since this is a lab we will just configure it with an empty directy:
+Finally, we need to patch the Image Registry Operator.  In a production environment the Image Registry Operator needs to be configured with shared storage; however, since this is a lab we can just configure it with an empty directory:
 
 ~~~bash
 [lab-user@provision ~]$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
 config.imageregistry.operator.openshift.io/cluster patched
+
 [lab-user@provision ~]$ oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
 config.imageregistry.operator.openshift.io/cluster patched
 ~~~
@@ -376,4 +385,4 @@ node-ca-vmcq2                                      1/1     Running     0        
 
 At this point you are now ready to move onto the next lab where we will look at the Machine Config Operator (aka Baremetal Operator).
 
-
+[Continue to the Baremetal Operator lab!](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/05-baremetal.md)
