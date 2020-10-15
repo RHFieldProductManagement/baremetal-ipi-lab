@@ -5,11 +5,15 @@ In this section we're going to demonstrate how to expand a baremetal IPI environ
 We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully in this lab there is a handy way to achieve this.  First we need to obtain the IMPI port of the **worker-2** node by using the following one liner against the install-config.yaml we used to deploy the initial cluster:
 
 ~~~bash
-[lab-user@provision scripts]$ for PORT in 6200 6201 6202 6203 6204 6205; do grep -q $PORT ~/scripts/install-config.yaml; if [ $? -eq 1 ]; then echo $PORT; fi; done
+[lab-user@provision scripts]$ IPMI_PORT=$(for PORT in 6200 6201 6202 6203 6204 6205; do
+	grep -q $PORT ~/scripts/install-config.yaml|| echo $PORT
+done)
+
+[lab-user@provision scripts]$ echo $IPMI_PORT
 6203
 ~~~
 
-One we have the port number lets create the following baremetal node definition file.  Make sure to update the port number to in the ipmi address line to the value you obtained above.  All other values, including the MAC address can remain the same since this lab is running in a virtualized environment.
+Once we have the port number lets create the following baremetal node definition file.
 
 ~~~bash
 [lab-user@provision scripts]$ cat << EOF > ~/bmh.yaml
@@ -32,14 +36,12 @@ spec:
   bootMACAddress: de:ad:be:ef:00:52
   hardwareProfile: openstack
   bmc:
-    address: ipmi://10.20.0.3:6200
+    address: ipmi://10.20.0.3:${IPMI_PORT}
     credentialsName: worker-2-bmc-secret
 EOF
 ~~~
 
 Let's look at the file that it created:
-
-> **NOTE**: Remember that the port specified in the line `address: ipmi://10.20.0.3:6203` should match the output from the PORT for loop above.
 
 ~~~bash
 [lab-user@provision scripts]$ cat ~/bmh.yaml
