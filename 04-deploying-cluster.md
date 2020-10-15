@@ -297,7 +297,16 @@ DEBUG  Cluster Operators: 38m6s
 INFO Time elapsed: 1h48m36s  
 ~~~
 
-Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console.  Before we run the `oc` commands we need to export the KUBECONFIG variable:
+Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console. Make sure to record those details somewhere convenient for later use. In the example above we seem them in these line:
+
+~~~bash 
+INFO Access the OpenShift web-console here: https://console-openshift-console.apps.schmaustech.dynamic.opentlc.com 
+INFO Login to the console with user: "kubeadmin", and password: "5VGM2-uMov3-4N2Vi-n5i3H" 
+~~~
+
+Where the console is **https://console-openshift-console.apps.schmaustech.dynamic.opentlc.com** and the user to login is **kubeadmin** and the password is **5VGM2-uMov3-4N2Vi-n5i3H** (Your's will be different than these course). 
+
+We can also interact with the cluster easily via the command line using the `oc` command. Before we run the `oc` commands we need to export the KUBECONFIG variable:
 
 ~~~bash
 [lab-user@provision ~]$ export KUBECONFIG=$HOME/scripts/ocp/auth/kubeconfig
