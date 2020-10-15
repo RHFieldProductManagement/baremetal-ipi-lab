@@ -297,7 +297,76 @@ DEBUG  Cluster Operators: 38m6s
 INFO Time elapsed: 1h48m36s  
 ~~~
 
-Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console. Make sure to record those details somewhere convenient for later use. In the example above we seem them in these line:
+### Deployment Failure
+
+> **Note**: Skip this section and go right to "Deployment Success" if your install succeed as indicated above!
+
+If your deployment ends with any FATAL or ERROR lines such as:
+
+~~~bash
+DEBUG Still waiting for the cluster to initialize: Cluster operator console is reporting a failure: RouteHealthDegraded: failed to GET route (https://console-openshift-console.apps.vd44m.dynamic.opentlc.com/health): Get https://console-openshift-console.apps.vd44m.dynamic.opentlc.com/health: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+ERROR Cluster operator authentication Degraded is True with RouteHealth_FailedGet: RouteHealthDegraded: failed to GET route: EOF
+INFO Cluster operator authentication Progressing is Unknown with NoData:
+INFO Cluster operator authentication Available is Unknown with NoData:
+ERROR Cluster operator console Degraded is True with RouteHealth_StatusError: RouteHealthDegraded: route not yet available, https://console-openshift-console.apps.vd44m.dynamic.opentlc.com/health returns
+'503 Service Unavailable'
+INFO Cluster operator console Progressing is True with SyncLoopRefresh_InProgress: SyncLoopRefreshProgressing: Working toward version 4.5.12
+INFO Cluster operator console Available is False with Deployment_InsufficientReplicas: DeploymentAvailable: 0 pods available for console deployment
+INFO Cluster operator insights Disabled is False with :
+FATAL failed to initialize the cluster: Cluster operator console is reporting a failure: RouteHealthDegraded: failed to GET route (https://console-openshift-console.apps.vd44m.dynamic.opentlc.com/health): Get https://console-openshift-console.apps.vd44m.dynamic.opentlc.com/health: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+~~~
+
+You'll need to do a few extra things.
+
+1. Check if the nodes are in a "Ready" state
+
+~~~bash
+[lab-user@provision scripts]$ oc get nodes
+NAME                                 STATUS   ROLES    AGE   VERSION
+master-0.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
+master-1.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
+master-2.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
+worker-0.vd44m.dynamic.opentlc.com   Ready    worker   40m   v1.18.3+47c0e71
+worker-1.vd44m.dynamic.opentlc.com   Ready    worker   39m   v1.18.3+47c0e71
+~~~
+
+If any nodes report "NotReady" please run the specially prepared script at `/home/lab-user/scripts/fix-overlay.sh` on the provisioning host.
+
+If all are in a "Ready State" a shown above you do **not** need to run this script.
+
+2\. Rerun the installer with the `wait-for install-complete` options:
+
+~~~bash
+[lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug wait-for install-complete
+~~~
+
+This will reconnect to the installation process and allow you to again see the progress:
+
+~~~bash
+DEBUG OpenShift Installer 4.5.12
+DEBUG Built from commit 9893a482f310ee72089872f1a4caea3dbec34f28
+DEBUG Fetching Install Config...
+DEBUG Loading Install Config...
+DEBUG   Loading SSH Key...
+DEBUG   Loading Base Domain...
+DEBUG     Loading Platform...
+DEBUG   Loading Cluster Name...
+DEBUG     Loading Base Domain...
+DEBUG     Loading Platform...
+DEBUG   Loading Pull Secret...
+DEBUG   Loading Platform...
+DEBUG Using Install Config loaded from state file
+DEBUG Reusing previously-fetched Install Config
+INFO Waiting up to 1h0m0s for the cluster at https://api.vd44m.dynamic.opentlc.com:6443 to initialize...
+~~~
+
+Eventually (likely not more than 15-20 minutes, **but please contact a lab support person if you have issues and/or questions**) you'll get the cluster success and connection details as shown above. You can then move on to the "Deployment Success" section!
+
+### Deployment Success
+
+Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console. 
+
+Make sure to record those details somewhere convenient for later use. In the example above we seem them in these lines:
 
 ~~~bash 
 INFO Access the OpenShift web-console here: https://console-openshift-console.apps.schmaustech.dynamic.opentlc.com 
