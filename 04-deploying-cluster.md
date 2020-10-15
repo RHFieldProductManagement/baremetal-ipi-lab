@@ -21,7 +21,7 @@ controlPlane:
     baremetal: {}
 platform:
   baremetal:
-    provisioningNetworkCIDR: 172.22.0.0/24 <=== NETWORK OF PROVISIONING NETWORK
+    provisioningNetworkCIDR: 172.22.0.0/24 <=== SUBNET OF PROVISIONING NETWORK
     provisioningNetworkInterface: ens3
     apiVIP: 10.20.0.110
     ingressVIP: 10.20.0.112
