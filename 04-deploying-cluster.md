@@ -1,6 +1,6 @@
-# **Create OpenShift Cluster**
+# **Creating an OpenShift Cluster**
 
-In the previous lab we configured a disconnected registry and httpd cache for RHCOS images.  This will allow us to test our disconnected OpenShift deploy in this section of the lab.  But before we begin lets look at a few parts of the install-config.yaml configuration file.  If we can out the file we can see there are various sections and attributes:
+In the previous lab we configured a disconnected registry and httpd cache for RHCOS images.  This will allow us to test our disconnected OpenShift deploy in this section of the lab.  But before we begin lets look at a few parts of the install-config.yaml configuration file.  In the file we can see there some interesting sections and attributes which we call out with the "**<===**" notation below:
 
 ~~~bash
 [lab-user@provision scripts]$ cat install-config.yaml
@@ -9,7 +9,7 @@ baseDomain: dynamic.opentlc.com
 metadata:
   name: schmaustech <===CLUSTER NAME
 networking:
-  networkType: OVNKubernetes <===NETWORK SDN TO USE ON DEPLOY
+  networkType: OpenShiftSDN <===NETWORK SDN TO USE ON DEPLOY
   machineCIDR: 10.20.0.0/24 <=== EXTERNAL/BAREMETAL NETWORK
 compute:
 - name: worker
@@ -88,9 +88,9 @@ Now that we have examined the install-config.yaml we are ready to proceed with t
 
 ~~~bash
 [lab-user@provision scripts]$ for i in 0 1 2 3 4 5
-> do
-> /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p620$i -Uadmin -Predhat chassis power off
-> done
+ do
+ /usr/bin/ipmitool -I lanplus -H10.20.0.3 -p620$i -Uadmin -Predhat chassis power off
+ done
 Chassis Power Control: Down/Off
 Chassis Power Control: Down/Off
 Chassis Power Control: Down/Off
@@ -100,11 +100,27 @@ Chassis Power Control: Down/Off
 [lab-user@provision scripts]$
 ~~~
 
-Run the deployment using the install-config.yaml
+## Deploying OpenShift
+
+We're going to install the cluster using two steps, one to **create the manifests** and one to **install the cluster**. Generating the manifests separately like this isn't necessary as it is done automatically when we run a `create cluster`.  However it's interesting to be able to see these files so we've done it to allow you a chance to explore! Additionally, if you had more configuration files this would be where you would add them.
+
+Ok, let's create our cluster state drictory:
 
 ~~~bash
 [lab-user@provision scripts]$ mkdir $HOME/scripts/ocp
+~~~
+
+And place our install-config.yaml file into it:
+
+~~~bash
 [lab-user@provision scripts]$ cp $HOME/scripts/install-config.yaml $HOME/scripts/ocp
+~~~
+
+> **NOTE**: The installer will consume the install-config.yaml and remove the file from the state direcrtory. If you have not saved it somewhere else you can regenerate it with `openshift-baremetal-install create install-config --dir=ocp` on a running cluster.
+
+Now it's time to run the installation.
+
+~~~bash
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create manifests
 DEBUG OpenShift Installer 4.5.12                    
 DEBUG Built from commit 9893a482f310ee72089872f1a4caea3dbec34f28 
