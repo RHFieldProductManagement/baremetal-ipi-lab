@@ -303,17 +303,15 @@ ocs-operator-6888cb5bdf-7w6ct         1/1     Running   0          10m
 rook-ceph-operator-7bdb4cd5d9-qmggh   1/1     Running   5          10m
 ~~~
 
-Now that we know the operator is functional we can go back to the OpenShift Console and click on the operator to bring us into an operator details page.  Here we will want to click on Storage Cluster:
+Now that we know the operator is functional we can go back to the OpenShift Console and click on the operator to bring us into an operator details page.  Here we will want to click on Create Instance in the Storage Cluster box:
 
 <img src="img/details-ocs-operator.png"/>
 
 This will bring up the options page for creating a storage cluster that can either be external or internal.  In our case we are going to use internal because we have the necessary resources in our cluster to create a cluster.  Further down the page you will notice 3 worker nodes are checked as these were the nodes we labeled earlier for OCS.   In the storageclass drop down we have only one option to chose and that is localblock which was the storage class we created with the local-storage operator and assets created above.   Once you select that as the storageclass the capacity and replicas are shown below the storageclass box.   Notice the capacity is 300GB.  Isn't that the sum of all our 100GB volumes?  Once everything is selected we can click on create:
 
-<img src="img/create-cluster-ocs-operator.png"/>
+<img src="img/options-create-cluster-ocs-operator.png"/>
 
 If we quickly jump over to the command line and issue a oc get pods on the openshift-storage namespace we can see new containers are being created.   
-
-<img src="img/options-create-cluster-ocs-operator.png"/>
 
 ~~~bash
 [lab-user@provision ~]$ oc get pods -n openshift-storage
