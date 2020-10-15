@@ -28,7 +28,6 @@ master-1   OK       externally provisioned   schmaustech-master-1         ipmi:/
 master-2   OK       externally provisioned   schmaustech-master-2         ipmi://10.20.0.3:6205                      true     
 worker-0   OK       provisioned              schmaustech-worker-0-vlvbf   ipmi://10.20.0.3:6204   openstack          true     
 worker-1   OK       provisioned              schmaustech-worker-0-rhsz4   ipmi://10.20.0.3:6203   openstack          true     
-worker-2   OK       provisioned              schmaustech-worker-0-5tqpl   ipmi://10.20.0.3:6200   openstack          true   
 ~~~
 
 You'll also see that in OpenStack Ironic the nodes are in an '**active**' state, not allowing them to progress:
@@ -45,7 +44,6 @@ You'll also see that in OpenStack Ironic the nodes are in an '**active**' state,
 | 25e1a6db-781d-430a-b388-8d4fe15ef00c | master-1 | bf0df03b-2d97-4e21-a916-a7455fcf9ce1 | power on    | active             | False       |
 | b66c42a5-b2ec-4adc-a088-d68bee37b45f | master-2 | 622fac99-c471-4405-ad9d-137ebc5afa09 | power on    | active             | False       |
 | 1e2f164c-57bb-4223-b5e3-b255755ac833 | worker-1 | 3103eefe-04ab-4b77-bf37-5f16c3380f8b | power on    | active             | False       |
-| 36c41c3a-d86d-41dd-9d3b-eb20ce55297c | worker-2 | 54710ced-1f58-4cf8-a9b8-4e1f0e0600d5 | power on    | active             | False       |
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 ~~~
 
@@ -58,14 +56,14 @@ Now that we have our baremetal hosts registered with the baremetal operator, we 
 When we registered our baremetal hosts we created corresponding `Machine` objects (see the **CONSUMER** label in the output) that are linked to our `BareMetalHost` objects:
 
 ~~~bash
-[lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api -o=custom-columns=NAME:.metadata.name,CONSUMER:.spec.consumerRef.name
+[lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api \
+	-o=custom-columns=NAME:.metadata.name,CONSUMER:.spec.consumerRef.name
 NAME       CONSUMER
 master-0   schmaustech-master-0
 master-1   schmaustech-master-1
 master-2   schmaustech-master-2
 worker-0   schmaustech-worker-0-vlvbf
 worker-1   schmaustech-worker-0-rhsz4
-worker-2   schmaustech-worker-0-5tqpl
 ~~~ 
 
 However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our masters, are currently linked to their corresponding `Machine`. You can verify this in the UI too - if you open up your OpenShift console using the URL, username, and password details you saved in the last lab, and scroll down to '**Compute**' on the left hand side and select '**Nodes**', you'll notice that each of the nodes have a corresponding `Machine` reference:
