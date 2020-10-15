@@ -55,7 +55,7 @@ You'll need to use your own laptop/workstation to connect into the dedicated env
 
 **To get started, you'll need to request your own dedicated lab environment.**
 
-From the Content Hub for RHTR 2020 you will be directed to the Lab Portal (https://portal.opentlc.com/catalog/explorer#/). What you should first see is a list of your current services, which will likely be empty unless you've attended any other labs, you'll need to navigate to "**Services**" --> "Catalogs" --> "**All Services**" --> "**RHTR 2020**" --> "**Hands-On w KNI for Baremetal OCP**". See the screenshot example below:
+From the Content Hub for RHTR 2020 you will be directed to the Lab Portal (https://portal.opentlc.com/catalog/explorer#/). What you should first see is a list of your current services, which will likely be empty unless you've attended any other labs, you'll need to navigate to "**Services**" --> "**Catalogs**" --> "**All Services**" --> "**RHTR 2020**" --> "**Hands-On w KNI for Baremetal OCP**". See the screenshot example below:
 
 <img src="img/guid1.png" style="width: 1000px;"/>
 
@@ -94,10 +94,20 @@ If you had any problems getting access or if you have any questions, please feel
 
 We also recommend that you download and install tmux (a terminal multiplexer) in case you lose connectivity to the provisining host. Some of the commands in the lab are long running  so running the lab in a tmux session will prevent your progress from being compromised by network dropouts. 
 
-Install tmux by running `sudo dnf install tmux -y` on the provisoning host.
+Install tmux on the provisoning host, and then run it before continuing. You'll know you're in tmux because of the green band at the bottom of the display:
 
-> **NOTE**: For help with tmux search [google](https://www.google.com/search?q=tmux+help&oq=tmux+help) or try [here](https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html).
+~~~bash
+[lab-user@provision ~]$ sudo dnf install tmux -y
+(...)
 
-## To the lab!
+[lab-user@provision ~]$ tmux
+[lab-user@provision ~]$ 
+~~~
 
-[Continue on to the labs!](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/03-configure-local-registry-cache.md)
+> **NOTE**: For help with tmux, including  search [google](https://www.google.com/search?q=tmux+help&oq=tmux+help) or try [here](https://tmuxguide.readthedocs.io/en/latest/tmux/tmux.html).
+
+
+
+## Onto the lab
+
+[Continue on to the labs...](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/03-configure-local-registry-cache.md)
