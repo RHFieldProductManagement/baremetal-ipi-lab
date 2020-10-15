@@ -210,7 +210,7 @@ spec:
         - /dev/sdb
 ~~~
 
-You'll see that this is set to create a local volume on every host from the block device vdb where the selector key matches cluster.ocs.openshift.io/openshift-storage.  If we had additional devices on the worker nodes for example: vdc and vdd, we would just list those below the devicePaths to also be incorporated into our configuration.
+You'll see that this is set to create a local volume on every host from the block device sdb where the selector key matches cluster.ocs.openshift.io/openshift-storage.  If we had additional devices on the worker nodes for example: sdc and sdd, we would just list those below the devicePaths to also be incorporated into our configuration.
 
 At this point we should label our nodes with the OCS storage label:
 
