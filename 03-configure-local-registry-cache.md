@@ -40,17 +40,33 @@ The first step is to install podman and httpd; this also pulls in some additiona
 ```bash
 [lab-user@provision scripts]$ sudo dnf -y install podman httpd httpd-tools
 Updating Subscription Management repositories.
-Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)                                                                                                                              3.9 kB/s | 2.4 kB     00:00 
+/usr/lib/python3.6/site-packages/dateutil/parser/_parser.py:70: UnicodeWarning: decode() called on unicode string, see https://bugzilla.redhat.com/show_bug.cgi?id=1693751
+  instream = instream.decode()
 (...)
 Installed:
-  apr-1.6.3-9.el8.x86_64                                                   apr-util-1.6.1-6.el8.x86_64                                         apr-util-bdb-1.6.1-6.el8.x86_64                                   
-  apr-util-openssl-1.6.1-6.el8.x86_64                                      conmon-2:2.0.6-1.module+el8.2.0+6368+cf16aa14.x86_64                container-selinux-2:2.124.0-1.module+el8.2.0+6368+cf16aa14.noarch
-  containernetworking-plugins-0.8.3-5.module+el8.2.0+6368+cf16aa14.x86_64  containers-common-1:0.1.40-11.module+el8.2.0+6374+67f43e89.x86_64   criu-3.12-9.module+el8.2.0+6368+cf16aa14.x86_64                   
-  fuse-overlayfs-0.7.2-5.module+el8.2.0+6368+cf16aa14.x86_64               fuse3-libs-3.2.1-12.el8.x86_64                                      httpd-2.4.37-21.module+el8.2.0+5008+cca404a3.x86_64               
-  httpd-filesystem-2.4.37-21.module+el8.2.0+5008+cca404a3.noarch           httpd-tools-2.4.37-21.module+el8.2.0+5008+cca404a3.x86_64           libnet-1.1.6-15.el8.x86_64                                        
-  libvarlink-18-3.el8.x86_64                                               mailcap-2.1.48-3.el8.noarch                                         mod_http2-1.11.3-3.module+el8.2.0+4377+dc421495.x86_64            
-  podman-1.6.4-11.module+el8.2.0+6368+cf16aa14.x86_64                      protobuf-c-1.3.0-4.el8.x86_64                                       redhat-logos-httpd-81.1-1.el8.noarch                              
-  runc-1.0.0-65.rc10.module+el8.2.0+6368+cf16aa14.x86_64                   slirp4netns-0.4.2-3.git21fdece.module+el8.2.0+6368+cf16aa14.x86_64
+  apr-1.6.3-9.el8.x86_64
+  apr-util-1.6.1-6.el8.x86_64
+  apr-util-bdb-1.6.1-6.el8.x86_64
+  apr-util-openssl-1.6.1-6.el8.x86_64
+  conmon-2:2.0.6-1.module+el8.2.0+6368+cf16aa14.x86_64
+  container-selinux-2:2.124.0-1.module+el8.2.0+6368+cf16aa14.noarch
+  containernetworking-plugins-0.8.3-5.module+el8.2.0+6368+cf16aa14.x86_64
+  containers-common-1:0.1.40-11.module+el8.2.0+6374+67f43e89.x86_64
+  criu-3.12-9.module+el8.2.0+6368+cf16aa14.x86_64
+  fuse-overlayfs-0.7.2-5.module+el8.2.0+6368+cf16aa14.x86_64
+  fuse3-libs-3.2.1-12.el8.x86_64
+  httpd-2.4.37-21.module+el8.2.0+5008+cca404a3.x86_64
+  httpd-filesystem-2.4.37-21.module+el8.2.0+5008+cca404a3.noarch
+  httpd-tools-2.4.37-21.module+el8.2.0+5008+cca404a3.x86_64
+  libnet-1.1.6-15.el8.x86_64
+  libvarlink-18-3.el8.x86_64
+  mailcap-2.1.48-3.el8.noarch
+  mod_http2-1.11.3-3.module+el8.2.0+4377+dc421495.x86_64
+  podman-1.6.4-11.module+el8.2.0+6368+cf16aa14.x86_64
+  protobuf-c-1.3.0-4.el8.x86_64
+  redhat-logos-httpd-81.1-1.el8.noarch
+  runc-1.0.0-65.rc10.module+el8.2.0+6368+cf16aa14.x86_64
+  slirp4netns-0.4.2-3.git21fdece.module+el8.2.0+6368+cf16aa14.x86_64
 
 Complete!
 ```
