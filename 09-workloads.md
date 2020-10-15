@@ -75,7 +75,7 @@ Now you should be able to open up the application in the same browser that you'r
 
 Now, if you can tear yourself away from the game, let's build a VM...
 
-## Deploying a Virtual Machine
+## Deploying a Virtual Machine (STOP - Work in Progress!)
 
 If you recall back in the previous deploy OpenShift virtualization lab we went ahead and installed the OpenShift virtualization operater and created a virtualization cluster.  Further we went ahead and configured an external bridge so that are virtual machines can be connected to the outside network.  Therefore we are now at the point where we can launch a virtual machine.  To do this we will use the OpenShift Web Console and navigate to Workloads->Virtualization:
 
