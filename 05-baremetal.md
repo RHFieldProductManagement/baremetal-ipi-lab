@@ -1,4 +1,4 @@
-#**Baremetal Operator**
+# Baremetal Operator
 
 Now that our cluster is up and running, we can start playing around with it and figure out how all of the baremetal management is configured through the baremetal-operator. The baremetal-operator pods live in the 'openshift-machine-api' namespace:
 
@@ -31,7 +31,7 @@ worker-1   OK       provisioned              schmaustech-worker-0-rhsz4   ipmi:/
 worker-2   OK       provisioned              schmaustech-worker-0-5tqpl   ipmi://10.20.0.3:6200   openstack          true   
 ~~~
 
-You'll also see that in OpenStack Ironic the nodes are stuck in an '**active**' state, not allowing them to progress:
+You'll also see that in OpenStack Ironic the nodes are in an '**active**' state, not allowing them to progress:
 
 ~~~bash
 [lab-user@provision ~]$ export OS_TOKEN=fake-token
@@ -53,9 +53,9 @@ You'll also see that in OpenStack Ironic the nodes are stuck in an '**active**' 
 
 Great! All looks good with the baremetal nodes!
 
-Now that we have our baremetal hosts registered with the baremetal operator, we can explore how OpenShift knows which `Node` is which. Every computer within a Kubernetes environment is considered a `Node`, but with OpenShift 4.0+ the cluster is more aware of the underlying infrastructure, so it can make adjustments such as scaling the cluster, adding new nodes, and deleting them. OpenShift utilises the concept of `Machines` and `MachineSets` to help it understand the different types of underlying infrastructure, including public cloud platforms like AWS. A `Machine` is a fundamental unit that describes the host for a `Node`.
+Now that we have our baremetal hosts registered with the baremetal operator, we can explore how OpenShift knows which `Node` is which. Every computer within a Kubernetes environment is considered a `Node`, but with OpenShift 4.x the cluster is more aware of the underlying infrastructure, so it can make adjustments such as scaling the cluster, adding new nodes, and deleting them. OpenShift utilises the concept of `Machines` and `MachineSets` to help it understand the different types of underlying infrastructure, including public cloud platforms like AWS. A `Machine` is a fundamental unit that describes the host for a `Node`.
 
-When we registered our baremetal hosts we created corresponding `Machine` objects (see **CONSUMER**) that are linked to our `BareMetalHost` objects:
+When we registered our baremetal hosts we created corresponding `Machine` objects (see the **CONSUMER** label in the output) that are linked to our `BareMetalHost` objects:
 
 ~~~bash
 [lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api -o=custom-columns=NAME:.metadata.name,CONSUMER:.spec.consumerRef.name
@@ -68,14 +68,14 @@ worker-1   schmaustech-worker-0-rhsz4
 worker-2   schmaustech-worker-0-5tqpl
 ~~~ 
 
-However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our masters, are currently linked to their corresponding `Machine`. You can verify this in the UI too - if you open up your OpenShift console again and scroll down to '**Compute**' on the left hand side and select '**Nodes**', you'll notice that each of the nodes have a corresponding `Machine` reference:
+However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our masters, are currently linked to their corresponding `Machine`. You can verify this in the UI too - if you open up your OpenShift console using the URL, username, and password details you saved in the last lab, and scroll down to '**Compute**' on the left hand side and select '**Nodes**', you'll notice that each of the nodes have a corresponding `Machine` reference:
 
 <img src="img/no-machine.png"/>
 
-Now, if you ask OpenShift for the details of one of the `Machines` you can see how it's all connected together, noting the bits we've added for clarity:
+Now, if you ask OpenShift for the details of one of the `Machines` you can see how it's all connected together, noting the bits we've added for clarity (look for the "**<==**" notation):
 
 ~~~bash
-[lab-user@provision ~]$ oc get machine/schmaustech-master-0 -n openshift-machine-api -o yaml
+[lab-user@provision ~]$ oc get machine/$GUID-master-0 -n openshift-machine-api -o yaml
 apiVersion: machine.openshift.io/v1beta1
 kind: Machine
 metadata:
@@ -179,10 +179,15 @@ status:
 
 ~~~
 
-You can also see this represented in the OpenShift console if you want to take a look. Open up your web browser again and navigate to '**Compute**' --> '**Machines**' (see the '**Node**' references), you'll need to make sure that you either select '**all-projects**' or '**openshift-machine-api**' in the Project drop down:
+You can also see this represented in the OpenShift console. Open up your web browser again and navigate to '**Compute**' --> '**Machines**' (see the '**Node**' references), you'll need to make sure that you either select '**all-projects**' or '**openshift-machine-api**' in the Project drop down:
 
 <img src="img/console-machines.png"/>
 
-And then '**Compute**' --> '**Bare Metal Hosts**':
+Also take a look at '**Compute**' --> '**Bare Metal Hosts**':
 
 <img src="img/console-baremetal.png"/>
+
+Notice the range of details available including IPMI details!
+
+Let's move on and invesitgate [adding an additional worker in the next lab](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/06-addworker.md)!
+
