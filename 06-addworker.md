@@ -32,7 +32,7 @@ spec:
   bootMACAddress: de:ad:be:ef:00:52
   hardwareProfile: openstack
   bmc:
-    address: ipmi://10.20.0.3:6203
+    address: ipmi://10.20.0.3:6200
     credentialsName: worker-2-bmc-secret
 EOF
 ~~~
