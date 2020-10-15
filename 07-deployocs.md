@@ -222,14 +222,14 @@ worker-1.prt8x.dynamic.opentlc.com   Ready    worker   136m   v1.18.3+47c0e71
 worker-2.prt8x.dynamic.opentlc.com   Ready    worker   75m    v1.18.3+47c0e71
 ~~~
 
-Now we can go ahead and create the assests for this local-storage configuration using the local-storage.yaml we created above.
+Now we can go ahead and create the assets for this local-storage configuration using the local-storage.yaml we created above.
 
 ~~~bash
 [lab-user@provision ~]$ oc create -f ~/local-storage.yaml
 localvolume.local.storage.openshift.io/local-block created
 ~~~
 
-If we jump over to the provisioning node and execute an oc get pods command on the namespace of local-storage we will see containers being created in relationship to the assets from our local-storage.yaml file:
+If we execute an `oc get pods` command on the namespace of `local-storage` we will see containers being created in relationship to the assets from our local-storage.yaml file:
 
 ~~~bash
 [lab-user@provision ~]$ oc -n local-storage get pods
@@ -257,7 +257,7 @@ local-block-local-provisioner-xhf2x       1/1     Running   0          22s
 local-storage-operator-57455d9cb4-4tj54   1/1     Running   0          76m
 ~~~
 
-As you can see from the above we had labeled 3 worker nodes and we have 3 provisioners and 3 diskmaker pods.  To validate the nodes where the pods are running try adding a -o wide to the command above.  Does it confirm that each worker has a provisioner and diskmaker pod?
+As you can see from the above we had labeled 3 worker nodes and we have 3 provisioners and 3 diskmaker pods.  To validate the nodes where the pods are running try adding `-o wide` to the command above.  Does it confirm that each worker has a provisioner and diskmaker pod?
 
 Further we can now see that 3 pvs have been created which comprise our 100GB vdb disks we attached at the beginning of the lab:
 
@@ -272,8 +272,9 @@ local-pv-e62c1b44   100Gi      RWO            Delete           Available        
 And finally a storageclass was created for the local-storage asset we created:
 
 ~~~bash
-[lab-user@provision ~]$ oc get sc | grep localblock
-localblock   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  53s
+[lab-user@provision scripts]$ oc get sc
+NAME         PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+localblock   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  4m37s
 ~~~
 
 At this point in the lab we have now completed the prerequisits for OpenShift Container Storage.  We can now move onto actually installing the OCS operator.   To do that we will use Operator Hub inside of the OpenShift Console.  Navigate to Operators->OperatorHub and then search for OpenShift Container Storage: 
