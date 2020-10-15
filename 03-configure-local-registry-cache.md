@@ -366,140 +366,132 @@ The above command takes a few minutes but once complete should have mirrored all
 
 Now that we have the images synced down we can move on to syncing the RHCOS images needed. There are two required: an RHCOS qemu image and RHCOS openstack image.  The RHCOS qemu image is the image used for the bootstrap virtual machines that is created on the provisioning host during the initial phases of the deployment process.  The openstack image is used to image the master and worker nodes during the deployment process.
 
-To capture this image we have to set a few different environment variables to ensure we download the correct RHCOS image for the version release we are using:
+First, extract the commit ID from the installer output.
 
 ~~~bash
-[lab-user@provision scripts]$ OPENSHIFT_INSTALLER=$HOME/scripts/openshift-baremetal-install
-[lab-user@provision scripts]$ IRONIC_DATA_DIR=/nfs/ocp/ironic
-[lab-user@provision scripts]$ OPENSHIFT_INSTALL_COMMIT=$($OPENSHIFT_INSTALLER version | grep commit | cut -d' ' -f4)
-[lab-user@provision scripts]$ OPENSHIFT_INSTALLER_MACHINE_OS=${OPENSHIFT_INSTALLER_MACHINE_OS:-https://raw.githubusercontent.com/openshift/installer/$OPENSHIFT_INSTALL_COMMIT/data/data/rhcos.json}
+[lab-user@provision scripts]$ INSTALL_COMMIT=$(./openshift-baremetal-install version | grep commit | cut -d' ' -f4)
+~~~
 
-[lab-user@provision scripts]$ MACHINE_OS_IMAGE_JSON=$(curl "${OPENSHIFT_INSTALLER_MACHINE_OS}")
+Save the machine image information (JSON) associated with this commit into an environment variable.
+
+~~~bash
+[lab-user@provision scripts]$ IMAGE_JSON=$(curl -s \
+	https://raw.githubusercontent.com/openshift/installer/${INSTALL_COMMIT}/data/data/rhcos.json)
+~~~
+
+We're interested in several items in this JSON:
+
+- `baseURI`: The location from which we will download images
+- `images.qemu`: Information about the image used for the bootstrap VM
+- `images.openstack`: Information about the image used (by Metal³ and OpenStack Ironic) on the master and worker nodes
+
+Examine this information.
+
+~~~bash
+[lab-user@provision scripts]$ echo $IMAGE_JSON | jq .baseURI
+"https://releases-art-rhcos.svc.ci.openshift.org/art/storage/releases/rhcos-4.5/45.82.202008010929-0/x86_64/"
+
+[lab-user@provision scripts]$ echo $IMAGE_JSON | jq .images.qemu
+{
+  "path": "rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz",
+  "sha256": "80ab9b70566c50a7e0b5e62626e5ba391a5f87ac23ea17e5d7376dcc1e2d39ce",
+  "size": 898670890,
+  "uncompressed-sha256": "c9e2698d0f3bcc48b7c66d7db901266abf27ebd7474b6719992de2d8db96995a",
+  "uncompressed-size": 2449014784
+}
+
+[lab-user@provision scripts]$ echo $IMAGE_JSON | jq .images.openstack
+{
+  "path": "rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz",
+  "sha256": "359e7c3560fdd91e64cd0d8df6a172722b10e777aef38673af6246f14838ab1a",
+  "size": 896764070,
+  "uncompressed-sha256": "036a497599863d9470d2ca558cca3c4685dac06243709afde40ad008dce5a8ac",
+  "uncompressed-size": 2400518144
+}
+~~~
+
+Store the useful bits in variables.
+
+~~~bash
+[lab-user@provision scripts]$ URL_BASE=$(echo $IMAGE_JSON | jq -r .baseURI)
+[lab-user@provision scripts]$ QEMU_IMAGE_NAME=$(echo $IMAGE_JSON | jq -r .images.qemu.path)
+[lab-user@provision scripts]$ QEMU_IMAGE_SHA256=$(echo $IMAGE_JSON | jq -r .images.qemu.sha256)
+[lab-user@provision scripts]$ QEMU_IMAGE_UNCOMPRESSED_SHA256=$(echo $IMAGE_JSON | jq -r '.images.qemu."uncompressed-sha256"')
+[lab-user@provision scripts]$ OPENSTACK_IMAGE_NAME=$(echo $IMAGE_JSON | jq -r .images.openstack.path)
+[lab-user@provision scripts]$ OPENSTACK_IMAGE_SHA256=$(echo $IMAGE_JSON | jq -r .images.openstack.sha256)
+~~~
+
+Download the images into the local cache.
+
+~~~bash
+[lab-user@provision scripts]$ curl -L -o ${IRONIC_DATA_DIR}/html/images/${QEMU_IMAGE_NAME} \
+	${URL_BASE}/${QEMU_IMAGE_NAME}
+ % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   161  100   161    0     0    463      0 --:--:-- --:--:-- --:--:--   463
+100  857M  100  857M    0     0  28.2M      0  0:00:30  0:00:30 --:--:-- 48.7M
+
+[lab-user@provision scripts]$ curl -L -o ${IRONIC_DATA_DIR}/html/images/${OPENSTACK_IMAGE_NAME} \
+	${URL_BASE}/${OPENSTACK_IMAGE_NAME}
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-100  5334  100  5334    0     0  17374      0 --:--:-- --:--:-- --:--:-- 17431
-
-[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_IMAGE_URL=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.baseURI + .images.openstack.path')
-[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_IMAGE_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.openstack.sha256')
-[lab-user@provision scripts]$ MACHINE_OS_IMAGE_URL=${MACHINE_OS_IMAGE_URL:-${MACHINE_OS_INSTALLER_IMAGE_URL}}
-[lab-user@provision scripts]$ MACHINE_OS_IMAGE_NAME=$(basename ${MACHINE_OS_IMAGE_URL})
-[lab-user@provision scripts]$ MACHINE_OS_IMAGE_SHA256=${MACHINE_OS_IMAGE_SHA256:-${MACHINE_OS_INSTALLER_IMAGE_SHA256}}
-[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_URL=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.baseURI + .images.qemu.path')
-[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.qemu.sha256')
-[lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_URL=${MACHINE_OS_BOOTSTRAP_IMAGE_URL:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_URL}}
-[lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_NAME=$(basename ${MACHINE_OS_BOOTSTRAP_IMAGE_URL})
-[lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_SHA256}}
-[lab-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.qemu["uncompressed-sha256"]')
-[lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256}}
-~~~
-  
-Above we are doing quite a bit but it's all in an effort to derive the right RHCOS image for both the bootstrap and installer image.  We first have to gather the commit string from the installer version.  Then we have to grab the RHCOS JSON content with that commit information.  Next we pull out the appropriate image and sha256 for two RHCOS images and finally we set two sets of variables for those two images so we can pull them down below:
-  
-~~~bash
-[lab-user@provision scripts]$ CACHED_MACHINE_OS_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_IMAGE_NAME}"
+100   161  100   161    0     0    958      0 --:--:-- --:--:-- --:--:--   958
+100  855M  100  855M    0     0  47.0M      0  0:00:18  0:00:18 --:--:-- 49.3M
 ~~~
 
-~~~bash
-[lab-user@provision scripts]$ curl -g --insecure -L -o "${CACHED_MACHINE_OS_IMAGE}" "${MACHINE_OS_IMAGE_URL}"
-
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   161  100   161    0     0   1319      0 --:--:-- --:--:-- --:--:--  1319
-100  855M  100  855M    0     0  52.0M      0  0:00:16  0:00:16 --:--:-- 53.6M
-~~~
+Check the images against the checksums from the JSON.
 
 ~~~bash
-[lab-user@provision scripts]$ echo "${MACHINE_OS_IMAGE_SHA256} ${CACHED_MACHINE_OS_IMAGE}" | tee ${CACHED_MACHINE_OS_IMAGE}.sha256sum
+[lab-user@provision scripts]$ echo "$QEMU_IMAGE_SHA256 ${IRONIC_DATA_DIR}/html/images/${QEMU_IMAGE_NAME}" \
+	| sha256sum -c
+/nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz: OK
 
-359e7c3560fdd91e64cd0d8df6a172722b10e777aef38673af6246f14838ab1a /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
-~~~
-
-~~~bash
-[lab-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_IMAGE}.sha256sum
-
+[lab-user@provision scripts]$ echo "$OPENSTACK_IMAGE_SHA256 ${IRONIC_DATA_DIR}/html/images/${OPENSTACK_IMAGE_NAME}" \
+	| sha256sum -c
 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz: OK
 ~~~
 
-~~~bash
-[lab-user@provision scripts]$ CACHED_MACHINE_OS_BOOTSTRAP_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_BOOTSTRAP_IMAGE_NAME}"
+`install-config.yaml` has already been partly customized to refer to the local RHCOS image cache.
 
+~~~bash
+[lab-user@provision scripts]$ grep http://10.20.0.2 install-config.yaml
+    bootstrapOSImage: http://10.20.0.2/images/RHCOS_QEMU_IMAGE
+    clusterOSImage: http://10.20.0.2/images/RHCOS_OPENSTACK_IMAGE
 ~~~
 
-~~~bash
-[lab-user@provision scripts]$ curl -g --insecure -L -o "${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" "${MACHINE_OS_BOOTSTRAP_IMAGE_URL}"
+We need to replace `RHCOS_QEMU_IMAGE` and `RHCOS_OPENSTACK_IMAGE` with the actual file names **and** checksums.  In the case of the QEMU image used by the bootstrap VM, the checksum must be that of the uncompressed image.
 
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   161  100   161    0     0   2012      0 --:--:-- --:--:-- --:--:--  2012
-100  857M  100  857M    0     0  40.5M      0  0:00:21  0:00:21 --:--:-- 39.1M
+~~~bash
+[lab-user@provision scripts]$ RHCOS_QEMU_IMAGE=${QEMU_IMAGE_NAME}?sha256=${QEMU_IMAGE_UNCOMPRESSED_SHA256}
+
+[lab-user@provision scripts]$ RHCOS_OPENSTACK_IMAGE=${OPENSTACK_IMAGE_NAME}?sha256=${OPENSTACK_IMAGE_SHA256}
+
+[lab-user@provision scripts]$ sed -i "s/RHCOS_QEMU_IMAGE/$RHCOS_QEMU_IMAGE/g" \
+	$HOME/scripts/install-config.yaml
+
+[lab-user@provision scripts]$ sed -i "s/RHCOS_OPENSTACK_IMAGE/$RHCOS_OPENSTACK_IMAGE/g" \
+	$HOME/scripts/install-config.yaml
 ~~~
 
-~~~bash
-[lab-user@provision scripts]$ echo "${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256} ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" | tee ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
-
-80ab9b70566c50a7e0b5e62626e5ba391a5f87ac23ea17e5d7376dcc1e2d39ce /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
-~~~
+Check the results.
 
 ~~~bash
-[lab-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
-
-/nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz: OK
-~~~
-
-~~~bash
-[lab-user@provision scripts]$ RHCOS_QEMU_IMAGE=$MACHINE_OS_BOOTSTRAP_IMAGE_NAME?sha256=$MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256
-
-~~~
-
-~~~bash
-[lab-user@provision scripts]$ RHCOS_OPENSTACK_IMAGE=$MACHINE_OS_IMAGE_NAME?sha256=$MACHINE_OS_IMAGE_SHA256
-
-~~~
-
-~~~bash
-[lab-user@provision scripts]$ sed -i "s/RHCOS_QEMU_IMAGE/$RHCOS_QEMU_IMAGE/g" $HOME/scripts/install-config.yaml
-
-~~~
-
-~~~bash
-[lab-user@provision scripts]$ sed -i "s/RHCOS_OPENSTACK_IMAGE/$RHCOS_OPENSTACK_IMAGE/g" $HOME/scripts/install-config.yaml
-~~~
- 
-Once the above commands have been run they should have downloaded two images: an RHCOS bootstrap qemu and an RHCOS openstack image.  We can confirm this by doing a directory listing on the \$CACHED\_MACHINE\_OS\_IMAGE and \$CACHED\_MACHINE\_OS\_BOOTSTRAP\_IMAGE variables we set in the previous commands:
-
-~~~bash
-[lab-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_IMAGE
--rw-rw-r--. 1 lab-user lab-user 896764070 Oct  5 11:39 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
-
-[lab-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_BOOTSTRAP_IMAGE
--rw-rw-r--. 1 lab-user lab-user 898670890 Oct  5 11:40 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
-~~~
-
-You should see the images are there.  We can further show they are accessible from our httpd cache by manually curling one of them (the bootstrap image in this example):
-
-~~~bash
-[lab-user@provision scripts]$ curl http://provision.$GUID.dynamic.opentlc.com/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz -o test.qcow2
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  857M  100  857M    0     0   338M      0  0:00:02  0:00:02 --:--:--  338M
-~~~
-
-We can see we have a full sized image but lets remove it to save space:
-
-~~~bash
-[lab-user@provision scripts]$ ls -l test.qcow2
--rw-rw-r--. 1 lab-user lab-user 898670890 Oct  5 13:15 test.qcow2
-
-[lab-user@provision scripts]$ rm test.qcow2
-~~~
-
-At the end of all of those commands we also ran two `sed` commands to update the install-config.yaml file with the appropriate paths for the bootstrap and cluster RHCOS images:
-
-~~~bash
-[lab-user@provision scripts]$ grep qcow install-config.yaml
-
+[lab-user@provision scripts]$ grep http://10.20.0.2 install-config.yaml
     bootstrapOSImage: http://10.20.0.2/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz?sha256=c9e2698d0f3bcc48b7c66d7db901266abf27ebd7474b6719992de2d8db96995a
     clusterOSImage: http://10.20.0.2/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz?sha256=359e7c3560fdd91e64cd0d8df6a172722b10e777aef38673af6246f14838ab1a
+~~~
+
+Finally, ensure that we are able to retrieve the images from those URLs.
+
+~~~bash
+[lab-user@provision scripts]$ curl -o /dev/null http://10.20.0.2/images/${RHCOS_QEMU_IMAGE}
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  857M  100  857M    0     0  2279M      0 --:--:-- --:--:-- --:--:-- 2279M
+[lab-user@provision scripts]$ curl -o /dev/null http://10.20.0.2/images/${RHCOS_OPENSTACK_IMAGE}
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  855M  100  855M    0     0  2221M      0 --:--:-- --:--:-- --:--:-- 2221M
 ~~~
 
 As you can see it is rather easy to build a local registry and httpd cache for the pod images and RHCOS images.  In the next lab we will leverage this content with a deployment of OpenShift!
