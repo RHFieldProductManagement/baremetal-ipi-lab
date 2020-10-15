@@ -146,7 +146,7 @@ Select the local storage operator and click install:
 
 <img src="img/install-local-storage-operator.png"/>
 
-This will bring up a dialogue of options for configuring the operator before deploying.  The defaults are usually accceptable but note that you can configure the version, installation mode, namespace where operator should run and the approval strategy.  Select the defaults and click install:
+This will bring up a dialogue of options for configuring the operator before deploying.  The defaults are usually accceptable but note that you can configure the version, installation mode, namespace where operator should run and the approval strategy.  Select the defaults (ensuring that the **local-storage** namespace is selected) and click install:
 
 <img src="img/install-choices-local-storage-operator.png"/>
 
