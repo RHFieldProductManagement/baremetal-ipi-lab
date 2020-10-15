@@ -64,6 +64,7 @@ We can see the script will attach and detach volumes from a list of worker nodes
 Lets go ahead and run the script:
 
 ~~~bash
+[lab-user@provision ~]$ unset OS_URL
 [lab-user@provision ~]$ ~/scripts/10_volume-attach.sh 
 [lab-user@provision ~]$ echo $?
 0
