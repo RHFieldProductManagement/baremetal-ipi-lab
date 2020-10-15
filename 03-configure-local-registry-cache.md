@@ -1,75 +1,75 @@
- # **Configure a Disconnected Registry and Red Hat Enterprise Linux CoreOS Cache**
- 
-In this lab we will explore what has been a popular topic when it comes to OpenShift: the disconnected installation.  A disconnected installation is one where the master and worker nodes do not have access to the internet. Thus the Red Hat Enterprise Linux CoreOS (RHCOS) images and the OpenShift pod images need to be hosted locally to support the given installation.
- 
-Our current lab already has some of the components needed for a disconnected installation so lets first explore those.  The first component needed is the oc client.  If we type `oc version` at the command line we can see what version we have. While the command is in the PATH, for the lab let's first move into the scripts diretcory:
- 
-~~~bash
+# **Configure a Disconnected Registry and Red Hat Enterprise Linux CoreOS Cache**
+
+In this lab we will explore what has been a popular topic when it comes to OpenShift: the disconnected installation. A disconnected installation is one where the master and worker nodes do not have access to the internet. Thus the Red Hat Enterprise Linux CoreOS (RHCOS) images and the OpenShift pod images need to be hosted locally to support the given installation.
+
+Our current lab already has some of the components needed for a disconnected installation so lets first explore those. The first component needed is the oc client. If we type `oc version` at the command line we can see what version we have. While the command is in the PATH, for the lab let's first move into the scripts diretcory:
+
+```bash
 [lab-user@provision ~]$ cd scripts/
-[lab-user@provision scripts]$ 
-~~~
+[lab-user@provision scripts]$
+```
 
 And then check the version:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ oc version
 Client Version: 4.5.12
-~~~
+```
 
-The output above shows us we have the 4.5.12 client for oc.  This will determine what version of the OpenShift cluster we will deploy.  Lets go ahead and set the environment variable of VERSION to that version now:
+The output above shows us we have the 4.5.12 client for oc. This will determine what version of the OpenShift cluster we will deploy. Lets go ahead and set the environment variable of VERSION to that version now:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ export VERSION=4.5.12
 [lab-user@provision scripts]$ echo $VERSION
 4.5.12
-~~~
+```
 
-Now lets examine the version of the openshift-baremetal-install binary version.  The **commit number** is important as that will be used to determine what version of the RHCOS image is pulled down later on in the lab.
+Now lets examine the version of the openshift-baremetal-install binary version. The **commit number** is important as that will be used to determine what version of the RHCOS image is pulled down later on in the lab.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ ./openshift-baremetal-install version
 ./openshift-baremetal-install 4.5.12
 built from commit 9893a482f310ee72089872f1a4caea3dbec34f28
 release image quay.io/openshift-release-dev/ocp-release@sha256:d65574acbf8222bacf875f4b0128142d5ed9e687153ce8df2152ba6e0c3f2be3
-~~~
+```
 
-Now that we have examined the oc and openshift-baremetal-install binaries we are ready to build our private registry and httpd cache on the provisioning node.   In a production environment this registry and httpd cache could be anywhere within the organization but for this lab we will keep it simple and place it on the provisioning node.
+Now that we have examined the oc and openshift-baremetal-install binaries we are ready to build our private registry and httpd cache on the provisioning node. In a production environment this registry and httpd cache could be anywhere within the organization but for this lab we will keep it simple and place it on the provisioning node.
 
 The first step is to install podman and httpd; this also pulls in some additional dependencies:
 
-~~~bash
-[lab-user@provision scripts]$ sudo yum -y install podman httpd httpd-tools
+```bash
+[lab-user@provision scripts]$ sudo dnf -y install podman httpd httpd-tools
 Updating Subscription Management repositories.
 Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)                                                                                                                              3.9 kB/s | 2.4 kB     00:00 
 (...)
 Installed:
   apr-1.6.3-9.el8.x86_64                                                   apr-util-1.6.1-6.el8.x86_64                                         apr-util-bdb-1.6.1-6.el8.x86_64                                   
-  apr-util-openssl-1.6.1-6.el8.x86_64                                      conmon-2:2.0.6-1.module+el8.2.0+6368+cf16aa14.x86_64                container-selinux-2:2.124.0-1.module+el8.2.0+6368+cf16aa14.noarch 
+  apr-util-openssl-1.6.1-6.el8.x86_64                                      conmon-2:2.0.6-1.module+el8.2.0+6368+cf16aa14.x86_64                container-selinux-2:2.124.0-1.module+el8.2.0+6368+cf16aa14.noarch
   containernetworking-plugins-0.8.3-5.module+el8.2.0+6368+cf16aa14.x86_64  containers-common-1:0.1.40-11.module+el8.2.0+6374+67f43e89.x86_64   criu-3.12-9.module+el8.2.0+6368+cf16aa14.x86_64                   
   fuse-overlayfs-0.7.2-5.module+el8.2.0+6368+cf16aa14.x86_64               fuse3-libs-3.2.1-12.el8.x86_64                                      httpd-2.4.37-21.module+el8.2.0+5008+cca404a3.x86_64               
   httpd-filesystem-2.4.37-21.module+el8.2.0+5008+cca404a3.noarch           httpd-tools-2.4.37-21.module+el8.2.0+5008+cca404a3.x86_64           libnet-1.1.6-15.el8.x86_64                                        
   libvarlink-18-3.el8.x86_64                                               mailcap-2.1.48-3.el8.noarch                                         mod_http2-1.11.3-3.module+el8.2.0+4377+dc421495.x86_64            
   podman-1.6.4-11.module+el8.2.0+6368+cf16aa14.x86_64                      protobuf-c-1.3.0-4.el8.x86_64                                       redhat-logos-httpd-81.1-1.el8.noarch                              
-  runc-1.0.0-65.rc10.module+el8.2.0+6368+cf16aa14.x86_64                   slirp4netns-0.4.2-3.git21fdece.module+el8.2.0+6368+cf16aa14.x86_64 
+  runc-1.0.0-65.rc10.module+el8.2.0+6368+cf16aa14.x86_64                   slirp4netns-0.4.2-3.git21fdece.module+el8.2.0+6368+cf16aa14.x86_64
 
 Complete!
-~~~
+```
 
 Now let's create the directories you'll need to run the registry. These directories will be mounted in the container runtime environment for the registry.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo mkdir -p /nfs/registry/{auth,certs,data}
-[lab-user@provision scripts]$ 
-~~~
+[lab-user@provision scripts]$
+```
 
 We also need to create a self signed certificate for the registry:
 
-> **NOTE:**  The `GUID` environment variable is automatically set.
+> **NOTE:** The `GUID` environment variable is automatically set.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo openssl req -newkey rsa:4096 -nodes -sha256 \
-	-keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt \
-	-subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.dynamic.opentlc.com"
+    -keyout /nfs/registry/certs/domain.key -x509 -days 365 -out /nfs/registry/certs/domain.crt \
+    -subj "/C=US/ST=NorthCarolina/L=Raleigh/O=Red Hat/OU=Marketing/CN=provision.$GUID.dynamic.opentlc.com"
 Generating a RSA private key
 ..................................................................................................
 ..................................................................................................
@@ -79,35 +79,35 @@ Generating a RSA private key
 .........................................................++++
 writing new private key to '/nfs/registry/certs/domain.key'
 -----
-~~~
+```
 
-Once the certificate has been created copy it into your home directory and also into the trust anchors on the provisioning node.  We will also need to run the update-ca-trust command:
+Once the certificate has been created copy it into your home directory and also into the trust anchors on the provisioning node. We will also need to run the update-ca-trust command:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt $HOME/scripts/domain.crt
 [lab-user@provision scripts]$ sudo chown lab-user $HOME/scripts/domain.crt
 [lab-user@provision scripts]$ sudo cp /nfs/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
 [lab-user@provision scripts]$ sudo update-ca-trust extract
-~~~
+```
 
-Our registry will need a simple authentication mechanism so we will use `htpasswd`.  Note that when you try to authenticate to your registry the password being passed has to be in [bcrypt](https://en.wikipedia.org/wiki/Bcrypt) format.
+Our registry will need a simple authentication mechanism so we will use `htpasswd`. Note that when you try to authenticate to your registry the password being passed has to be in [bcrypt](https://en.wikipedia.org/wiki/Bcrypt) format.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo htpasswd -bBc /nfs/registry/auth/htpasswd dummy dummy
 Adding password for user dummy
-~~~
+```
 
-Now that we have a directory structure, certificate, and a user configured for authentication we can go ahead and create the registry pod.  The command below will pull down the pod and mount the appropriate directory mount points we created earlier.
+Now that we have a directory structure, certificate, and a user configured for authentication we can go ahead and create the registry pod. The command below will pull down the pod and mount the appropriate directory mount points we created earlier.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo podman create --name poc-registry --net host -p 5000:5000 \
-	-v /nfs/registry/data:/var/lib/registry:z -v /nfs/registry/auth:/auth:z \
-	-e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" \
-	-e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" \
-	-e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /nfs/registry/certs:/certs:z \
-	-e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
-	-e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
-	
+    -v /nfs/registry/data:/var/lib/registry:z -v /nfs/registry/auth:/auth:z \
+    -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" \
+    -e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" \
+    -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /nfs/registry/certs:/certs:z \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+    -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
+
 Trying to pull docker.io/library/registry:2...
 Getting image source signatures
 Copying blob cbdbe7a5bc2a done
@@ -119,34 +119,34 @@ Copying config 2d4f4b5309 done
 Writing manifest to image destination
 Storing signatures
 be06131e5dc4b98a1f55fdefc6afa6989cfbc8d878b6d65cf40426e96e2bede1
-~~~
+```
 
 Once pod creation is complete we can start the pod:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo podman start poc-registry
 poc-registry
-~~~
+```
 
 Finally, verify the pod is up and running via the podman command:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo podman ps
 CONTAINER ID  IMAGE                         COMMAND               CREATED        STATUS             PORTS  NAMES
 be06131e5dc4  docker.io/library/registry:2  /etc/docker/regis...  2 minutes ago  Up 39 seconds ago         poc-registry
-~~~
+```
 
-We can further validate the registry is functional by using a curl command and passing the user/password to the registry URL.  Note here it's not necessary to use a bcrypt formatted password.
+We can further validate the registry is functional by using a curl command and passing the user/password to the registry URL. Note here it's not necessary to use a bcrypt formatted password.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ curl -u dummy:dummy -k \
-	https://provision.$GUID.dynamic.opentlc.com:5000/v2/_catalog
+    https://provision.$GUID.dynamic.opentlc.com:5000/v2/_catalog
 {"repositories":[]}
-~~~
+```
 
-Now that our registry pod is up and we have validated that it's working it's time to configure the httpd cache pod which stores our RHCOS images locally.  The first step is to create some directory structures and add the appropriate permissions:
+Now that our registry pod is up and we have validated that it's working it's time to configure the httpd cache pod which stores our RHCOS images locally. The first step is to create some directory structures and add the appropriate permissions:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ export IRONIC_DATA_DIR=/nfs/ocp/ironic
 [lab-user@provision scripts]$ export IRONIC_IMAGES_DIR="${IRONIC_DATA_DIR}/html/images"
 [lab-user@provision scripts]$ export IRONIC_IMAGE=quay.io/metal3-io/ironic:master
@@ -154,21 +154,21 @@ Now that our registry pod is up and we have validated that it's working it's tim
 [lab-user@provision scripts]$ sudo chown -R "${USER}:users" "$IRONIC_DATA_DIR"
 [lab-user@provision scripts]$ sudo find $IRONIC_DATA_DIR -type d -print0 | xargs -0 chmod 755
 [lab-user@provision scripts]$ sudo chmod -R +r $IRONIC_DATA_DIR
-~~~
+```
 
 With the directory structures in place we can now create the caching pod. For this we use the ironic pod that already exists in quay.io.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo podman pod create -n ironic-pod
 12385a4f6f8cb912e7733b725c2b488de4e21aef049552efd21afc28dd647014
-~~~
+```
 
 And now run the pod:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod \
-	-v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
-	
+    -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
+
 Trying to pull quay.io/metal3-io/ironic:master...
 Getting image source signatures
 Copying blob 3c72a8ed6814 done
@@ -179,22 +179,22 @@ Copying config 3733498f02 done
 Writing manifest to image destination
 Storing signatures
 f069949f68fa147206d154417a22c20c49983f0c5b79e9c06d56750e9d3f470d
-~~~
+```
 
-Because we ran the **create** command and then a **run** command after it there is no need to actually use podman to start the httpd pod.  We can see thatit is running by looking at the running pods on the provisioning node:
+Because we ran the **create** command and then a **run** command after it there is no need to actually use podman to start the httpd pod. We can see thatit is running by looking at the running pods on the provisioning node:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sudo podman ps
 CONTAINER ID  IMAGE                            COMMAND               CREATED         STATUS             PORTS  NAMES
 f069949f68fa  quay.io/metal3-io/ironic:master                        8 seconds ago   Up 7 seconds ago          httpd
 be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes ago  Up 20 minutes ago         poc-registry
-~~~
+```
 
 As shown you should see **httpd** and **poc-registry** running.
 
-Further we can test that our httpd cache is operational by using the `curl` command.  If you get a 301 code that is normal since we have yet to actually place any images in the cache.
+Further we can test that our httpd cache is operational by using the `curl` command. If you get a 301 code that is normal since we have yet to actually place any images in the cache.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ curl http://provision.$GUID.dynamic.opentlc.com/images
 
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
@@ -204,29 +204,29 @@ Further we can test that our httpd cache is operational by using the `curl` comm
 <h1>Moved Permanently</h1>
 <p>The document has moved <a href="http://provision.schmaustech.dynamic.opentlc.com/images/">here</a>.</p>
 </body></html>
-~~~
+```
 
-We are almost ready to do some downloading of images but we still have a few items to tend to.  First we need to generate a bcrypt password from our username and password we set on the registry.  We can do this by piping them into `base64`:
+We are almost ready to do some downloading of images but we still have a few items to tend to. First we need to generate a bcrypt password from our username and password we set on the registry. We can do this by piping them into `base64`:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ echo -n 'dummy:dummy' | base64 -w0 && echo
 ZHVtbXk6ZHVtbXk=
-~~~
+```
 
 The bcrypt password needs to be embedded in a registry secret text file:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ cat <<EOF > ~/reg-secret.txt
 "provision.$GUID.dynamic.opentlc.com:5000": {
-	"email": "dummy@redhat.com",
-	"auth": "$(echo -n 'dummy:dummy' | base64 -w0)"
+    "email": "dummy@redhat.com",
+    "auth": "$(echo -n 'dummy:dummy' | base64 -w0)"
 }
 EOF
-~~~
+```
 
-Now we can take our existing lab pull secret and our registry pull secret and merge them.  Below we will backup the existing pull secret and then add our registry pull secret to the file.  Further we will add our pull secret and registry cert, as a trust bundle, to the existing install-config.yaml.
+Now we can take our existing lab pull secret and our registry pull secret and merge them. Below we will backup the existing pull secret and then add our registry pull secret to the file. Further we will add our pull secret and registry cert, as a trust bundle, to the existing install-config.yaml.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ export PULLSECRET=$HOME/pull-secret.json
 [lab-user@provision scripts]$ cp $PULLSECRET $PULLSECRET.orig
 [lab-user@provision scripts]$ cat $PULLSECRET | jq ".auths += {`cat ~/reg-secret.txt`}" > $PULLSECRET
@@ -237,12 +237,12 @@ Now we can take our existing lab pull secret and our registry pull secret and me
 [lab-user@provision scripts]$ echo "additionalTrustBundle: |" >> $HOME/scripts/install-config.yaml
 [lab-user@provision scripts]$ cat $HOME/scripts/domain.crt >> $HOME/scripts/install-config.yaml
 [lab-user@provision scripts]$ sed -i "s/pullSecret:.*/pullSecret: \'$(cat $PULLSECRET)\'/g" \
-	$HOME/scripts/install-config.yaml
-~~~
+    $HOME/scripts/install-config.yaml
+```
 
 Verify that the pull secret in `install-config.yaml` now includes the credentials for our local registry.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ grep pullSecret install-config.yaml | sed 's/^pullSecret: //' | tr -d \' | jq .
 (...)
     "provision.9mj2p.dynamic.opentlc.com:5000": {
@@ -251,11 +251,11 @@ Verify that the pull secret in `install-config.yaml` now includes the credential
     }
   }
 }
-~~~
+```
 
 And check that our certificate is included.
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ cat install-config.yaml
 apiVersion: v1
 baseDomain: dynamic.opentlc.com
@@ -296,27 +296,27 @@ additionalTrustBundle: |
   JdXFoPLSZ5nEb+Y/XB+WVaaz+j8CtGlDcwbGr4BFlakHluVxfK2sDN5n0NOLcQlw
   Z2sCrU3XLJDME6tPetuPiBX/tA==
   -----END CERTIFICATE-----
-~~~
+```
 
-Finally at this point we can sync down the pod images from quay.io to our local registry.  To do this we need to perform a few steps below:
+Finally at this point we can sync down the pod images from quay.io to our local registry. To do this we need to perform a few steps below:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ export UPSTREAM_REPO="quay.io/openshift-release-dev/ocp-release:$VERSION-x86_64"
 [lab-user@provision scripts]$ export PULLSECRET=$HOME/pull-secret.json
 [lab-user@provision scripts]$ export LOCAL_REG="provision.$GUID.dynamic.opentlc.com:5000"
 [lab-user@provision scripts]$ export LOCAL_REPO='ocp4/openshift4'
-~~~
+```
 
-So what did we do above?  
+So what did we do above?
 
-We used the VERSION variable we set earlier to help us set the correct upstream registry and repository for the 4.5.12 release.  Further we set variables for our pull secret, local registry, and local repository.
+We used the VERSION variable we set earlier to help us set the correct upstream registry and repository for the 4.5.12 release. Further we set variables for our pull secret, local registry, and local repository.
 
 Now we can actually execute the mirroring:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ oc adm release mirror -a $PULLSECRET --from=$UPSTREAM_REPO \
-	--to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
-	
+    --to-release-image=$LOCAL_REG/$LOCAL_REPO:$VERSION --to=$LOCAL_REG/$LOCAL_REPO
+
 info: Mirroring 110 images to provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4 ...
 provision.schmaustech.dynamic.opentlc.com:5000/
   ocp4/openshift4
@@ -360,15 +360,15 @@ spec:
   - mirrors:
     - provision.schmaustech.dynamic.opentlc.com:5000/ocp4/openshift4
     source: registry.svc.ci.openshift.org/ocp/release
-~~~
+```
 
-The above command takes a few minutes but once complete should have mirrored all the required images from the remote registry to our local registry.  One key piece of output above is **imageContentSources**.  That section is needed for the install-config.yaml file that is used for our OpenShift deployment and if you look at **~/scripts/install-config.yaml** you will notice those lines have already been added to the config for you.
+The above command takes a few minutes but once complete should have mirrored all the required images from the remote registry to our local registry. One key piece of output above is **imageContentSources**. That section is needed for the install-config.yaml file that is used for our OpenShift deployment and if you look at **~/scripts/install-config.yaml** you will notice those lines have already been added to the config for you.
 
-Now that we have the images synced down we can move on to syncing the RHCOS images needed. There are two required: an RHCOS qemu image and RHCOS openstack image.  The RHCOS qemu image is the image used for the bootstrap virtual machines that is created on the provisioning host during the initial phases of the deployment process.  The openstack image is used to image the master and worker nodes during the deployment process.
+Now that we have the images synced down we can move on to syncing the RHCOS images needed. There are two required: an RHCOS qemu image and RHCOS openstack image. The RHCOS qemu image is the image used for the bootstrap virtual machines that is created on the provisioning host during the initial phases of the deployment process. The openstack image is used to image the master and worker nodes during the deployment process.
 
 To capture this image we have to set a few different environment variables to ensure we download the correct RHCOS image for the version release we are using:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ OPENSHIFT_INSTALLER=$HOME/scripts/openshift-baremetal-install
 [lab-user@provision scripts]$ IRONIC_DATA_DIR=/nfs/ocp/ironic
 [lab-user@provision scripts]$ OPENSHIFT_INSTALL_COMMIT=$($OPENSHIFT_INSTALLER version | grep commit | cut -d' ' -f4)
@@ -391,117 +391,113 @@ To capture this image we have to set a few different environment variables to en
 [lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_SHA256}}
 [lab-user@provision scripts]$ MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=$(echo "${MACHINE_OS_IMAGE_JSON}" | jq -r '.images.qemu["uncompressed-sha256"]')
 [lab-user@provision scripts]$ MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256=${MACHINE_OS_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256:-${MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256}}
-~~~
-  
-Above we are doing quite a bit but it's all in an effort to derive the right RHCOS image for both the bootstrap and installer image.  We first have to gather the commit string from the installer version.  Then we have to grab the RHCOS JSON content with that commit information.  Next we pull out the appropriate image and sha256 for two RHCOS images and finally we set two sets of variables for those two images so we can pull them down below:
-  
-~~~bash
-[lab-user@provision scripts]$ CACHED_MACHINE_OS_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_IMAGE_NAME}"
-~~~
+```
 
-~~~bash
+Above we are doing quite a bit but it's all in an effort to derive the right RHCOS image for both the bootstrap and installer image. We first have to gather the commit string from the installer version. Then we have to grab the RHCOS JSON content with that commit information. Next we pull out the appropriate image and sha256 for two RHCOS images and finally we set two sets of variables for those two images so we can pull them down below:
+
+```bash
+[lab-user@provision scripts]$ CACHED_MACHINE_OS_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_IMAGE_NAME}"
+```
+
+```bash
 [lab-user@provision scripts]$ curl -g --insecure -L -o "${CACHED_MACHINE_OS_IMAGE}" "${MACHINE_OS_IMAGE_URL}"
 
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   161  100   161    0     0   1319      0 --:--:-- --:--:-- --:--:--  1319
 100  855M  100  855M    0     0  52.0M      0  0:00:16  0:00:16 --:--:-- 53.6M
-~~~
+```
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ echo "${MACHINE_OS_IMAGE_SHA256} ${CACHED_MACHINE_OS_IMAGE}" | tee ${CACHED_MACHINE_OS_IMAGE}.sha256sum
 
 359e7c3560fdd91e64cd0d8df6a172722b10e777aef38673af6246f14838ab1a /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
-~~~
+```
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_IMAGE}.sha256sum
 
 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz: OK
-~~~
+```
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ CACHED_MACHINE_OS_BOOTSTRAP_IMAGE="${IRONIC_DATA_DIR}/html/images/${MACHINE_OS_BOOTSTRAP_IMAGE_NAME}"
+```
 
-~~~
-
-~~~bash
+```bash
 [lab-user@provision scripts]$ curl -g --insecure -L -o "${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" "${MACHINE_OS_BOOTSTRAP_IMAGE_URL}"
 
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   161  100   161    0     0   2012      0 --:--:-- --:--:-- --:--:--  2012
 100  857M  100  857M    0     0  40.5M      0  0:00:21  0:00:21 --:--:-- 39.1M
-~~~
+```
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ echo "${MACHINE_OS_BOOTSTRAP_IMAGE_SHA256} ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}" | tee ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
 
 80ab9b70566c50a7e0b5e62626e5ba391a5f87ac23ea17e5d7376dcc1e2d39ce /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
-~~~
+```
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ sha256sum --strict --check ${CACHED_MACHINE_OS_BOOTSTRAP_IMAGE}.sha256sum
 
 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz: OK
-~~~
+```
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ RHCOS_QEMU_IMAGE=$MACHINE_OS_BOOTSTRAP_IMAGE_NAME?sha256=$MACHINE_OS_INSTALLER_BOOTSTRAP_IMAGE_UNCOMPRESSED_SHA256
+```
 
-~~~
-
-~~~bash
+```bash
 [lab-user@provision scripts]$ RHCOS_OPENSTACK_IMAGE=$MACHINE_OS_IMAGE_NAME?sha256=$MACHINE_OS_IMAGE_SHA256
+```
 
-~~~
-
-~~~bash
+```bash
 [lab-user@provision scripts]$ sed -i "s/RHCOS_QEMU_IMAGE/$RHCOS_QEMU_IMAGE/g" $HOME/scripts/install-config.yaml
+```
 
-~~~
-
-~~~bash
+```bash
 [lab-user@provision scripts]$ sed -i "s/RHCOS_OPENSTACK_IMAGE/$RHCOS_OPENSTACK_IMAGE/g" $HOME/scripts/install-config.yaml
-~~~
- 
-Once the above commands have been run they should have downloaded two images: an RHCOS bootstrap qemu and an RHCOS openstack image.  We can confirm this by doing a directory listing on the \$CACHED\_MACHINE\_OS\_IMAGE and \$CACHED\_MACHINE\_OS\_BOOTSTRAP\_IMAGE variables we set in the previous commands:
+```
 
-~~~bash
+Once the above commands have been run they should have downloaded two images: an RHCOS bootstrap qemu and an RHCOS openstack image. We can confirm this by doing a directory listing on the \$CACHED_MACHINE_OS_IMAGE and \$CACHED_MACHINE_OS_BOOTSTRAP_IMAGE variables we set in the previous commands:
+
+```bash
 [lab-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_IMAGE
 -rw-rw-r--. 1 lab-user lab-user 896764070 Oct  5 11:39 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz
 
 [lab-user@provision scripts]$ ls -l $CACHED_MACHINE_OS_BOOTSTRAP_IMAGE
 -rw-rw-r--. 1 lab-user lab-user 898670890 Oct  5 11:40 /nfs/ocp/ironic/html/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz
-~~~
+```
 
-You should see the images are there.  We can further show they are accessible from our httpd cache by manually curling one of them (the bootstrap image in this example):
+You should see the images are there. We can further show they are accessible from our httpd cache by manually curling one of them (the bootstrap image in this example):
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ curl http://provision.$GUID.dynamic.opentlc.com/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz -o test.qcow2
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  857M  100  857M    0     0   338M      0  0:00:02  0:00:02 --:--:--  338M
-~~~
+```
 
 We can see we have a full sized image but lets remove it to save space:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ ls -l test.qcow2
 -rw-rw-r--. 1 lab-user lab-user 898670890 Oct  5 13:15 test.qcow2
 
 [lab-user@provision scripts]$ rm test.qcow2
-~~~
+```
 
 At the end of all of those commands we also ran two `sed` commands to update the install-config.yaml file with the appropriate paths for the bootstrap and cluster RHCOS images:
 
-~~~bash
+```bash
 [lab-user@provision scripts]$ grep qcow install-config.yaml
 
     bootstrapOSImage: http://10.20.0.2/images/rhcos-45.82.202008010929-0-qemu.x86_64.qcow2.gz?sha256=c9e2698d0f3bcc48b7c66d7db901266abf27ebd7474b6719992de2d8db96995a
     clusterOSImage: http://10.20.0.2/images/rhcos-45.82.202008010929-0-openstack.x86_64.qcow2.gz?sha256=359e7c3560fdd91e64cd0d8df6a172722b10e777aef38673af6246f14838ab1a
-~~~
+```
 
-As you can see it is rather easy to build a local registry and httpd cache for the pod images and RHCOS images.  In the next lab we will leverage this content with a deployment of OpenShift!
+As you can see it is rather easy to build a local registry and httpd cache for the pod images and RHCOS images. In the next lab we will leverage this content with a deployment of OpenShift!
 
 [Move on to Creating an OpenShift Cluster](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/04-deploying-cluster.md)!
