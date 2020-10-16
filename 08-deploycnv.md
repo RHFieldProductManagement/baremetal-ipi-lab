@@ -277,7 +277,12 @@ Last login: Fri Oct 16 00:01:04 2020 from 10.20.0.2
     link/ether ba:dc:0f:fe:e0:50 brd ff:ff:ff:ff:ff:ff
     inet 10.20.0.200/24 brd 10.20.0.255 scope global dynamic noprefixroute brext
        valid_lft 43013sec preferred_lft 43013sec
+
+[core@worker-0 ~]$ exit
+logout
+Connection to worker-0.nlm9j.dynamic.opentlc.com closed.
 ```
+(Make sure to log out of the worker before proceeding.)
 
 Once the bridges have been successfully configured we can then add our network attachment definition which will allow our VMs to consume that bridge interface:
 
