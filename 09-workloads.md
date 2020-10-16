@@ -77,34 +77,525 @@ Now, if you can tear yourself away from the game, let's build a VM...
 
 ## Deploying a Virtual Machine (STOP - Work in Progress!)
 
-If you recall back in the previous deploy OpenShift virtualization lab we went ahead and installed the OpenShift virtualization operater and created a virtualization cluster.  Further we went ahead and configured an external bridge so that are virtual machines can be connected to the outside network.  Therefore we are now at the point where we can launch a virtual machine.  To do this we will use the OpenShift Web Console and navigate to Workloads->Virtualization:
+If you recall back in the previous deploy OpenShift virtualization lab we went ahead and installed the OpenShift virtualization operater and created a virtualization cluster.  Further we went ahead and configured an external bridge so that are virtual machines can be connected to the outside network.  Therefore we are now at the point where we can launch a virtual machine.  To do this we will use the following yaml file below.  Lets go ahead and create the file:
 
-<img src="img/cnvwizard.png"/>
+~~~bash
+[lab-user@provision scripts]$ cat << EOF > ~/virtualmachine-cirros.yaml
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1alpha3
+    kubevirt.io/storage-observed-api-version: v1alpha3
+    name.os.template.kubevirt.io/silverblue32: Fedora 31 or higher
+  selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachines/cirros
+  resourceVersion: '95007'
+  name: cirros
+  uid: 6cef319d-b301-4004-9369-004d8408c509
+  creationTimestamp: '2020-10-16T00:07:48Z'
+  generation: 6
+  managedFields:
+    - apiVersion: kubevirt.io/v1alpha3
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:name.os.template.kubevirt.io/silverblue32': {}
+          'f:labels':
+            'f:os.template.kubevirt.io/silverblue32': {}
+            'f:vm.kubevirt.io/template.version': {}
+            'f:vm.kubevirt.io/template.namespace': {}
+            'f:app': {}
+            .: {}
+            'f:workload.template.kubevirt.io/desktop': {}
+            'f:vm.kubevirt.io/template.revision': {}
+            'f:flavor.template.kubevirt.io/small': {}
+            'f:vm.kubevirt.io/template': {}
+        'f:spec':
+          .: {}
+          'f:dataVolumeTemplates': {}
+          'f:template':
+            .: {}
+            'f:metadata':
+              .: {}
+              'f:labels':
+                .: {}
+                'f:flavor.template.kubevirt.io/small': {}
+                'f:kubevirt.io/domain': {}
+                'f:kubevirt.io/size': {}
+                'f:os.template.kubevirt.io/silverblue32': {}
+                'f:vm.kubevirt.io/name': {}
+                'f:workload.template.kubevirt.io/desktop': {}
+            'f:spec':
+              .: {}
+              'f:domain':
+                .: {}
+                'f:cpu':
+                  .: {}
+                  'f:cores': {}
+                  'f:sockets': {}
+                  'f:threads': {}
+                'f:devices':
+                  .: {}
+                  'f:autoattachPodInterface': {}
+                  'f:disks': {}
+                  'f:inputs': {}
+                  'f:interfaces': {}
+                  'f:networkInterfaceMultiqueue': {}
+                  'f:rng': {}
+                'f:machine':
+                  .: {}
+                  'f:type': {}
+                'f:resources':
+                  .: {}
+                  'f:requests':
+                    .: {}
+                    'f:memory': {}
+              'f:evictionStrategy': {}
+              'f:hostname': {}
+              'f:networks': {}
+              'f:terminationGracePeriodSeconds': {}
+              'f:volumes': {}
+      manager: Mozilla
+      operation: Update
+      time: '2020-10-16T00:07:48Z'
+    - apiVersion: kubevirt.io/v1alpha3
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            'f:kubevirt.io/latest-observed-api-version': {}
+            'f:kubevirt.io/storage-observed-api-version': {}
+        'f:status':
+          .: {}
+          'f:conditions': {}
+          'f:created': {}
+          'f:ready': {}
+      manager: virt-controller
+      operation: Update
+      time: '2020-10-16T00:10:30Z'
+    - apiVersion: kubevirt.io/v1alpha3
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:running': {}
+      manager: virt-api
+      operation: Update
+      time: '2020-10-16T00:13:04Z'
+  namespace: default
+  labels:
+    app: cirros
+    flavor.template.kubevirt.io/small: 'true'
+    os.template.kubevirt.io/silverblue32: 'true'
+    vm.kubevirt.io/template: fedora-desktop-small-v0.11.3
+    vm.kubevirt.io/template.namespace: openshift
+    vm.kubevirt.io/template.revision: '1'
+    vm.kubevirt.io/template.version: v0.11.3
+    workload.template.kubevirt.io/desktop: 'true'
+spec:
+  dataVolumeTemplates:
+    - apiVersion: cdi.kubevirt.io/v1alpha1
+      kind: DataVolume
+      metadata:
+        creationTimestamp: null
+        name: cirros-rootdisk
+      spec:
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block
+        source:
+          http:
+            url: >-
+              http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img
+      status: {}
+  running: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        flavor.template.kubevirt.io/small: 'true'
+        kubevirt.io/domain: cirros
+        kubevirt.io/size: small
+        os.template.kubevirt.io/silverblue32: 'true'
+        vm.kubevirt.io/name: cirros
+        workload.template.kubevirt.io/desktop: 'true'
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          autoattachPodInterface: false
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: rootdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+          inputs:
+            - bus: virtio
+              name: tablet
+              type: tablet
+          interfaces:
+            - bridge: {}
+              model: virtio
+              name: nic-0
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel8.2.0
+        resources:
+          requests:
+            memory: 2Gi
+      evictionStrategy: LiveMigrate
+      hostname: cirrostest
+      networks:
+        - multus:
+            networkName: brext
+          name: nic-0
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - dataVolume:
+            name: cirros-rootdisk
+          name: rootdisk
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              name: default
+              hostname: cirrostest
+              runcmd:
+                - ip a add 10.20.0.50/24 dev eth0
+                - ip r add 0.0.0.0/0 10.20.0.1 dev eth0
+          name: cloudinitdisk
+status:
+  conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2020-10-16T00:09:26Z'
+      status: 'True'
+      type: Ready
+  created: true
+  ready: true
+EOF
+~~~
 
-Select the New with Wizard option and the workflow for creating a new virtual machine will be brought up:
+Lets take a look at the file we just created:
 
-<img src="img/cnvgeneral.png"/>
+~~~bash 
+[lab-user@provision scripts]$ cat ~/virtualmachine-cirros.yaml 
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1alpha3
+    kubevirt.io/storage-observed-api-version: v1alpha3
+    name.os.template.kubevirt.io/silverblue32: Fedora 31 or higher
+  selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachines/cirros
+  resourceVersion: '95007'
+  name: cirros
+  uid: 6cef319d-b301-4004-9369-004d8408c509
+  creationTimestamp: '2020-10-16T00:07:48Z'
+  generation: 6
+  managedFields:
+    - apiVersion: kubevirt.io/v1alpha3
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:name.os.template.kubevirt.io/silverblue32': {}
+          'f:labels':
+            'f:os.template.kubevirt.io/silverblue32': {}
+            'f:vm.kubevirt.io/template.version': {}
+            'f:vm.kubevirt.io/template.namespace': {}
+            'f:app': {}
+            .: {}
+            'f:workload.template.kubevirt.io/desktop': {}
+            'f:vm.kubevirt.io/template.revision': {}
+            'f:flavor.template.kubevirt.io/small': {}
+            'f:vm.kubevirt.io/template': {}
+        'f:spec':
+          .: {}
+          'f:dataVolumeTemplates': {}
+          'f:template':
+            .: {}
+            'f:metadata':
+              .: {}
+              'f:labels':
+                .: {}
+                'f:flavor.template.kubevirt.io/small': {}
+                'f:kubevirt.io/domain': {}
+                'f:kubevirt.io/size': {}
+                'f:os.template.kubevirt.io/silverblue32': {}
+                'f:vm.kubevirt.io/name': {}
+                'f:workload.template.kubevirt.io/desktop': {}
+            'f:spec':
+              .: {}
+              'f:domain':
+                .: {}
+                'f:cpu':
+                  .: {}
+                  'f:cores': {}
+                  'f:sockets': {}
+                  'f:threads': {}
+                'f:devices':
+                  .: {}
+                  'f:autoattachPodInterface': {}
+                  'f:disks': {}
+                  'f:inputs': {}
+                  'f:interfaces': {}
+                  'f:networkInterfaceMultiqueue': {}
+                  'f:rng': {}
+                'f:machine':
+                  .: {}
+                  'f:type': {}
+                'f:resources':
+                  .: {}
+                  'f:requests':
+                    .: {}
+                    'f:memory': {}
+              'f:evictionStrategy': {}
+              'f:hostname': {}
+              'f:networks': {}
+              'f:terminationGracePeriodSeconds': {}
+              'f:volumes': {}
+      manager: Mozilla
+      operation: Update
+      time: '2020-10-16T00:07:48Z'
+    - apiVersion: kubevirt.io/v1alpha3
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            'f:kubevirt.io/latest-observed-api-version': {}
+            'f:kubevirt.io/storage-observed-api-version': {}
+        'f:status':
+          .: {}
+          'f:conditions': {}
+          'f:created': {}
+          'f:ready': {}
+      manager: virt-controller
+      operation: Update
+      time: '2020-10-16T00:10:30Z'
+    - apiVersion: kubevirt.io/v1alpha3
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:running': {}
+      manager: virt-api
+      operation: Update
+      time: '2020-10-16T00:13:04Z'
+  namespace: default
+  labels:
+    app: cirros
+    flavor.template.kubevirt.io/small: 'true'
+    os.template.kubevirt.io/silverblue32: 'true'
+    vm.kubevirt.io/template: fedora-desktop-small-v0.11.3
+    vm.kubevirt.io/template.namespace: openshift
+    vm.kubevirt.io/template.revision: '1'
+    vm.kubevirt.io/template.version: v0.11.3
+    workload.template.kubevirt.io/desktop: 'true'
+spec:
+  dataVolumeTemplates:
+    - apiVersion: cdi.kubevirt.io/v1alpha1
+      kind: DataVolume
+      metadata:
+        creationTimestamp: null
+        name: cirros-rootdisk
+      spec:
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Block
+        source:
+          http:
+            url: >-
+              http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img
+      status: {}
+  running: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        flavor.template.kubevirt.io/small: 'true'
+        kubevirt.io/domain: cirros
+        kubevirt.io/size: small
+        os.template.kubevirt.io/silverblue32: 'true'
+        vm.kubevirt.io/name: cirros
+        workload.template.kubevirt.io/desktop: 'true'
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          autoattachPodInterface: false
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: rootdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+          inputs:
+            - bus: virtio
+              name: tablet
+              type: tablet
+          interfaces:
+            - bridge: {}
+              model: virtio
+              name: nic-0
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel8.2.0
+        resources:
+          requests:
+            memory: 2Gi
+      evictionStrategy: LiveMigrate
+      hostname: cirrostest
+      networks:
+        - multus:
+            networkName: brext
+          name: nic-0
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - dataVolume:
+            name: cirros-rootdisk
+          name: rootdisk
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              name: default
+              hostname: cirrostest
+              runcmd:
+                - ip a add 10.20.0.50/24 dev eth0
+                - ip r add 0.0.0.0/0 10.20.0.1 dev eth0
+          name: cloudinitdisk
+status:
+  conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2020-10-16T00:09:26Z'
+      status: 'True'
+      type: Ready
+  created: true
+  ready: true
+~~~
 
+Now lets create the virtual machine:
 
-<img src="img/cnvnetwork1.png"/>
+~~~bash
+[lab-user@provision scripts]$ oc create -f ~/virtualmachine-cirros.yaml 
+virtualmachine.kubevirt.io/cirros created
+~~~
 
+If we run a oc get pods for the default namespace we will see an importer container.  Once it is running we can watch the logs:
 
-<img src="img/cnvnetwork2.png"/>
+~~~bash
+NAME                       READY   STATUS              RESTARTS   AGE
+importer-cirros-rootdisk   0/1     ContainerCreating   0          9s
+[lab-user@provision scripts]$ oc get pods
+NAME                       READY   STATUS    RESTARTS   AGE
+importer-cirros-rootdisk   1/1     Running   0          15s
+[lab-user@provision scripts]$ oc logs importer-cirros-rootdisk -f
+I1016 00:26:19.628409       1 importer.go:51] Starting importer
+I1016 00:26:19.629363       1 importer.go:112] begin import process
+E1016 00:26:20.098193       1 http-datasource.go:329] http: expected status code 200, got 403
+I1016 00:26:20.245269       1 data-processor.go:277] Calculating available size
+I1016 00:26:20.246168       1 data-processor.go:285] Checking out block volume size.
+I1016 00:26:20.246182       1 data-processor.go:297] Request image size not empty.
+I1016 00:26:20.246190       1 data-processor.go:302] Target size 5Gi.
+I1016 00:26:20.246277       1 util.go:37] deleting file: /scratch/lost+found
+I1016 00:26:20.276044       1 data-processor.go:206] New phase: TransferScratch
+I1016 00:26:20.276180       1 util.go:161] Writing data...
+I1016 00:26:20.671715       1 data-processor.go:206] New phase: Process
+I1016 00:26:20.671740       1 data-processor.go:206] New phase: Convert
+I1016 00:26:20.671745       1 data-processor.go:212] Validating image
+I1016 00:26:22.072371       1 data-processor.go:206] New phase: Resize
+I1016 00:26:22.073309       1 data-processor.go:206] New phase: Complete
+I1016 00:26:22.073367       1 util.go:37] deleting file: /scratch/tmpimage
+I1016 00:26:22.075290       1 importer.go:175] Import complete
+~~~
 
+The virtual machine has been created but not started.  Lets install virtctl before we proceed:
 
-<img src="img/cnvdisk1.png"/>
+~~~bash
+[lab-user@provision scripts]$ sudo dnf -y install kubevirt-virtctl
+Updating Subscription Management repositories.
+Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)                                                                                                                              6.7 kB/s | 2.4 kB     00:00    
+Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)                                                                                                                           7.7 kB/s | 2.8 kB     00:00    
+Red Hat OpenStack Platform 15 for RHEL 8 x86_64 (RPMs)                                                                                                                             6.8 kB/s | 2.4 kB     00:00    
+Red Hat OpenStack Platform 15 Tools for RHEL 8 x86_64 (RPMs)                                                                                                                       6.1 kB/s | 2.1 kB     00:00    
+Red Hat Ansible Engine 2 for RHEL 8 x86_64 (RPMs)                                                                                                                                  6.6 kB/s | 2.3 kB     00:00    
+Red Hat Container Native Virtualization 2.3 for RHEL 8 x86_64 (RPMs)                                                                                                               6.7 kB/s | 2.3 kB     00:00    
+Dependencies resolved.
+===================================================================================================================================================================================================================
+ Package                                           Architecture                            Version                                           Repository                                                       Size
+===================================================================================================================================================================================================================
+Installing:
+ kubevirt-virtctl                                  x86_64                                  0.26.1-15.el8                                     cnv-2.3-for-rhel-8-x86_64-rpms                                  8.1 M
 
+Transaction Summary
+===================================================================================================================================================================================================================
+Install  1 Package
 
-<img src="img/cnvdisk2.png"/>
+Total download size: 8.1 M
+Installed size: 40 M
+Downloading Packages:
+kubevirt-virtctl-0.26.1-15.el8.x86_64.rpm                                                                                                                                          9.9 MB/s | 8.1 MB     00:00    
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                                                              9.9 MB/s | 8.1 MB     00:00     
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                                                                                                           1/1 
+  Installing       : kubevirt-virtctl-0.26.1-15.el8.x86_64                                                                                                                                                     1/1 
+  Verifying        : kubevirt-virtctl-0.26.1-15.el8.x86_64                                                                                                                                                     1/1 
+Installed products updated.
 
+Installed:
+  kubevirt-virtctl-0.26.1-15.el8.x86_64                                                                                                                                                                            
 
-<img src="img/cnvkey.png"/>
+Complete!
+~~~
 
+Now we will use virtctl to start the virtual machine:
 
-<img src="img/cnvreview.png"/>
+~~~bash
+[lab-user@provision scripts]$ virtctl start cirros
+VM cirros was scheduled to start
+~~~
 
+Give the virtualmachine a few minutes to start up.  You can test if it is up by trying to hit the IP address of the host:
 
-<img src="img/cnvsuccess.png"/>
+~~~bash
+[lab-user@provision scripts]$ ping 10.20.0.50
+PING 10.20.0.50 (10.20.0.50) 56(84) bytes of data.
+64 bytes from 10.20.0.50: icmp_seq=1 ttl=64 time=1.43 ms
+64 bytes from 10.20.0.50: icmp_seq=2 ttl=64 time=0.797 ms
+64 bytes from 10.20.0.50: icmp_seq=3 ttl=64 time=0.195 ms
+64 bytes from 10.20.0.50: icmp_seq=4 ttl=64 time=0.179 ms
+^C
+--- 10.20.0.50 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 58ms
+rtt min/avg/max/mdev = 0.179/0.649/1.428/0.514 ms
+~~~
 
 
 
