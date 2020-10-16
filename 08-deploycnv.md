@@ -261,7 +261,31 @@ worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
 worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
 ~~~
 
-Once they have been successfully configured we can then add our network attachment definition which will allow our VMs to consume that bridge interface:
+If we ssh into one of the worker nodes we can see that indeed a brext interface has been created:
+~~~bash
+[lab-user@provision scripts]$ ssh core@worker-0.npxjr.dynamic.opentlc.com
+The authenticity of host 'worker-0.npxjr.dynamic.opentlc.com (10.20.0.200)' can't be established.
+ECDSA key fingerprint is SHA256:t2FyrDPH2fVqi0RQDV8p2zrhIY+zvITgysaNutHASHU.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'worker-0.npxjr.dynamic.opentlc.com' (ECDSA) to the list of known hosts.
+Red Hat Enterprise Linux CoreOS 45.82.202009181447-0
+  Part of OpenShift 4.5, RHCOS is a Kubernetes native operating system
+  managed by the Machine Config Operator (`clusteroperator/machine-config`).
+
+WARNING: Direct SSH access to machines is not recommended; instead,
+make configuration changes via `machineconfig` objects:
+  https://docs.openshift.com/container-platform/4.5/architecture/architecture-rhcos.html
+
+---
+Last login: Fri Oct 16 00:01:04 2020 from 10.20.0.2
+[core@worker-0 ~]$ ip a show brext
+46: brext: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8942 qdisc noqueue state UP group default qlen 1000
+    link/ether ba:dc:0f:fe:e0:50 brd ff:ff:ff:ff:ff:ff
+    inet 10.20.0.200/24 brd 10.20.0.255 scope global dynamic noprefixroute brext
+       valid_lft 43013sec preferred_lft 43013sec
+~~~
+
+Once the bridges have been successfully configured we can then add our network attachment definition which will allow our VMs to consume that bridge interface:
 
 ~~~bash
 [lab-user@provision ocp]$ cat << EOF | oc apply -f -
