@@ -147,13 +147,13 @@ There's also a few custom resources that get defined too, for example the `NodeN
 
 ```bash
 [lab-user@provision ~]$ oc get nns -A
-NAME       AGE
-master-0   5m39s
-master-1   5m46s
-master-2   6m3s
-worker-0   6m8s
-worker-1   6m10s
-worker-2   6m9s
+NAME                                 AGE
+master-0.nlm9j.dynamic.opentlc.com   117s
+master-1.nlm9j.dynamic.opentlc.com   2m
+master-2.nlm9j.dynamic.opentlc.com   2m8s
+worker-0.nlm9j.dynamic.opentlc.com   2m14s
+worker-1.nlm9j.dynamic.opentlc.com   2m11s
+worker-2.nlm9j.dynamic.opentlc.com   2m15s
 
 [lab-user@provision ~]$ oc get nns/worker-2.$GUID.dynamic.opentlc.com -o yaml
 apiVersion: nmstate.io/v1alpha1
