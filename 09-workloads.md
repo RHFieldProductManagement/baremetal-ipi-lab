@@ -667,5 +667,38 @@ Failed Units: 1
 [fedora@fedora32 ~]$ exit
 ~~~
 
+Now our external network in this lab is actually the provisioning network we created a bridge on so it really does not have full functional connectivity to the internet.  However we can add a few bits to confirm that indeed if our bridge was a truely routable network we would be able to access the internet.  To simulate this we need to add the following firewalld rule on the provisioning node:
+
+~~~bash
+[lab-user@provision ~]$ sudo firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -o baremetal -j MASQUERADE
+success
+~~~
+
+Then back on our fedora virtual machine we need to add the following default gateway which is the IP of the provisioning nodes interface:
+
+~~~bash
+[fedora@fedora32 ~]$ sudo route add default gw 172.22.0.1
+[fedora@fedora32 ~]$ ip route
+default via 172.22.0.1 dev eth0 
+172.22.0.0/24 dev eth0 proto kernel scope link src 172.22.0.29 metric 100
+~~~
+
+Now lets try to ping Google's nameserver:
+
+~~~bash
+[fedora@fedora32 ~]$ ping -c 4 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=116 time=2.81 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=116 time=1.89 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=116 time=2.16 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=116 time=1.91 ms
+
+--- 8.8.8.8 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 1.886/2.192/2.807/0.370 ms
+~~~
+
+As you can see we were able to access the outside world!
+
 
 **Success**, we're done! Congratulations... if you've made it this far you've deployed KNI from the ground up, deployed Ceph via Rook, Container Native Virtualisation (CNV), and tested the solution with pods and VM's via the CLI and the OpenShift dashboard! I'd like to ***thank you*** for attending this lab; I hope that it was a valuable use of your time and that your learnt a lot from doing it. Please do let us know if there's anything else we can do to support you! There's also a CNV-based lab here at Red Hat Tech Exchange if you're keen on exploring it further.
