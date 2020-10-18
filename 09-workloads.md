@@ -631,7 +631,7 @@ Now lets see if we got a 172.22.0.0/24 network address.  If you reference back t
 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 46:84:6a:fb:ed:ee brd ff:ff:ff:ff:ff:ff
     altname enp1s0
-    inet 172.22.0.10/24 brd 172.22.0.255 scope global dynamic noprefixroute eth0
+    inet 172.22.0.29/24 brd 172.22.0.255 scope global dynamic noprefixroute eth0
        valid_lft 3176sec preferred_lft 3176sec
     inet6 fe80::4484:6aff:fefb:edee/64 scope link 
        valid_lft forever preferred_lft forever
@@ -648,6 +648,24 @@ PING 172.22.0.1 (172.22.0.1) 56(84) bytes of data.
 ~~~
 
 Looks like we have successful external network connectivity!
+
+Now lets escape out of the console session and connect to the fedora instance via ssh from the provisioning host:
+
+~~~bash
+fedora32 login: [lab-user@provision ocp]$ ssh fedora@172.22.0.29
+The authenticity of host '172.22.0.29 (172.22.0.29)' can't be established.
+ECDSA key fingerprint is SHA256:KAqdT3NUhrat+tfEV8e9V/hvWL8v5CQVsbULKxCLZp8.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '172.22.0.29' (ECDSA) to the list of known hosts.
+fedora@172.22.0.29's password: 
+Last login: Sun Oct 18 15:31:04 2020
+[systemd]
+Failed Units: 1
+  dnf-makecache.service
+[fedora@fedora32 ~]$ 
+[fedora@fedora32 ~]$ 
+[fedora@fedora32 ~]$ exit
+~~~
 
 
 **Success**, we're done! Congratulations... if you've made it this far you've deployed KNI from the ground up, deployed Ceph via Rook, Container Native Virtualisation (CNV), and tested the solution with pods and VM's via the CLI and the OpenShift dashboard! I'd like to ***thank you*** for attending this lab; I hope that it was a valuable use of your time and that your learnt a lot from doing it. Please do let us know if there's anything else we can do to support you! There's also a CNV-based lab here at Red Hat Tech Exchange if you're keen on exploring it further.
