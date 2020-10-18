@@ -209,14 +209,14 @@ Here you can see the current state of the node (some of the output has been cut)
 apiVersion: nmstate.io/v1alpha1
 kind: NodeNetworkConfigurationPolicy
 metadata:
-  name: worker-brext-ens4
+  name: worker-brext-ens3
 spec:
   nodeSelector:
     node-role.kubernetes.io/worker: ""
   desiredState:
     interfaces:
       - name: brext
-        description: brext with ens4
+        description: brext with ens3
         type: linux-bridge
         state: up
         ipv4:
@@ -227,31 +227,31 @@ spec:
             stp:
               enabled: false
           port:
-            - name: ens4
+            - name: ens3
 EOF
 nodenetworkconfigurationpolicy.nmstate.io/worker-brext-ens4 created
 ```
 
-The above policy will attache a brext bridge to the external network interface ens4\. We can watch the progress by running the following:
+The above policy will attache a brext bridge to the external network interface ens3. We can watch the progress by running the following:
 
 ```bash
 [lab-user@provision ocp]$ oc get nnce
 NAME                                                   STATUS
-master-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
-master-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
-master-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
-worker-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
-worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
-worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   ConfigurationProgressing
+master-0.hhnfk.dynamic.opentlc.com.worker-brext-ens3   NodeSelectorNotMatching
+master-1.hhnfk.dynamic.opentlc.com.worker-brext-ens3   NodeSelectorNotMatching
+master-2.hhnfk.dynamic.opentlc.com.worker-brext-ens3   NodeSelectorNotMatching
+worker-0.hhnfk.dynamic.opentlc.com.worker-brext-ens3   ConfigurationProgressing
+worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens3   ConfigurationProgressing
+worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens3   ConfigurationProgressing
 
 [lab-user@provision ocp]$ oc get nnce
 NAME                                                   STATUS
-master-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
-master-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
-master-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   NodeSelectorNotMatching
-worker-0.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
-worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
-worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens4   SuccessfullyConfigured
+master-0.hhnfk.dynamic.opentlc.com.worker-brext-ens3   NodeSelectorNotMatching
+master-1.hhnfk.dynamic.opentlc.com.worker-brext-ens3   NodeSelectorNotMatching
+master-2.hhnfk.dynamic.opentlc.com.worker-brext-ens3   NodeSelectorNotMatching
+worker-0.hhnfk.dynamic.opentlc.com.worker-brext-ens3   SuccessfullyConfigured
+worker-1.hhnfk.dynamic.opentlc.com.worker-brext-ens3   SuccessfullyConfigured
+worker-2.hhnfk.dynamic.opentlc.com.worker-brext-ens3   SuccessfullyConfigured
 ```
 
 If we ssh into one of the worker nodes we can see that indeed a brext interface has been created:
