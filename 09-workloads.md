@@ -75,12 +75,12 @@ Now you should be able to open up the application in the same browser that you'r
 
 Now, if you can tear yourself away from the game, let's build a VM...
 
-## Deploying a Virtual Machine (STOP - Work in Progress!)
+## Deploying a Virtual Machine
 
 If you recall back in the previous deploy OpenShift virtualization lab we went ahead and installed the OpenShift virtualization operater and created a virtualization cluster.  Further we went ahead and configured an external bridge so that are virtual machines can be connected to the outside network.  Therefore we are now at the point where we can launch a virtual machine.  To do this we will use the following yaml file below.  Lets go ahead and create the file:
 
 ~~~bash
-[lab-user@provision scripts]$ cat << EOF > ~/virtualmachine-cirros.yaml
+[lab-user@provision scripts]$ cat << EOF > ~/virtualmachine-fedora.yaml
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
@@ -88,12 +88,12 @@ metadata:
     kubevirt.io/latest-observed-api-version: v1alpha3
     kubevirt.io/storage-observed-api-version: v1alpha3
     name.os.template.kubevirt.io/silverblue32: Fedora 31 or higher
-  selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachines/cirros
-  resourceVersion: '95007'
-  name: cirros
-  uid: 6cef319d-b301-4004-9369-004d8408c509
-  creationTimestamp: '2020-10-16T00:07:48Z'
-  generation: 6
+  selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachines/fedora
+  resourceVersion: '65643'
+  name: fedora
+  uid: 24c12216-ba66-49ec-beae-414ea4e7c06a
+  creationTimestamp: '2020-10-17T21:50:00Z'
+  generation: 4
   managedFields:
     - apiVersion: kubevirt.io/v1alpha3
       fieldsType: FieldsV1
@@ -106,22 +106,23 @@ metadata:
             'f:os.template.kubevirt.io/silverblue32': {}
             'f:vm.kubevirt.io/template.version': {}
             'f:vm.kubevirt.io/template.namespace': {}
+            'f:flavor.template.kubevirt.io/medium': {}
             'f:app': {}
             .: {}
             'f:workload.template.kubevirt.io/desktop': {}
             'f:vm.kubevirt.io/template.revision': {}
-            'f:flavor.template.kubevirt.io/small': {}
             'f:vm.kubevirt.io/template': {}
         'f:spec':
           .: {}
           'f:dataVolumeTemplates': {}
+          'f:running': {}
           'f:template':
             .: {}
             'f:metadata':
               .: {}
               'f:labels':
                 .: {}
-                'f:flavor.template.kubevirt.io/small': {}
+                'f:flavor.template.kubevirt.io/medium': {}
                 'f:kubevirt.io/domain': {}
                 'f:kubevirt.io/size': {}
                 'f:os.template.kubevirt.io/silverblue32': {}
@@ -159,7 +160,7 @@ metadata:
               'f:volumes': {}
       manager: Mozilla
       operation: Update
-      time: '2020-10-16T00:07:48Z'
+      time: '2020-10-17T21:50:00Z'
     - apiVersion: kubevirt.io/v1alpha3
       fieldsType: FieldsV1
       fieldsV1:
@@ -174,21 +175,13 @@ metadata:
           'f:ready': {}
       manager: virt-controller
       operation: Update
-      time: '2020-10-16T00:10:30Z'
-    - apiVersion: kubevirt.io/v1alpha3
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:spec':
-          'f:running': {}
-      manager: virt-api
-      operation: Update
-      time: '2020-10-16T00:13:04Z'
+      time: '2020-10-17T21:52:54Z'
   namespace: default
   labels:
-    app: cirros
-    flavor.template.kubevirt.io/small: 'true'
+    app: fedora
+    flavor.template.kubevirt.io/medium: 'true'
     os.template.kubevirt.io/silverblue32: 'true'
-    vm.kubevirt.io/template: fedora-desktop-small-v0.11.3
+    vm.kubevirt.io/template: fedora-desktop-medium-v0.11.3
     vm.kubevirt.io/template.namespace: openshift
     vm.kubevirt.io/template.revision: '1'
     vm.kubevirt.io/template.version: v0.11.3
@@ -199,31 +192,31 @@ spec:
       kind: DataVolume
       metadata:
         creationTimestamp: null
-        name: cirros-rootdisk
+        name: fedora-rootdisk
       spec:
         pvc:
           accessModes:
             - ReadWriteMany
           resources:
             requests:
-              storage: 5Gi
+              storage: 10Gi
           storageClassName: ocs-storagecluster-ceph-rbd
           volumeMode: Block
         source:
           http:
             url: >-
-              http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img
+              https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-32-1.6.x86_64.raw.xz
       status: {}
-  running: false
+  running: true
   template:
     metadata:
       creationTimestamp: null
       labels:
-        flavor.template.kubevirt.io/small: 'true'
-        kubevirt.io/domain: cirros
-        kubevirt.io/size: small
+        flavor.template.kubevirt.io/medium: 'true'
+        kubevirt.io/domain: fedora
+        kubevirt.io/size: medium
         os.template.kubevirt.io/silverblue32: 'true'
-        vm.kubevirt.io/name: cirros
+        vm.kubevirt.io/name: fedora
         workload.template.kubevirt.io/desktop: 'true'
     spec:
       domain:
@@ -255,9 +248,9 @@ spec:
           type: pc-q35-rhel8.2.0
         resources:
           requests:
-            memory: 2Gi
+            memory: 4Gi
       evictionStrategy: LiveMigrate
-      hostname: cirrostest
+      hostname: fedora32
       networks:
         - multus:
             networkName: brext
@@ -265,21 +258,20 @@ spec:
       terminationGracePeriodSeconds: 180
       volumes:
         - dataVolume:
-            name: cirros-rootdisk
+            name: fedora-rootdisk
           name: rootdisk
         - cloudInitNoCloud:
-            userData: |
+            userData: |-
               #cloud-config
               name: default
-              hostname: cirrostest
-              runcmd:
-                - ip a add 10.20.0.50/24 dev eth0
-                - ip r add 0.0.0.0/0 10.20.0.1 dev eth0
+              hostname: fedora32
+              password: redhat
+              chpasswd: {expire: False}
           name: cloudinitdisk
 status:
   conditions:
     - lastProbeTime: null
-      lastTransitionTime: '2020-10-16T00:09:26Z'
+      lastTransitionTime: '2020-10-17T21:52:54Z'
       status: 'True'
       type: Ready
   created: true
@@ -290,7 +282,7 @@ EOF
 Lets take a look at the file we just created:
 
 ~~~bash 
-[lab-user@provision scripts]$ cat ~/virtualmachine-cirros.yaml 
+[lab-user@provision scripts]$ cat ~/virtualmachine-fedora.yaml 
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
@@ -298,12 +290,12 @@ metadata:
     kubevirt.io/latest-observed-api-version: v1alpha3
     kubevirt.io/storage-observed-api-version: v1alpha3
     name.os.template.kubevirt.io/silverblue32: Fedora 31 or higher
-  selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachines/cirros
-  resourceVersion: '95007'
-  name: cirros
-  uid: 6cef319d-b301-4004-9369-004d8408c509
-  creationTimestamp: '2020-10-16T00:07:48Z'
-  generation: 6
+  selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachines/fedora
+  resourceVersion: '65643'
+  name: fedora
+  uid: 24c12216-ba66-49ec-beae-414ea4e7c06a
+  creationTimestamp: '2020-10-17T21:50:00Z'
+  generation: 4
   managedFields:
     - apiVersion: kubevirt.io/v1alpha3
       fieldsType: FieldsV1
@@ -316,22 +308,23 @@ metadata:
             'f:os.template.kubevirt.io/silverblue32': {}
             'f:vm.kubevirt.io/template.version': {}
             'f:vm.kubevirt.io/template.namespace': {}
+            'f:flavor.template.kubevirt.io/medium': {}
             'f:app': {}
             .: {}
             'f:workload.template.kubevirt.io/desktop': {}
             'f:vm.kubevirt.io/template.revision': {}
-            'f:flavor.template.kubevirt.io/small': {}
             'f:vm.kubevirt.io/template': {}
         'f:spec':
           .: {}
           'f:dataVolumeTemplates': {}
+          'f:running': {}
           'f:template':
             .: {}
             'f:metadata':
               .: {}
               'f:labels':
                 .: {}
-                'f:flavor.template.kubevirt.io/small': {}
+                'f:flavor.template.kubevirt.io/medium': {}
                 'f:kubevirt.io/domain': {}
                 'f:kubevirt.io/size': {}
                 'f:os.template.kubevirt.io/silverblue32': {}
@@ -369,7 +362,7 @@ metadata:
               'f:volumes': {}
       manager: Mozilla
       operation: Update
-      time: '2020-10-16T00:07:48Z'
+      time: '2020-10-17T21:50:00Z'
     - apiVersion: kubevirt.io/v1alpha3
       fieldsType: FieldsV1
       fieldsV1:
@@ -384,21 +377,13 @@ metadata:
           'f:ready': {}
       manager: virt-controller
       operation: Update
-      time: '2020-10-16T00:10:30Z'
-    - apiVersion: kubevirt.io/v1alpha3
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:spec':
-          'f:running': {}
-      manager: virt-api
-      operation: Update
-      time: '2020-10-16T00:13:04Z'
+      time: '2020-10-17T21:52:54Z'
   namespace: default
   labels:
-    app: cirros
-    flavor.template.kubevirt.io/small: 'true'
+    app: fedora
+    flavor.template.kubevirt.io/medium: 'true'
     os.template.kubevirt.io/silverblue32: 'true'
-    vm.kubevirt.io/template: fedora-desktop-small-v0.11.3
+    vm.kubevirt.io/template: fedora-desktop-medium-v0.11.3
     vm.kubevirt.io/template.namespace: openshift
     vm.kubevirt.io/template.revision: '1'
     vm.kubevirt.io/template.version: v0.11.3
@@ -409,31 +394,31 @@ spec:
       kind: DataVolume
       metadata:
         creationTimestamp: null
-        name: cirros-rootdisk
+        name: fedora-rootdisk
       spec:
         pvc:
           accessModes:
             - ReadWriteMany
           resources:
             requests:
-              storage: 5Gi
+              storage: 10Gi
           storageClassName: ocs-storagecluster-ceph-rbd
           volumeMode: Block
         source:
           http:
             url: >-
-              http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img
+              https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-32-1.6.x86_64.raw.xz
       status: {}
-  running: false
+  running: true
   template:
     metadata:
       creationTimestamp: null
       labels:
-        flavor.template.kubevirt.io/small: 'true'
-        kubevirt.io/domain: cirros
-        kubevirt.io/size: small
+        flavor.template.kubevirt.io/medium: 'true'
+        kubevirt.io/domain: fedora
+        kubevirt.io/size: medium
         os.template.kubevirt.io/silverblue32: 'true'
-        vm.kubevirt.io/name: cirros
+        vm.kubevirt.io/name: fedora
         workload.template.kubevirt.io/desktop: 'true'
     spec:
       domain:
@@ -465,9 +450,9 @@ spec:
           type: pc-q35-rhel8.2.0
         resources:
           requests:
-            memory: 2Gi
+            memory: 4Gi
       evictionStrategy: LiveMigrate
-      hostname: cirrostest
+      hostname: fedora32
       networks:
         - multus:
             networkName: brext
@@ -475,21 +460,20 @@ spec:
       terminationGracePeriodSeconds: 180
       volumes:
         - dataVolume:
-            name: cirros-rootdisk
+            name: fedora-rootdisk
           name: rootdisk
         - cloudInitNoCloud:
-            userData: |
+            userData: |-
               #cloud-config
               name: default
-              hostname: cirrostest
-              runcmd:
-                - ip a add 10.20.0.50/24 dev eth0
-                - ip r add 0.0.0.0/0 10.20.0.1 dev eth0
+              hostname: fedora32
+              password: redhat
+              chpasswd: {expire: False}
           name: cloudinitdisk
 status:
   conditions:
     - lastProbeTime: null
-      lastTransitionTime: '2020-10-16T00:09:26Z'
+      lastTransitionTime: '2020-10-17T21:52:54Z'
       status: 'True'
       type: Ready
   created: true
@@ -499,39 +483,56 @@ status:
 Now lets create the virtual machine:
 
 ~~~bash
-[lab-user@provision scripts]$ oc create -f ~/virtualmachine-cirros.yaml 
+[lab-user@provision scripts]$ oc create -f ~/virtualmachine-fedora.yaml 
 virtualmachine.kubevirt.io/cirros created
 ~~~
 
 If we run a oc get pods for the default namespace we will see an importer container.  Once it is running we can watch the logs:
 
 ~~~bash
-NAME                       READY   STATUS              RESTARTS   AGE
-importer-cirros-rootdisk   0/1     ContainerCreating   0          9s
-[lab-user@provision scripts]$ oc get pods
+[lab-user@provision ~]$ oc get pods
 NAME                       READY   STATUS    RESTARTS   AGE
-importer-cirros-rootdisk   1/1     Running   0          15s
-[lab-user@provision scripts]$ oc logs importer-cirros-rootdisk -f
-I1016 00:26:19.628409       1 importer.go:51] Starting importer
-I1016 00:26:19.629363       1 importer.go:112] begin import process
-E1016 00:26:20.098193       1 http-datasource.go:329] http: expected status code 200, got 403
-I1016 00:26:20.245269       1 data-processor.go:277] Calculating available size
-I1016 00:26:20.246168       1 data-processor.go:285] Checking out block volume size.
-I1016 00:26:20.246182       1 data-processor.go:297] Request image size not empty.
-I1016 00:26:20.246190       1 data-processor.go:302] Target size 5Gi.
-I1016 00:26:20.246277       1 util.go:37] deleting file: /scratch/lost+found
-I1016 00:26:20.276044       1 data-processor.go:206] New phase: TransferScratch
-I1016 00:26:20.276180       1 util.go:161] Writing data...
-I1016 00:26:20.671715       1 data-processor.go:206] New phase: Process
-I1016 00:26:20.671740       1 data-processor.go:206] New phase: Convert
-I1016 00:26:20.671745       1 data-processor.go:212] Validating image
-I1016 00:26:22.072371       1 data-processor.go:206] New phase: Resize
-I1016 00:26:22.073309       1 data-processor.go:206] New phase: Complete
-I1016 00:26:22.073367       1 util.go:37] deleting file: /scratch/tmpimage
-I1016 00:26:22.075290       1 importer.go:175] Import complete
+importer-fedora-rootdisk   0/1     Pending   0          2s
+[lab-user@provision ~]$ oc get pods
+NAME                       READY   STATUS    RESTARTS   AGE
+importer-fedora-rootdisk   1/1     Running   0          18s
 ~~~
 
-The virtual machine has been created but not started.  Lets install virtctl before we proceed:
+You can following the image importing process container which is pulling in the fedora image from the URL we had inside the virtualmachine-fedora.yaml file:
+
+~~~bash
+[lab-user@provision ~]$ oc logs importer-fedora-rootdisk -f
+I1018 10:14:55.118650       1 importer.go:51] Starting importer
+I1018 10:14:55.119845       1 importer.go:112] begin import process
+I1018 10:14:55.722075       1 data-processor.go:277] Calculating available size
+I1018 10:14:55.722969       1 data-processor.go:285] Checking out block volume size.
+I1018 10:14:55.722979       1 data-processor.go:297] Request image size not empty.
+I1018 10:14:55.722987       1 data-processor.go:302] Target size 10Gi.
+I1018 10:14:55.825077       1 data-processor.go:206] New phase: TransferDataFile
+I1018 10:14:55.826012       1 util.go:161] Writing data...
+I1018 10:14:56.825462       1 prometheus.go:69] 0.14
+I1018 10:14:57.825748       1 prometheus.go:69] 0.15
+I1018 10:14:58.826019       1 prometheus.go:69] 1.00
+I1018 10:14:59.826160       1 prometheus.go:69] 2.31
+I1018 10:15:00.826360       1 prometheus.go:69] 3.77
+I1018 10:15:01.826512       1 prometheus.go:69] 4.47
+I1018 10:15:02.826838       1 prometheus.go:69] 5.33
+I1018 10:15:03.827362       1 prometheus.go:69] 5.50
+I1018 10:15:04.827521       1 prometheus.go:69] 5.75
+I1018 10:15:05.827674       1 prometheus.go:69] 6.01
+I1018 10:15:06.827881       1 prometheus.go:69] 6.03
+I1018 10:15:07.828369       1 prometheus.go:69] 6.81
+I1018 10:15:08.828523       1 prometheus.go:69] 7.84
+I1018 10:15:09.828691       1 prometheus.go:69] 9.02
+(...)
+I1018 10:17:07.871219       1 prometheus.go:69] 100.00
+I1018 10:17:08.872312       1 prometheus.go:69] 100.00
+I1018 10:17:10.215935       1 data-processor.go:206] New phase: Resize
+I1018 10:17:10.217033       1 data-processor.go:206] New phase: Complete
+I1018 10:17:10.217151       1 importer.go:175] Import complete
+~~~
+
+Once the importer process has completed the virtual machine will then begin to startup and go to a running state.  Lets install virtctl before we proceed:
 
 ~~~bash
 [lab-user@provision scripts]$ sudo dnf -y install kubevirt-virtctl
@@ -575,28 +576,78 @@ Installed:
 Complete!
 ~~~
 
-Now we will use virtctl to start the virtual machine:
+We can use virtctl to interact with the virtual machine much in the was we use the virsh command:
 
 ~~~bash
-[lab-user@provision scripts]$ virtctl start cirros
-VM cirros was scheduled to start
+[lab-user@provision ~]$ virtctl -h
+virtctl controls virtual machine related operations on your kubernetes cluster.
+
+Available Commands:
+  console      Connect to a console of a virtual machine instance.
+  expose       Expose a virtual machine instance, virtual machine, or virtual machine instance replica set as a new service.
+  help         Help about any command
+  image-upload Upload a VM image to a DataVolume/PersistentVolumeClaim.
+  migrate      Migrate a virtual machine.
+  pause        Pause a virtual machine
+  restart      Restart a virtual machine.
+  start        Start a virtual machine.
+  stop         Stop a virtual machine.
+  unpause      Unpause a virtual machine
+  version      Print the client and server version information.
+  vnc          Open a vnc connection to a virtual machine instance.
+
+Use "virtctl <command> --help" for more information about a given command.
+Use "virtctl options" for a list of global command-line options (applies to all commands).
 ~~~
 
-Give the virtualmachine a few minutes to start up.  You can test if it is up by trying to hit the IP address of the host:
+Lets go ahead and see what the status of our virtual machine by connecting to the console (you may need to hit enter a couple of times):
 
 ~~~bash
-[lab-user@provision scripts]$ ping 10.20.0.50
-PING 10.20.0.50 (10.20.0.50) 56(84) bytes of data.
-64 bytes from 10.20.0.50: icmp_seq=1 ttl=64 time=1.43 ms
-64 bytes from 10.20.0.50: icmp_seq=2 ttl=64 time=0.797 ms
-64 bytes from 10.20.0.50: icmp_seq=3 ttl=64 time=0.195 ms
-64 bytes from 10.20.0.50: icmp_seq=4 ttl=64 time=0.179 ms
-^C
---- 10.20.0.50 ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 58ms
-rtt min/avg/max/mdev = 0.179/0.649/1.428/0.514 ms
+[lab-user@provision ~]$ virtctl console fedora
+Successfully connected to fedora console. The escape sequence is ^]
+
+fedora32 login: 
 ~~~
 
+As defined by the cloud-init information in our virtual machine yaml file we used the passwd should be set to redhat for the fedora user.  Lets login:
+
+~~~bash
+fedora32 login: fedora
+Password: 
+[fedora@fedora32 ~]$ cat /etc/fedora-release
+Fedora release 32 (Thirty Two)
+~~~
+
+Now lets see if we got a 172.22.0.0/24 network address.  If you reference back to the virtual machines yaml file you will notice we used the brext bridge interface as the interface our virtual machine should be connected to.  Thus we should have a 172.22.0.0/24 network address and access outside:
+
+~~~bash
+[fedora@fedora32 ~]$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 46:84:6a:fb:ed:ee brd ff:ff:ff:ff:ff:ff
+    altname enp1s0
+    inet 172.22.0.10/24 brd 172.22.0.255 scope global dynamic noprefixroute eth0
+       valid_lft 3176sec preferred_lft 3176sec
+    inet6 fe80::4484:6aff:fefb:edee/64 scope link 
+       valid_lft forever preferred_lft forever
+~~~
+
+Lets see if we can ping the gateway of 172.22.0.1:
+
+~~~bash
+[fedora@fedora32 ~]$ ping 172.22.0.1
+PING 172.22.0.1 (172.22.0.1) 56(84) bytes of data.
+64 bytes from 172.22.0.1: icmp_seq=1 ttl=64 time=1.63 ms
+64 bytes from 172.22.0.1: icmp_seq=2 ttl=64 time=0.800 ms
+64 bytes from 172.22.0.1: icmp_seq=3 ttl=64 time=0.848 ms
+~~~
+
+Looks like we have successful external network connectivity!
 
 
 **Success**, we're done! Congratulations... if you've made it this far you've deployed KNI from the ground up, deployed Ceph via Rook, Container Native Virtualisation (CNV), and tested the solution with pods and VM's via the CLI and the OpenShift dashboard! I'd like to ***thank you*** for attending this lab; I hope that it was a valuable use of your time and that your learnt a lot from doing it. Please do let us know if there's anything else we can do to support you! There's also a CNV-based lab here at Red Hat Tech Exchange if you're keen on exploring it further.
