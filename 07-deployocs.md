@@ -277,7 +277,7 @@ NAME         PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE   
 localblock   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  4m37s
 ~~~
 
-At this point in the lab we have now completed the prerequisits for OpenShift Container Storage.  We can now move onto actually installing the OCS operator.   To do that we will use Operator Hub inside of the OpenShift Console.  Navigate to Operators->OperatorHub and then search for OpenShift Container Storage: 
+At this point in the lab we have now completed the prerequisites for OpenShift Container Storage.  We can now move onto actually installing the OCS operator.   To do that we will use Operator Hub inside of the OpenShift Console.  Navigate to Operators->OperatorHub and then search for OpenShift Container Storage: 
 
 <img src="img/ocs-operator.png"/>
 
@@ -397,3 +397,5 @@ openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete    
 ~~~
 
 At this point you have finished the lab and should have a fully functional OpenShift Container Storage cluster to be consumed by applications.
+
+Now it's time to do some fun stuff with all this infrastrcture! [In the next lab you will get to deploy OpenShift Virtualization!](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/08-deploycnv.md)
