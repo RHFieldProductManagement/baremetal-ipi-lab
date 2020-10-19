@@ -4,7 +4,7 @@ This section of the lab will focus on installing and configuring OpenShift virtu
 
 The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.
 
-Next, navigate to the top-level '**Operators**' menu entry, and select '**OperatorHub**'. This lists all of the available operators that you can install from the Red Hat Marketplace. Simply start typing '**virtualization**' in the search box and you should see an entry called "Container-native virtualization". Simply select it and you'll see a window that looks like the following:
+Next, navigate to the top-level '**Operators**' menu entry, and select '**OperatorHub**'. This lists all of the available operators that you can install from the Red Hat Marketplace. Simply start typing '**virtualization**' in the search box and you should see an entry for "OpenShift Virtualization". Simply select it and you'll see a window that looks like the following:
 
 ![](img/ocp-virt-operator-install.png)
 
@@ -28,7 +28,7 @@ Whilst this does its thing, you can move to the '**Workloads**' --> '**Pods**' m
 
 ![](img/ocp-virt-hco-4.png)
 
-You can also return to the 'terminal' tab in your hosted lab guide and watch via the CLI:
+You can also watch via the CLI:
 
 ```bash
 [lab-user@provision ~]$ watch -n2 'oc get pods -n openshift-cnv'
@@ -94,7 +94,7 @@ virt-template-validator-5d9bbfbcc7-6v4qh              1/1     Running   0       
 
 This will continue for some time, depending on your environment.
 
-You will know the process is complete when you can return to the top terminal and see that the operator installation has been successful by running the following command:
+You will know the process is complete when you see in the CLI that the operator installation has been successful by running the following command and getting the "**Succeeded**" output:
 
 ```bash
 [lab-user@provision ~]$ oc get csv -n openshift-cnv
@@ -229,7 +229,7 @@ spec:
           port:
             - name: ens3
 EOF
-nodenetworkconfigurationpolicy.nmstate.io/worker-brext-ens4 created
+nodenetworkconfigurationpolicy.nmstate.io/worker-brext-ens3 created
 ```
 
 The above policy will attache a brext bridge to the external network interface ens3. We can watch the progress by running the following:
@@ -321,3 +321,5 @@ When OpenShift virtualisation is deployed it adds additional components to OpenS
 ![](img/ocpvirt-dashboard.png)
 
 > **NOTE**: Please don't try and create any virtual machines just yet, we'll get to that shortly!
+
+Ready to test out this cool new environment and deploy some VM workloads onto your new cluster? Well, that's just what we are going to do in the next lab: [Running Workloads in the Environment](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/09-workloads.md)!
