@@ -1,8 +1,15 @@
 # Add Additional Worker
 
-In this section we're going to demonstrate how to expand a baremetal IPI environment with an additional 3rd **worker** node, i.e. a node that will just run workloads, not cluster services. The eagle eyed amongst you may notice that we listed _"NUM\_WORKERS=2"_ in our initial configuration file, but we've actually got a spare unused "baremetal" host in the environment you're working in. We simply need to tell the baremetal operator about it, and get it to deploy RHCOS and OpenShift onto it.
+In this section we're going to demonstrate how to expand a baremetal IPI environment with an additional 3rd **worker** node, i.e. a node that will just run workloads, not cluster services. The eagle eyed amongst you may notice that we specified two worker nodes (via compute replicas) in our initial installation configuration file, but we've actually got a spare unused "baremetal" host in the environment you're working in. We simply need to tell the baremetal operator about it, and get it to deploy RHCOS and OpenShift onto it. For reference:
 
-We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully in this lab there is a handy way to achieve this.  First we need to obtain the IMPI port of the **worker-2** node by using the following one liner against the install-config.yaml we used to deploy the initial cluster:
+~~~bash
+[lab-user@provision ~]$ grep -A2 compute ~/scripts/install-config.yaml
+compute:
+- name: worker
+  replicas: 2
+~~~
+
+We need to supply a baremetal node defintion to the baremetal operator to do this, and thankfully in this lab there is a handy way to achieve this. First we need to obtain the IPMI port of the **worker-2** node by using the following one liner against the install-config.yaml we used to deploy the initial cluster:
 
 ~~~bash
 [lab-user@provision scripts]$ IPMI_PORT=$(for PORT in 6200 6201 6202 6203 6204 6205; do
@@ -13,7 +20,7 @@ done)
 6203
 ~~~
 
-Once we have the port number lets create the following baremetal node definition file.
+Once we have the port number lets create the following baremetal node definition file; this has been pre-populated for you based on the pre-configured worker node in your dedicated environment:
 
 ~~~bash
 [lab-user@provision scripts]$ cat << EOF > ~/bmh.yaml
@@ -130,7 +137,7 @@ NAME       STATUS   PROVISIONING STATUS   CONSUMER   BMC                     HAR
 worker-2   OK       ready                            ipmi://10.20.0.3:6203   openstack          true  
 ~~~
 
-For it to become managed by OpenShift as a `Machine` and for it to become a `Node`, so we can run applications on it, we need to scale the respective `MachineSet` up. This will kick off the process for deploying RHCOS, installing the OpenShift components, configuring the components to talk to our cluster, and ensuring everything is running properly. When the baremetal opertator is deployed, it creates a `MachineSet` for worker nodes automatically for us:
+At this stage, this third worker node is just a baremetal host, it is not ready for running workloads, nor will it show up as an OpenShift node. For it to become managed by OpenShift as a `Machine` and for it to become a `Node`, so we can run applications on it, we need to scale the respective `MachineSet` up. This will kick off the process for deploying RHCOS, installing the OpenShift components, configuring the components to talk to our cluster, and ensuring everything is running properly. When the baremetal opertator is deployed, it creates a `MachineSet` for worker nodes automatically for us:
 
 ~~~bash
 [lab-user@provision ~]$ oc -n openshift-machine-api get machineset
@@ -176,7 +183,7 @@ You should also notice that Ironic gives us an updated output to say that it's a
 +--------------------------------------+----------+--------------------------------------+-------------+--------------------+-------------+
 ~~~
 
-If you re-run an extended `watch` command you can keep track of the process across multiple components:
+If you re-run an extended `watch` command you can keep track of the process across multiple components (you may need to enlarge your terminal window to see all of this output cleanly):
 
 ~~~bash
 [lab-user@provision ~]$ watch -n10 "openstack baremetal node list && echo \
@@ -190,7 +197,7 @@ If you re-run an extended `watch` command you can keep track of the process acro
 
 > **NOTE**: This process should take around 10 minutes before the new "baremetal" machine shows up as a new node in the list. You may also want to enlarge your terminal window so everything displays clearly.
 
-Now let's verify the node status:
+Once this third node appears in the nodes window, Ctrl-C the watch command, and let's verify the node status:
 
 ~~~bash
 [lab-user@provision ~]$ oc get nodes
@@ -215,6 +222,5 @@ If you click on the **"worker-2"** element on the left hand side you should be a
 
 That's it! We've successfully scaled our "baremetal" cluster using the baremetal operator.
 
-Now that we have this worker, we can go ahead and use it. 
+Now that we have this worker, we can go ahead and use it. [Move on to the next lab to Deploy OpenShift Container Storage on to your cluster](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/07-deployocs.md).
 
-[Move on to the next lab to Deploy OpenShift Container Storage on to your cluster](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/07-deployocs.md)!

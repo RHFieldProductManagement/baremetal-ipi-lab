@@ -71,12 +71,8 @@ Here's an example:
 
 ~~~bash
 [bschmaus@bschmaus ~]$ ssh lab-user@provision.hhnfk.dynamic.opentlc.com
-The authenticity of host 'provision.hhnfk.dynamic.opentlc.com (150.239.28.71)' can't be established.
-ECDSA key fingerprint is SHA256:wJtlUptPHgzqQWLzk0oRLA5sLkKR4hQ1NYbcF6gC4RQ.
-ECDSA key fingerprint is MD5:03:14:41:53:46:6a:0c:8e:87:34:3a:65:58:91:17:20.
-Are you sure you want to continue connecting (yes/no)? yes
-Warning: Permanently added 'provision.hhnfk.dynamic.opentlc.com,150.239.28.71' (ECDSA) to the list of known hosts.
-lab-user@provision.hhnfk.dynamic.opentlc.com's password: 
+(...)
+lab-user@provision.hhnfk.dynamic.opentlc.com's password: (Redhat01)
 
 Activate the web console with: systemctl enable --now cockpit.socket
 
