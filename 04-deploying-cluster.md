@@ -190,13 +190,13 @@ total 116
 -rw-r-----. 1 lab-user users 3993 Oct 14 11:08 openshift-config-secret-pull-secret.yaml
 -rw-r-----. 1 lab-user users 2411 Oct 14 11:08 user-ca-bundle-config.yaml
 ~~~
- 
+
 ### Create the cluster
 
 We have now arrived at the point where we can run the `create cluster` argument for the install command to deploy our baremetal cluster.  This process will take about ~60-90 minutes to complete so have tmux running is you want to avoid network issues causing problems! :)
 
 > **REMINDER**: Don't forget to use tmux!
-  
+
 ~~~bash
 [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug create cluster
 DEBUG OpenShift Installer 4.5.12                    
@@ -318,66 +318,81 @@ INFO Cluster operator insights Disabled is False with :
 FATAL failed to initialize the cluster: Cluster operator console is reporting a failure: RouteHealthDegraded: failed to GET route (https://console-openshift-console.apps.vd44m.dynamic.opentlc.com/health): Get https://console-openshift-console.apps.vd44m.dynamic.opentlc.com/health: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
 ~~~
 
-You'll need to do a few extra things.
+...you will need to carry out a few additional tasks to help complete the installation:
 
-1. Check if the nodes are in a "Ready" state
+1. Check if the nodes are in a "**Ready**" state:
 
-~~~bash
-[lab-user@provision scripts]$ oc --kubeconfig $HOME/scripts/ocp/auth/kubeconfig get nodes
-NAME                                 STATUS   ROLES    AGE   VERSION
-master-0.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
-master-1.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
-master-2.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
-worker-0.vd44m.dynamic.opentlc.com   Ready    worker   40m   v1.18.3+47c0e71
-worker-1.vd44m.dynamic.opentlc.com   Ready    worker   39m   v1.18.3+47c0e71
-~~~
+   ~~~bash
+   [lab-user@provision scripts]$ oc --kubeconfig $HOME/scripts/ocp/auth/kubeconfig get nodes
+   NAME                                 STATUS   ROLES    AGE   VERSION
+   master-0.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
+   master-1.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
+   master-2.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
+   worker-0.vd44m.dynamic.opentlc.com   Ready    worker   40m   v1.18.3+47c0e71
+   worker-1.vd44m.dynamic.opentlc.com   Ready    worker   39m   v1.18.3+47c0e71
+   ~~~
 
-If any nodes report "NotReady" please run the specially prepared script at `/home/lab-user/scripts/fix-overlay.sh` on the provisioning host.
+   If any nodes report "**NotReady**" please run the specially prepared script at `/home/lab-user/scripts/fix-overlay.sh` on the provisioning host:
 
-If all are in a "Ready State" a shown above you do **not** need to run this script.
+   ~~~bash
+   [lab-user@provision scripts]$ sh $HOME/scripts/fix-overlay.sh
+   (no output)
+   ~~~
 
-2\. Rerun the installer with the `wait-for install-complete` options:
+   > **NOTE**: If all of the nodes are in a "Ready State" a shown above you do **not** need to run this script, but it won't harm if you have done so - it will noop if all of your nodes are "Ready".
 
-~~~bash
-[lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install --dir=ocp --log-level debug wait-for install-complete
-~~~
+2. Kill the CoreDNS pods (they'll be automatically respawned, but we've seen DNS errors cause deployment failures) in the `openshift-kni-infra` namespace:
 
-This will reconnect to the installation process and allow you to again see the progress:
+   ~~~bash
+   [lab-user@provision scripts]$ for i in $(oc get pods -A | awk '/coredns/ {print $2;}'); \
+       do oc delete pod $i -n openshift-kni-infra; done
+   
+   pod "coredns-master-0.xcs2v.dynamic.opentlc.com" deleted
+   pod "coredns-master-1.xcs2v.dynamic.opentlc.com" deleted
+   pod "coredns-master-2.xcs2v.dynamic.opentlc.com" deleted
+   pod "coredns-worker-0.xcs2v.dynamic.opentlc.com" deleted
+   pod "coredns-worker-1.xcs2v.dynamic.opentlc.com" deleted
+   ~~~
 
-~~~bash
-DEBUG OpenShift Installer 4.5.12
-DEBUG Built from commit 9893a482f310ee72089872f1a4caea3dbec34f28
-DEBUG Fetching Install Config...
-DEBUG Loading Install Config...
-DEBUG   Loading SSH Key...
-DEBUG   Loading Base Domain...
-DEBUG     Loading Platform...
-DEBUG   Loading Cluster Name...
-DEBUG     Loading Base Domain...
-DEBUG     Loading Platform...
-DEBUG   Loading Pull Secret...
-DEBUG   Loading Platform...
-DEBUG Using Install Config loaded from state file
-DEBUG Reusing previously-fetched Install Config
-INFO Waiting up to 1h0m0s for the cluster at https://api.vd44m.dynamic.opentlc.com:6443 to initialize...
-~~~
+3. Rerun the installer with the `wait-for install-complete` options:
 
-Eventually (likely not more than 15-20 minutes, **but please contact a lab support person if you have issues and/or questions**) you'll get the cluster success and connection details as shown above. You can then move on to the "Deployment Success" section!
+   ~~~bash
+   [lab-user@provision scripts]$ $HOME/scripts/openshift-baremetal-install \
+       --dir=/home/lab-user/scripts/ocp --log-level debug wait-for install-complete
+   ~~~
+
+   This will reconnect to the installation process and allow you to again see the progress:
+
+   ~~~bash
+   DEBUG OpenShift Installer 4.5.12
+   DEBUG Built from commit 9893a482f310ee72089872f1a4caea3dbec34f28
+   DEBUG Fetching Install Config...
+   DEBUG Loading Install Config...
+   DEBUG   Loading SSH Key...
+   DEBUG   Loading Base Domain...
+   DEBUG     Loading Platform...
+   DEBUG   Loading Cluster Name...
+   DEBUG     Loading Base Domain...
+   DEBUG     Loading Platform...
+   DEBUG   Loading Pull Secret...
+   DEBUG   Loading Platform...
+   DEBUG Using Install Config loaded from state file
+   DEBUG Reusing previously-fetched Install Config
+   INFO Waiting up to 1h0m0s for the cluster at https://api.vd44m.dynamic.opentlc.com:6443 to initialize...
+   ~~~
+
+   Eventually (likely not more than 15-20 minutes, **but please contact a lab support person if you have issues and/or questions**) you'll get the cluster success and connection details as shown above. You can then move on to the "Deployment Success" section!
 
 ### Deployment Success
 
-Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console. 
-
-Make sure to record those details somewhere convenient for later use. In the example above we seem them in these lines:
+Once the cluster has successfully deployed at the end of the logging you will be presented with cluster command line information and also the login for the OpenShift console. Make sure to record those details somewhere convenient for later use. In the example above we seem them in these lines:
 
 ~~~bash 
 INFO Access the OpenShift web-console here: https://console-openshift-console.apps.schmaustech.dynamic.opentlc.com 
 INFO Login to the console with user: "kubeadmin", and password: "5VGM2-uMov3-4N2Vi-n5i3H" 
 ~~~
 
-Where the console is **https://console-openshift-console.apps.schmaustech.dynamic.opentlc.com** and the user to login is **kubeadmin** and the password is **5VGM2-uMov3-4N2Vi-n5i3H** (Your's will be different than these course). 
-
-We can also interact with the cluster easily via the command line using the `oc` command. Before we run the `oc` commands we need to export the KUBECONFIG variable:
+Where the console is **https://console-openshift-console.apps.schmaustech.dynamic.opentlc.com** and the user to login is **kubeadmin** and the password is **5VGM2-uMov3-4N2Vi-n5i3H** (your's will be different than these of course). We can also interact with the cluster easily via the command line using the `oc` command. Before we run the `oc` commands we need to export the KUBECONFIG variable:
 
 ~~~bash
 [lab-user@provision ~]$ export KUBECONFIG=$HOME/scripts/ocp/auth/kubeconfig
@@ -388,11 +403,11 @@ Now we can validate and confirm we have a 3 master and 2 worker cluster instanti
 ~~~bash
 [lab-user@provision scripts]$ oc get nodes
 NAME                                 STATUS   ROLES    AGE   VERSION
-master-0.schmaustech.dynamic.opentlc.com   Ready    master   38m   v1.18.3+47c0e71
-master-1.schmaustech.dynamic.opentlc.com   Ready    master   37m   v1.18.3+47c0e71
-master-2.schmaustech.dynamic.opentlc.com   Ready    master   38m   v1.18.3+47c0e71
-worker-0.schmaustech.dynamic.opentlc.com   Ready    worker   13m   v1.18.3+47c0e71
-worker-1.schmaustech.dynamic.opentlc.com   Ready    worker   13m   v1.18.3+47c0e71
+master-0.xcs2v.dynamic.opentlc.com   Ready    master   79m   v1.18.3+47c0e71
+master-1.xcs2v.dynamic.opentlc.com   Ready    master   79m   v1.18.3+47c0e71
+master-2.xcs2v.dynamic.opentlc.com   Ready    master   79m   v1.18.3+47c0e71
+worker-0.xcs2v.dynamic.opentlc.com   Ready    worker   57m   v1.18.3+47c0e71
+worker-1.xcs2v.dynamic.opentlc.com   Ready    worker   58m   v1.18.3+47c0e71
 
 ~~~
 
@@ -461,6 +476,4 @@ node-ca-ktzl6                                      1/1     Running     0        
 node-ca-vmcq2                                      1/1     Running     0          18h
 ~~~
 
-At this point you are now ready to move onto the next lab where we will look at the Machine Config Operator (aka Baremetal Operator).
-
-[Continue to the Baremetal Operator lab!](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/05-baremetal.md)
+At this point you are now ready to move onto the next lab where we will look at the Machine Config Operator (aka Baremetal Operator). [Continue to the Baremetal Operator lab!](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/05-baremetal.md)
