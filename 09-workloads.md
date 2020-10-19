@@ -1,6 +1,6 @@
 # **Running Workloads in the Environment**
 
-Let's get into actually testing some workloads on our environment... we've spent all of this time building it up but we haven't even proven that it's working properly yet! In this section we're going to be deploying some pods as well as deploying a VM using OpenShift virtualization.
+Let's get into actually testing some workloads on our environment... we've spent all of this time building it up but we haven't even proven that it's working properly yet! In this section we're going to be deploying some pods as well as deploying a VM using OpenShift Virtualization.
 
 ## Deploying a Container
 
@@ -9,6 +9,7 @@ OK, so this is likely something that you've all done before, and it's hardly ver
 ~~~bash
 [lab-user@provision ~]$ oc project default
 Already on project "default" on server "https://api.schmaustech.dynamic.opentlc.com:6443".
+
 [lab-user@provision ~]$ oc new-app nodeshift/centos7-s2i-nodejs:12.x~https://github.com/vrutkovs/DuckHunt-JS
 --> Found container image 5b0b75b (11 months old) from Docker Hub for "nodeshift/centos7-s2i-nodejs:12.x"
 
@@ -49,6 +50,10 @@ Successfully pushed image-registry.openshift-image-registry.svc:5000/default/duc
 Push successful
 ~~~
 
+> **NOTE**: If you get an error that the pod is still initialising, keep trying after waiting a few seconds inbetween attempts.
+
+
+
 Now you can check if the Duckhunt pod has finished building and is running:
 
 ~~~bash
@@ -69,7 +74,7 @@ NAME          HOST/PORT                                                       PA
 duckhunt-js   duckhunt-js-default.apps.schmaustech.dynamic.opentlc.com          duckhunt-js   8080-tcp                 None
 ~~~
 
-Copy and paste the host address from above and into a browser and you should now be able to have a quick play with this ... good luck ;-
+Copy and paste the host address from above and into a browser and you should now be able to have a quick play with this... good luck ;-)
 
 <img src="img/duckhunt.png"/>
 
@@ -79,7 +84,7 @@ Now, if you can tear yourself away from the game, let's build a VM ...
 
 In the previous deploy OpenShift Virtualization lab we installed the OpenShift Virtualization operator and created a virtualization cluster.  We also configured an external bridge so that our virtual machines can be connected to the outside network.  
 
-We are now at the point where we can launch a virtual machine!  To do this we will use the following YAML file below.  Lets go ahead and create the file:
+We are now at the point where we can launch a virtual machine!  To do this we will use the following YAML file below, recalling that as with all things OpenShift, we can deploy virtual machines in the same way as we would standard containerised pods.  Lets go ahead and create the file:
 
 ~~~bash
 [lab-user@provision scripts]$ cat << EOF > ~/virtualmachine-fedora.yaml
@@ -297,7 +302,7 @@ We can tell OpenShift Virtualization to use some preset defaults, much like with
     workload.template.kubevirt.io/desktop: 'true'
 ~~~
 
-In this next section we are utilizing the storage environment we built in previous labs! In this case we are creating the root disk of our VM to be created as a PVC using our OpenShift Container Storage install. We do this by setting the **storageClassName** to **ocs-storagecluster-ceph-rbd** allowing us to access the Ceph install. We can even set the access mode to ReadWriteMany meaning this VM can be live migrated easily. Finally, we source URL to tell OpenShift Virtualization where to get an OS image to load into the PVC.
+In this next section we are utilizing the storage environment we built in previous labs! In this case we are creating the root disk of our VM to be created as a PVC using our OpenShift Container Storage install. We do this by setting the **storageClassName** to **ocs-storagecluster-ceph-rbd** allowing us to access the Ceph install. We can even set the access mode to ReadWriteMany meaning this VM can be live migrated easily. Finally, we source URL to tell OpenShift Virtualization where to get an OS image to load into the PVC:
 
 
 ~~~bash
@@ -332,7 +337,7 @@ The storage info about works with the snippet below. In that, we create a dataVo
           name: rootdisk
 ~~~
 
-Another neat thing we can do with OpenShift Virtualization is use cloud-config. Cloud-config allows us to set important funtionality into a metadata service that is read and actioned when the VM is first booted. In the case below, we are setting the new VMs hostname to **fedora32** and it's root password to **redhat**. 
+Another neat thing we can do with OpenShift Virtualization is use cloud-config. Cloud-config allows us to set important funtionality into a metadata service that is read and actioned when the VM is first booted. In the case below, we are setting the new VMs hostname to "**fedora32**" and it's root password to "**redhat**".
 
 ~~~bash
         - cloudInitNoCloud:
@@ -345,7 +350,7 @@ Another neat thing we can do with OpenShift Virtualization is use cloud-config. 
           name: cloudinitdisk
 ~~~
 
-Finally let's call out two snipped that set up our netwokring. In this first section we define the first (nic-0) interface on the machine. 
+Finally let's call out two snippets that set up our networking. In this first section we define the first (nic-0) interface on the machine:
 
 
 ~~~bash
@@ -355,7 +360,7 @@ Finally let's call out two snipped that set up our netwokring. In this first sec
               name: nic-0
 ~~~
 
-We are then able to use the the following section to instruct OpenShift to utilise its default Container Network Interface (CNI) network provider, multus, to connect that NIC into the **brext** bridge we created in the previous labs. This ensure the VM is exposed to the external network and not just the internal OpenStack SDN (like pods are).
+We are then able to use the the following section to instruct OpenShift to utilise its default Container Network Interface (CNI) network provider, **multus**, to connect that NIC into the **brext** bridge we created in the previous labs. This ensure the VM is exposed to the external network and not just the internal OpenStack SDN (like pods are).
 
 
 ~~~bash
@@ -383,7 +388,7 @@ NAME                       READY   STATUS    RESTARTS   AGE
 importer-fedora-rootdisk   1/1     Running   0          18s
 ~~~
 
-You can following the image importing process container which is pulling in the fedora image from the URL we had inside the virtualmachine-fedora.yaml file:
+You can following the image importing process container which is pulling in the fedora image from the URL we had inside the *virtualmachine-fedora.yaml* file:
 
 ~~~bash
 [lab-user@provision ~]$ oc logs importer-fedora-rootdisk -f
@@ -426,21 +431,11 @@ Error from server (BadRequest): container "importer" in pod "importer-fedora-roo
 
 You just ran the `oc logs` command before the container has started. Try it again and it should work.
 
-Once the importer process has completed the virtual machine will then begin to startup and go to a running state.  
-
-To interact with the VM from the CLI we can install a special tool provied with OpenShift Virtualiation called `virtctl`. This CLI is like `oc` or `kubectl` but for working with VMs!
-
-Let's install virtctl before we proceed:
+Once the importer process has completed the virtual machine will then begin to startup and go to a running state. To interact with the VM from the CLI we can install a special tool provied with OpenShift Virtualiation called `virtctl`. This CLI is like `oc` or `kubectl` but for working with VMs. Let's install virtctl before we proceed:
 
 ~~~bash
 [lab-user@provision scripts]$ sudo dnf -y install kubevirt-virtctl
-Updating Subscription Management repositories.
-Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)                                                                                                                              6.7 kB/s | 2.4 kB     00:00    
-Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)                                                                                                                           7.7 kB/s | 2.8 kB     00:00    
-Red Hat OpenStack Platform 15 for RHEL 8 x86_64 (RPMs)                                                                                                                             6.8 kB/s | 2.4 kB     00:00    
-Red Hat OpenStack Platform 15 Tools for RHEL 8 x86_64 (RPMs)                                                                                                                       6.1 kB/s | 2.1 kB     00:00    
-Red Hat Ansible Engine 2 for RHEL 8 x86_64 (RPMs)                                                                                                                                  6.6 kB/s | 2.3 kB     00:00    
-Red Hat Container Native Virtualization 2.3 for RHEL 8 x86_64 (RPMs)                                                                                                               6.7 kB/s | 2.3 kB     00:00    
+(...)                                                                                                           6.7 kB/s | 2.3 kB     00:00
 Dependencies resolved.
 ===================================================================================================================================================================================================================
  Package                                           Architecture                            Version                                           Repository                                                       Size
@@ -448,26 +443,7 @@ Dependencies resolved.
 Installing:
  kubevirt-virtctl                                  x86_64                                  0.26.1-15.el8                                     cnv-2.3-for-rhel-8-x86_64-rpms                                  8.1 M
 
-Transaction Summary
-===================================================================================================================================================================================================================
-Install  1 Package
-
-Total download size: 8.1 M
-Installed size: 40 M
-Downloading Packages:
-kubevirt-virtctl-0.26.1-15.el8.x86_64.rpm                                                                                                                                          9.9 MB/s | 8.1 MB     00:00    
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Total                                                                                                                                                                              9.9 MB/s | 8.1 MB     00:00     
-Running transaction check
-Transaction check succeeded.
-Running transaction test
-Transaction test succeeded.
-Running transaction
-  Preparing        :                                                                                                                                                                                           1/1 
-  Installing       : kubevirt-virtctl-0.26.1-15.el8.x86_64                                                                                                                                                     1/1 
-  Verifying        : kubevirt-virtctl-0.26.1-15.el8.x86_64                                                                                                                                                     1/1 
-Installed products updated.
-
+(...)
 Installed:
   kubevirt-virtctl-0.26.1-15.el8.x86_64                                                                                                                                                                            
 
@@ -599,10 +575,10 @@ rtt min/avg/max/mdev = 1.886/2.192/2.807/0.370 ms
 
 As you can see we were able to access the outside world!
 
-## Success!!
+Feel free to play around with the OpenShift Web Console and the Virtualization menu's - this was a quick play around with all of this, but should time allow, go ahead and see what you can do.
 
-Congratulations ... if you've made it this far you've deployed KNI from the ground up, deployed OpenShift Container Storageoc logs duckhunt-js-1-build -f, OpenShift Virtualisation, and tested the solution with pods and VM's via the CLI and the OpenShift dashboard! 
+## Success!
 
-We'd like to ***thank you*** for attending this lab and hope that it was a valuable use of your time and that you learnt a lot from doing it. 
+Congratulations ... if you've made it this far you've deployed KNI from the ground up, deployed OpenShift Container Storage, OpenShift Virtualization, and tested the solution with pods and VM's via the CLI and the OpenShift dashboard! We'd like to ***thank you*** for attending this lab and hope that it was a valuable use of your time and that you learnt a lot from doing it.
 
-Please do let us know if there's anything else we can do to support you by reaching out to us at [field-engagement@redhat.com](mailto:field-engagement@redhat.com)! 
+Please do let us know if there's anything else we can do to support you by reaching out to us at [field-engagement@redhat.com](mailto:field-engagement@redhat.com), and as always - pull requests are more than welcome to this repository ;-)
