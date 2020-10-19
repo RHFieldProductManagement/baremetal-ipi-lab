@@ -323,7 +323,7 @@ You'll need to do a few extra things.
 1. Check if the nodes are in a "Ready" state
 
 ~~~bash
-[lab-user@provision scripts]$ oc get nodes
+[lab-user@provision scripts]$ oc --kubeconfig $HOME/scripts/ocp/auth/kubeconfig get nodes
 NAME                                 STATUS   ROLES    AGE   VERSION
 master-0.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
 master-1.vd44m.dynamic.opentlc.com   Ready    master   81m   v1.18.3+47c0e71
