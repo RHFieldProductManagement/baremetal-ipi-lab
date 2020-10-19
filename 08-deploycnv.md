@@ -186,7 +186,7 @@ spec:
           port:
             - name: ens3
 EOF
-nodenetworkconfigurationpolicy.nmstate.io/worker-brext-ens4 created
+nodenetworkconfigurationpolicy.nmstate.io/worker-brext-ens3 created
 ```
 
 The above policy will attach the "brext" bridge to the external network interface **ens3**. We can watch the progress by requesting the **NodeNetworkConfigurationEnactment** (nnce) by running the following a few times:
