@@ -69,15 +69,17 @@ NAME          HOST/PORT                                                       PA
 duckhunt-js   duckhunt-js-default.apps.schmaustech.dynamic.opentlc.com          duckhunt-js   8080-tcp                 None
 ~~~
 
-Now you should be able to open up the application in the same browser that you're using for access to the OpenShift console. Copy and paste the host address from above and you should now be able to have a quick play with this... good luck ;-
+Copy and paste the host address from above and into a browser and you should now be able to have a quick play with this ... good luck ;-
 
 <img src="img/duckhunt.png"/>
 
-Now, if you can tear yourself away from the game, let's build a VM...
+Now, if you can tear yourself away from the game, let's build a VM ...
 
 ## Deploying a Virtual Machine
 
-If you recall back in the previous deploy OpenShift virtualization lab we went ahead and installed the OpenShift virtualization operater and created a virtualization cluster.  Further we went ahead and configured an external bridge so that are virtual machines can be connected to the outside network.  Therefore we are now at the point where we can launch a virtual machine.  To do this we will use the following yaml file below.  Lets go ahead and create the file:
+In the previous deploy OpenShift Virtualization lab we installed the OpenShift Virtualization operator and created a virtualization cluster.  We also configured an external bridge so that our virtual machines can be connected to the outside network.  
+
+We are now at the point where we can launch a virtual machine!  To do this we will use the following YAML file below.  Lets go ahead and create the file:
 
 ~~~bash
 [lab-user@provision scripts]$ cat << EOF > ~/virtualmachine-fedora.yaml
@@ -279,106 +281,11 @@ status:
 EOF
 ~~~
 
-Lets take a look at the file we just created:
+Let's take a look at some important parts of this file!
 
-~~~bash 
-[lab-user@provision scripts]$ cat ~/virtualmachine-fedora.yaml 
-apiVersion: kubevirt.io/v1alpha3
-kind: VirtualMachine
-metadata:
-  annotations:
-    kubevirt.io/latest-observed-api-version: v1alpha3
-    kubevirt.io/storage-observed-api-version: v1alpha3
-    name.os.template.kubevirt.io/silverblue32: Fedora 31 or higher
-  selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachines/fedora
-  resourceVersion: '65643'
-  name: fedora
-  uid: 24c12216-ba66-49ec-beae-414ea4e7c06a
-  creationTimestamp: '2020-10-17T21:50:00Z'
-  generation: 4
-  managedFields:
-    - apiVersion: kubevirt.io/v1alpha3
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            .: {}
-            'f:name.os.template.kubevirt.io/silverblue32': {}
-          'f:labels':
-            'f:os.template.kubevirt.io/silverblue32': {}
-            'f:vm.kubevirt.io/template.version': {}
-            'f:vm.kubevirt.io/template.namespace': {}
-            'f:flavor.template.kubevirt.io/medium': {}
-            'f:app': {}
-            .: {}
-            'f:workload.template.kubevirt.io/desktop': {}
-            'f:vm.kubevirt.io/template.revision': {}
-            'f:vm.kubevirt.io/template': {}
-        'f:spec':
-          .: {}
-          'f:dataVolumeTemplates': {}
-          'f:running': {}
-          'f:template':
-            .: {}
-            'f:metadata':
-              .: {}
-              'f:labels':
-                .: {}
-                'f:flavor.template.kubevirt.io/medium': {}
-                'f:kubevirt.io/domain': {}
-                'f:kubevirt.io/size': {}
-                'f:os.template.kubevirt.io/silverblue32': {}
-                'f:vm.kubevirt.io/name': {}
-                'f:workload.template.kubevirt.io/desktop': {}
-            'f:spec':
-              .: {}
-              'f:domain':
-                .: {}
-                'f:cpu':
-                  .: {}
-                  'f:cores': {}
-                  'f:sockets': {}
-                  'f:threads': {}
-                'f:devices':
-                  .: {}
-                  'f:autoattachPodInterface': {}
-                  'f:disks': {}
-                  'f:inputs': {}
-                  'f:interfaces': {}
-                  'f:networkInterfaceMultiqueue': {}
-                  'f:rng': {}
-                'f:machine':
-                  .: {}
-                  'f:type': {}
-                'f:resources':
-                  .: {}
-                  'f:requests':
-                    .: {}
-                    'f:memory': {}
-              'f:evictionStrategy': {}
-              'f:hostname': {}
-              'f:networks': {}
-              'f:terminationGracePeriodSeconds': {}
-              'f:volumes': {}
-      manager: Mozilla
-      operation: Update
-      time: '2020-10-17T21:50:00Z'
-    - apiVersion: kubevirt.io/v1alpha3
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            'f:kubevirt.io/latest-observed-api-version': {}
-            'f:kubevirt.io/storage-observed-api-version': {}
-        'f:status':
-          .: {}
-          'f:conditions': {}
-          'f:created': {}
-          'f:ready': {}
-      manager: virt-controller
-      operation: Update
-      time: '2020-10-17T21:52:54Z'
-  namespace: default
+We can tell OpenShift Virtualization to use some preset defaults, much like with Red Hat Virtualization. In the below section, among other things, we set a flavor of "medium" which provides some basic. pre-defined resource settings for things like CPU and memory, as well as the "workload" type to "desktop". This also prevides preset configuration to define resources suitable for a desktop machine as opposed to a server.
+
+~~~bash
   labels:
     app: fedora
     flavor.template.kubevirt.io/medium: 'true'
@@ -388,7 +295,12 @@ metadata:
     vm.kubevirt.io/template.revision: '1'
     vm.kubevirt.io/template.version: v0.11.3
     workload.template.kubevirt.io/desktop: 'true'
-spec:
+~~~
+
+In this next section we are utilizing the storage environment we built in previous labs! In this case we are creating the root disk of our VM to be created as a PVC using our OpenShift Container Storage install. We do this by setting the **storageClassName** to **ocs-storagecluster-ceph-rbd** allowing us to access the Ceph install. We can even set the access mode to ReadWriteMany meaning this VM can be live migrated easily. Finally, we source URL to tell OpenShift Virtualization where to get an OS image to load into the PVC.
+
+
+~~~bash
   dataVolumeTemplates:
     - apiVersion: cdi.kubevirt.io/v1alpha1
       kind: DataVolume
@@ -409,59 +321,20 @@ spec:
             url: >-
               https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-32-1.6.x86_64.raw.xz
       status: {}
-  running: true
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        flavor.template.kubevirt.io/medium: 'true'
-        kubevirt.io/domain: fedora
-        kubevirt.io/size: medium
-        os.template.kubevirt.io/silverblue32: 'true'
-        vm.kubevirt.io/name: fedora
-        workload.template.kubevirt.io/desktop: 'true'
-    spec:
-      domain:
-        cpu:
-          cores: 1
-          sockets: 1
-          threads: 1
-        devices:
-          autoattachPodInterface: false
-          disks:
-            - bootOrder: 1
-              disk:
-                bus: virtio
-              name: rootdisk
-            - disk:
-                bus: virtio
-              name: cloudinitdisk
-          inputs:
-            - bus: virtio
-              name: tablet
-              type: tablet
-          interfaces:
-            - bridge: {}
-              model: virtio
-              name: nic-0
-          networkInterfaceMultiqueue: true
-          rng: {}
-        machine:
-          type: pc-q35-rhel8.2.0
-        resources:
-          requests:
-            memory: 4Gi
-      evictionStrategy: LiveMigrate
-      hostname: fedora32
-      networks:
-        - multus:
-            networkName: brext
-          name: nic-0
-      terminationGracePeriodSeconds: 180
+~~~
+
+The storage info about works with the snippet below. In that, we create a dataVolume utilising the PVC containing the pre-loaded Operating System we download. When we boot the VM it will use that OS!
+
+~~~bash
       volumes:
         - dataVolume:
             name: fedora-rootdisk
           name: rootdisk
+~~~
+
+Another neat thing we can do with OpenShift Virtualization is use cloud-config. Cloud-config allows us to set important funtionality into a metadata service that is read and actioned when the VM is first booted. In the case below, we are setting the new VMs hostname to **fedora32** and it's root password to **redhat**. 
+
+~~~bash
         - cloudInitNoCloud:
             userData: |-
               #cloud-config
@@ -470,17 +343,29 @@ spec:
               password: redhat
               chpasswd: {expire: False}
           name: cloudinitdisk
-status:
-  conditions:
-    - lastProbeTime: null
-      lastTransitionTime: '2020-10-17T21:52:54Z'
-      status: 'True'
-      type: Ready
-  created: true
-  ready: true
 ~~~
 
-Now lets create the virtual machine:
+Finally let's call out two snipped that set up our netwokring. In this first section we define the first (nic-0) interface on the machine. 
+
+
+~~~bash
+          interfaces:
+            - bridge: {}
+              model: virtio
+              name: nic-0
+~~~
+
+We are then able to use the the following section to instruct OpenShift to utilise its default Container Network Interface (CNI) network provider, multus, to connect that NIC into the **brext** bridge we created in the previous labs. This ensure the VM is exposed to the external network and not just the internal OpenStack SDN (like pods are).
+
+
+~~~bash
+      networks:
+        - multus:
+            networkName: brext
+          name: nic-0
+~~~
+
+Now we can go ahead and create the virtual machine:
 
 ~~~bash
 [lab-user@provision scripts]$ oc create -f ~/virtualmachine-fedora.yaml 
@@ -532,7 +417,20 @@ I1018 10:17:10.217033       1 data-processor.go:206] New phase: Complete
 I1018 10:17:10.217151       1 importer.go:175] Import complete
 ~~~
 
-Once the importer process has completed the virtual machine will then begin to startup and go to a running state.  Lets install virtctl before we proceed:
+If you get an error such as: 
+
+~~~bash
+[lab-user@provision scripts]$ oc logs importer-fedora-rootdisk -f
+Error from server (BadRequest): container "importer" in pod "importer-fedora-rootdisk" is waiting to start: ContainerCreating
+~~~
+
+You just ran the `oc logs` command before the container has started. Try it again and it should work.
+
+Once the importer process has completed the virtual machine will then begin to startup and go to a running state.  
+
+To interact with the VM from the CLI we can install a special tool provied with OpenShift Virtualiation called `virtctl`. This CLI is like `oc` or `kubectl` but for working with VMs!
+
+Let's install virtctl before we proceed:
 
 ~~~bash
 [lab-user@provision scripts]$ sudo dnf -y install kubevirt-virtctl
@@ -576,7 +474,7 @@ Installed:
 Complete!
 ~~~
 
-We can use virtctl to interact with the virtual machine much in the was we use the virsh command:
+Now use `virtctl` to interact with the virtual machine:
 
 ~~~bash
 [lab-user@provision ~]$ virtctl -h
@@ -600,7 +498,7 @@ Use "virtctl <command> --help" for more information about a given command.
 Use "virtctl options" for a list of global command-line options (applies to all commands).
 ~~~
 
-Lets go ahead and see what the status of our virtual machine by connecting to the console (you may need to hit enter a couple of times):
+Let's go ahead and see what the status of our virtual machine by connecting to the console (you may need to hit enter a couple of times):
 
 ~~~bash
 [lab-user@provision ~]$ virtctl console fedora
@@ -609,7 +507,7 @@ Successfully connected to fedora console. The escape sequence is ^]
 fedora32 login: 
 ~~~
 
-As defined by the cloud-init information in our virtual machine yaml file we used the passwd should be set to redhat for the fedora user.  Lets login:
+As defined by the cloud-config information in our virtual machine YAML file we used the password should be set to **redhat** for the **fedora** user.  Lets login:
 
 ~~~bash
 fedora32 login: fedora
@@ -618,7 +516,7 @@ Password:
 Fedora release 32 (Thirty Two)
 ~~~
 
-Now lets see if we got a 172.22.0.0/24 network address.  If you reference back to the virtual machines yaml file you will notice we used the brext bridge interface as the interface our virtual machine should be connected to.  Thus we should have a 172.22.0.0/24 network address and access outside:
+Now lets see if we got a 172.22.0.0/24 network address.  If you reference back to the virtual machines YAML file you will notice we used the brext bridge interface as the interface our virtual machine should be connected to.  Thus we should have a 172.22.0.0/24 network address and access outside:
 
 ~~~bash
 [fedora@fedora32 ~]$ ip a
@@ -649,7 +547,7 @@ PING 172.22.0.1 (172.22.0.1) 56(84) bytes of data.
 
 Looks like we have successful external network connectivity!
 
-Now lets escape out of the console session and connect to the fedora instance via ssh from the provisioning host:
+Now lets escape (using `ctrl-]`) out of the console session and connect to the fedora instance via ssh from the provisioning host:
 
 ~~~bash
 fedora32 login: [lab-user@provision ocp]$ ssh fedora@172.22.0.29
@@ -677,6 +575,7 @@ success
 Then back on our fedora virtual machine we need to add the following default gateway which is the IP of the provisioning nodes interface:
 
 ~~~bash
+[lab-user@provision scripts]$ ssh fedora@172.22.0.29
 [fedora@fedora32 ~]$ sudo route add default gw 172.22.0.1
 [fedora@fedora32 ~]$ ip route
 default via 172.22.0.1 dev eth0 
@@ -700,5 +599,10 @@ rtt min/avg/max/mdev = 1.886/2.192/2.807/0.370 ms
 
 As you can see we were able to access the outside world!
 
+## Success!!
 
-**Success**, we're done! Congratulations... if you've made it this far you've deployed KNI from the ground up, deployed Ceph via Rook, Container Native Virtualisation (CNV), and tested the solution with pods and VM's via the CLI and the OpenShift dashboard! I'd like to ***thank you*** for attending this lab; I hope that it was a valuable use of your time and that your learnt a lot from doing it. Please do let us know if there's anything else we can do to support you! There's also a CNV-based lab here at Red Hat Tech Exchange if you're keen on exploring it further.
+Congratulations ... if you've made it this far you've deployed KNI from the ground up, deployed OpenShift Container Storageoc logs duckhunt-js-1-build -f, OpenShift Virtualisation, and tested the solution with pods and VM's via the CLI and the OpenShift dashboard! 
+
+We'd like to ***thank you*** for attending this lab and hope that it was a valuable use of your time and that you learnt a lot from doing it. 
+
+Please do let us know if there's anything else we can do to support you by reaching out to us at [field-engagement@redhat.com](mailto:field-engagement@redhat.com)! 
