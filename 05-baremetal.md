@@ -11,7 +11,7 @@ machine-api-operator-7744b46cbc-xchnc          2/2     Running   1          42h
 metal3-7c494cd968-xlgmk                        8/8     Running   20         42h
 ~~~
 
-Here, the metal3 pod is the pod we're interested in - it's where we house all of the relevant containers, including the baremetal-operator itself:
+Here, the **metal3** pod is the pod we're interested in - it's where we house all of the relevant containers, including the baremetal-operator itself:
 
 ~~~bash
 [lab-user@provision ~]$ oc describe pod metal3-85898fbcd6-bjl69 -n openshift-machine-api
@@ -30,7 +30,11 @@ worker-0   OK       provisioned              schmaustech-worker-0-vlvbf   ipmi:/
 worker-1   OK       provisioned              schmaustech-worker-0-rhsz4   ipmi://10.20.0.3:6203   openstack          true     
 ~~~
 
-You'll also see that in OpenStack Ironic the nodes are in an '**active**' state, not allowing them to progress:
+> **NOTE**: You'll note that the hardware profile for these nodes is listed as "openstack", this is because we're running all of this infrastructure on-top of an OpenStack cluster itself for the purposes of scaling for Red Hat Tech Ready.
+
+
+
+You'll also see that we can interrogate OpenStack Ironic (that resides in the Metal3 pods, running on our OpenShift controller, managing our "baremetal" infrastructure) the nodes are in an '**active**', and '**power on**' state:
 
 ~~~bash
 [lab-user@provision ~]$ export OS_TOKEN=fake-token
@@ -49,7 +53,7 @@ You'll also see that in OpenStack Ironic the nodes are in an '**active**' state,
 
 > **NOTE**: You'll also notice that the IP address for Ironic has changed, it's now *172.22.0.3*, whereas when we were deploying it was *172.22.0.2*, only because it's now running on the cluster, no longer on the (long-since-deleted) bootstrap VM.
 
-Great! All looks good with the baremetal nodes!
+
 
 Now that we have our baremetal hosts registered with the baremetal operator, we can explore how OpenShift knows which `Node` is which. Every computer within a Kubernetes environment is considered a `Node`, but with OpenShift 4.x the cluster is more aware of the underlying infrastructure, so it can make adjustments such as scaling the cluster, adding new nodes, and deleting them. OpenShift utilises the concept of `Machines` and `MachineSets` to help it understand the different types of underlying infrastructure, including public cloud platforms like AWS. A `Machine` is a fundamental unit that describes the host for a `Node`.
 
@@ -58,13 +62,14 @@ When we registered our baremetal hosts we created corresponding `Machine` object
 ~~~bash
 [lab-user@provision ~]$ oc get baremetalhosts -n openshift-machine-api \
 	-o=custom-columns=NAME:.metadata.name,CONSUMER:.spec.consumerRef.name
+
 NAME       CONSUMER
 master-0   schmaustech-master-0
 master-1   schmaustech-master-1
 master-2   schmaustech-master-2
 worker-0   schmaustech-worker-0-vlvbf
 worker-1   schmaustech-worker-0-rhsz4
-~~~ 
+~~~
 
 However, all of the `Nodes`, i.e. the OpenShift/Kubernetes nodes that are our masters, are currently linked to their corresponding `Machine`. You can verify this in the UI too - if you open up your OpenShift console using the URL, username, and password details you saved in the last lab, and scroll down to '**Compute**' on the left hand side and select '**Nodes**', you'll notice that each of the nodes have a corresponding `Machine` reference:
 
@@ -177,7 +182,7 @@ status:
 
 ~~~
 
-You can also see this represented in the OpenShift console. Open up your web browser again and navigate to '**Compute**' --> '**Machines**' (see the '**Node**' references), you'll need to make sure that you either select '**all-projects**' or '**openshift-machine-api**' in the Project drop down:
+You can also see this represented in the OpenShift console. Open up your web browser again and navigate to '**Compute**' --> '**Machines**' (see the '**Node**' references), you'll need to make sure that you either select '**all-projects**' or '**openshift-machine-api**' in the Project drop down at the top:
 
 <img src="img/console-machines.png"/>
 
@@ -185,7 +190,5 @@ Also take a look at '**Compute**' --> '**Bare Metal Hosts**':
 
 <img src="img/console-baremetal.png"/>
 
-Notice the range of details available including IPMI details!
-
-Let's move on and invesitgate [adding an additional worker in the next lab](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/06-addworker.md)!
+Notice the range of details available including IPMI details; you can click through the nodes and see the data that is being collected along with the state of the machines being represented in OpenShift. Let's move on and invesitgate [adding an additional worker in the next lab](https://github.com/RHFieldProductManagement/baremetal-ipi-lab/blob/master/06-addworker.md).
 
