@@ -344,8 +344,8 @@ FATAL failed to initialize the cluster: Cluster operator console is reporting a 
 2. Kill the CoreDNS pods (they'll be automatically respawned, but we've seen DNS errors cause deployment failures) in the `openshift-kni-infra` namespace:
 
    ~~~bash
-   [lab-user@provision scripts]$ for i in $(oc get pods -A | awk '/coredns/ {print $2;}'); \
-       do oc delete pod $i -n openshift-kni-infra; done
+   [lab-user@provision scripts]$ for i in $(oc --kubeconfig $HOME/scripts/ocp/auth/kubeconfig get pods -A | awk '/coredns/ {print $2;}'); \
+       do oc --kubeconfig $HOME/scripts/ocp/auth/kubeconfig delete pod $i -n openshift-kni-infra; done
    
    pod "coredns-master-0.xcs2v.dynamic.opentlc.com" deleted
    pod "coredns-master-1.xcs2v.dynamic.opentlc.com" deleted
