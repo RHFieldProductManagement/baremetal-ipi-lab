@@ -374,7 +374,7 @@ Now we can go ahead and create the virtual machine:
 
 ~~~bash
 [lab-user@provision scripts]$ oc create -f ~/virtualmachine-fedora.yaml 
-virtualmachine.kubevirt.io/cirros created
+virtualmachine.kubevirt.io/fedora created
 ~~~
 
 If we run a oc get pods for the default namespace we will see an importer container.  Once it is running we can watch the logs:
