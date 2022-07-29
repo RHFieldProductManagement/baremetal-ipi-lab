@@ -165,7 +165,7 @@ Now that our registry pod is up and we have validated that it's working it's tim
 ```bash
 [lab-user@provision scripts]$ export IRONIC_DATA_DIR=/nfs/ocp/ironic
 [lab-user@provision scripts]$ export IRONIC_IMAGES_DIR="${IRONIC_DATA_DIR}/html/images"
-[lab-user@provision scripts]$ export IRONIC_IMAGE=quay.io/metal3-io/ironic:master
+[lab-user@provision scripts]$ export IRONIC_IMAGE=quay.io/metal3-io/ironic:main
 [lab-user@provision scripts]$ sudo mkdir -p $IRONIC_IMAGES_DIR
 [lab-user@provision scripts]$ sudo chown -R "${USER}:users" "$IRONIC_DATA_DIR"
 [lab-user@provision scripts]$ sudo find $IRONIC_DATA_DIR -type d -print0 | xargs -0 chmod 755
@@ -185,16 +185,16 @@ And now run the pod:
 [lab-user@provision scripts]$ sudo podman run -d --net host --privileged --name httpd --pod ironic-pod \
     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
 
-Trying to pull quay.io/metal3-io/ironic:master...
+Trying to pull quay.io/metal3-io/ironic:main...
 Getting image source signatures
-Copying blob 3c72a8ed6814 done
-Copying blob dedbfd2c2275 done
+Copying blob fda517edff60 done
+Copying blob 91d541bc1e62 done
 (...)
-Copying blob db435f5910cb done
-Copying config 3733498f02 done
+Copying blob 96a152c6f805 done
+Copying config c33b5cbbe1 done
 Writing manifest to image destination
 Storing signatures
-f069949f68fa147206d154417a22c20c49983f0c5b79e9c06d56750e9d3f470d
+c64244a1837ba523e99a3061f37665be504c41580247dbd5ac77029b0dd7969a
 ```
 
 Because we ran the **create** command and then a **run** command after it there is no need to actually use podman to start the httpd pod. We can see that it is running by looking at the running pods on the provisioning node:
@@ -202,7 +202,7 @@ Because we ran the **create** command and then a **run** command after it there 
 ```bash
 [lab-user@provision scripts]$ sudo podman ps
 CONTAINER ID  IMAGE                            COMMAND               CREATED         STATUS             PORTS  NAMES
-f069949f68fa  quay.io/metal3-io/ironic:master                        8 seconds ago   Up 7 seconds ago          httpd
+f069949f68fa  quay.io/metal3-io/ironic:main                          8 seconds ago   Up 7 seconds ago          httpd
 be06131e5dc4  docker.io/library/registry:2     /etc/docker/regis...  22 minutes ago  Up 20 minutes ago         poc-registry
 ```
 
